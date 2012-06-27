@@ -1,0 +1,175 @@
+[
+
+{
+    "from": "",
+    "to": "../../"
+}, 
+{
+  "from": "/desk_drawer/*",
+  "to": "_update/name/*",
+  "method": "POST"
+},
+
+
+
+{
+  "from": "/work_times",
+  "to": "_list/list_docs/work_time",
+  "method": "GET",
+  "query": {
+    "include_docs": "true",
+    "reduce": "false"
+  }
+},
+{
+  "from": "/work_times",
+  "to": "../../*",
+  "method": "POST"
+},
+{
+  "from": "/work_times/*",
+  "to": "../../*"
+},
+
+
+
+{
+  "from": "/clients",
+  "to": "_list/list_docs/client",
+  "method": "GET",
+  "query": {
+    "include_docs": "true"
+  }
+},
+{
+  "from": "/clients",
+  "to": "../../*",
+  "method": "POST"
+},
+{
+  "from": "/clients/*",
+  "to": "../../*"
+},
+
+
+
+{
+  "from": "/dns",
+  "to": "_list/list_docs/dns",
+  "method": "GET",
+  "query": {
+    "include_docs": "true"
+  }
+},
+{
+  "from": "/dns",
+  "to": "../../*",
+  "method": "POST"
+},
+{
+  "from": "/dns/*",
+  "to": "../../*"
+},
+
+
+
+{
+  "from": "/projects",
+  "to": "_list/list_docs/project",
+  "method": "GET",
+  "query": {
+    "include_docs": "true"
+  }
+},
+{
+  "from": "/projects",
+  "to": "../../*",
+  "method": "POST"
+},
+{
+  "from": "/projects/*",
+  "to": "../../*",
+  "query": {
+    "include_docs": "true"
+  }
+},
+
+
+
+{
+  "from": "/templates",
+  "to": "_list/list_docs/template",
+  "method": "GET",
+  "query": {
+    "include_docs": "true"
+  }
+},
+{
+  "from": "/templates",
+  "to": "../../*",
+  "method": "POST"
+},
+{
+  "from": "/templates/*",
+  "to": "../../*",
+  "query": {
+    "include_docs": "true"
+  }
+},
+
+
+
+
+{
+  "from": "/queues",
+  "to": "_list/list_docs/queue",
+  "method": "GET",
+  "query": {
+    "include_docs": "true"
+  }
+},
+{
+  "from": "/queues",
+  "to": "../../*",
+  "method": "POST"
+},
+{
+  "from": "/queues/*",
+  "to": "../../*",
+  "query": {
+    "include_docs": "true"
+  }
+},
+
+{
+  "from": "/workers",
+  "to": "_list/list_docs/worker",
+  "method": "GET",
+  "query": {
+    "include_docs": "true"
+  }
+},
+{
+  "from": "/workers",
+  "to": "../../*",
+  "method": "POST"
+},
+{
+  "from": "/workers/*",
+  "to": "../../*",
+  "query": {
+    "include_docs": "true"
+  }
+},
+
+
+
+{
+  "from": "/show/*",
+  "to": "_show/showjson/*",
+  "method": "GET"
+}
+
+
+
+]
