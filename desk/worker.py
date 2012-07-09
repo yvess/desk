@@ -12,10 +12,10 @@ import os
 from couchdbkit import Server
 from couchdbkit.changes import ChangesStream
 #import desk.plugin
-sys.path.append('/mnt/hgfs')
+sys.path.append("/home/yserrano/code/cappuccino/desk")
+from desk.plugin import dns
 
-
-s = Server(uri="http://qs:5984")
+s = Server(uri="http://dev1.taywa.net:5984")
 desk_drawer = s['desk_drawer']
 
 #settings = desk_drawer.get("worker-settings")
@@ -38,15 +38,13 @@ with ChangesStream(desk_drawer, feed="continuous", heartbeat=True, filter="desk_
                     if 'server_type' in service_settings and 'master' in service_settings['server_type'] or not 'server_type' in service_settings:
                         print doc['type'], service_settings['backend']
                         ServiceClass = None
-                        print  doc['type'], service_settings['backend']
-                        import desk.plugin
-                        print getattr(desk.plugin, 'dns')
-                        #print "desk.plugin", desk.plugin
-                        #getattr(desk.plugin, doc['type'])
-                        #try:
-                        #    ServiceClass = getattr(getattr(desk.plugin, doc['type']), service_settings['backend'])
-                        #except AttributeError:
-                        #    print "not found"
-                        #if ServiceClass:
-                        #    service = ServiceClass(doc)
-                        #    service.update()
+                        doc_type = doc['type']
+                        backend = service_settings['backend']
+                        try:
+                            ServiceClass = getattr(getattr(globals()[doc_type], backend), backend.title())
+                        except AttributeError:
+                            print "not found"
+                        if ServiceClass:
+                            print type(ServiceClass), ServiceClass
+                            service = ServiceClass(doc)
+                            service.update()

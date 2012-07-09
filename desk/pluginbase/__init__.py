@@ -1,1 +1,0 @@
-from desk.pluginbase.dns import powerdns
