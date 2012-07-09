@@ -8,8 +8,9 @@
 
     /* custom ivars */
     CPString date     @accessors();
-	CPString user     @accessors();
-	CPString sender   @accessors();
+    CPString user     @accessors();
+    CPString sender   @accessors();
+    CPString state    @accessors();	
 }
 
 - (CPString)nameIdentifierString

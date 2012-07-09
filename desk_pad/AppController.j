@@ -67,6 +67,7 @@
     [queue setDate:[CPString stringWithFormat:@"%@", [[CPDate date] description]]]; // [CPDate date]
     [queue setCoId:[DMQueue couchId:queue]];
     [queue setSender:@"pad"];
+    [queue setState:@"new"];
     [queue save];
 }
 
