@@ -1083,7 +1083,7 @@
 				<bool key="NSAnimates">YES</bool>
 			</object>
 			<object class="WebView" id="538584288">
-				<reference key="NSNextResponder"/>
+				<nil key="NSNextResponder"/>
 				<int key="NSvFlags">256</int>
 				<object class="NSMutableSet" key="NSDragTypes">
 					<bool key="EncodedWithXMLCoder">YES</bool>
@@ -1107,8 +1107,6 @@
 					</object>
 				</object>
 				<string key="NSFrameSize">{500, 360}</string>
-				<reference key="NSSuperview"/>
-				<reference key="NSWindow"/>
 				<reference key="NSNextKeyView"/>
 				<string key="NSReuseIdentifierKey">_NS:51</string>
 				<string key="FrameName"/>

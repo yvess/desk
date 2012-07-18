@@ -5,3 +5,5 @@ desk_pad/Frameworks/*
 desk_pad/COViewController.j
 desk_drawer/.couchapprc
 desk_drawer/.couchappignore
+desk/.codeintel
+*.sublime-workspace

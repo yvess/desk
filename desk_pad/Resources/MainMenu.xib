@@ -59,7 +59,6 @@
 							<string key="NSFrame">{{-4, -4}, {808, 556}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<reference key="NSWindow"/>
-							<reference key="NSNextKeyView" ref="128646764"/>
 							<object class="NSMutableArray" key="NSTabViewItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSTabViewItem" id="554002022">
@@ -70,7 +69,6 @@
 										<string key="NSFrame">{{10, 7}, {788, 536}}</string>
 										<reference key="NSSuperview" ref="397527688"/>
 										<reference key="NSWindow"/>
-										<reference key="NSNextKeyView"/>
 									</object>
 									<string key="NSLabel">Clients</string>
 									<object class="NSColor" key="NSColor" id="673766860">
@@ -223,7 +221,7 @@
 						<object class="NSButton" id="446185069">
 							<reference key="NSNextResponder" ref="439893737"/>
 							<int key="NSvFlags">265</int>
-							<string key="NSFrame">{{660, 557}, {126, 32}}</string>
+							<string key="NSFrame">{{652, 557}, {143, 32}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<reference key="NSWindow"/>
 							<reference key="NSNextKeyView" ref="397527688"/>
@@ -232,7 +230,7 @@
 							<object class="NSButtonCell" key="NSCell" id="189380253">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">134217728</int>
-								<string key="NSContents">push workers</string>
+								<string key="NSContents">push to workers</string>
 								<reference key="NSSupport" ref="136169850"/>
 								<string key="NSCellIdentifier">_NS:9</string>
 								<reference key="NSControlView" ref="446185069"/>
