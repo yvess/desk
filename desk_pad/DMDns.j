@@ -50,6 +50,7 @@
     CPString coId          @accessors();
     CPString coRev         @accessors();
     CPString coAttachments @accessors();
+    CPString prevRev       @accessors();
     CPString state         @accessors();
 
     CPString domain        @accessors();
@@ -106,9 +107,9 @@
     }];
 
     var json = {},
-        couchKeys = ["_id", "_rev", "_attachments", "state","domain", "nameservers", "hostmaster", "refresh",
+        couchKeys = ["_id", "_rev", "_attachments", "prev_rev", "state","domain", "nameservers", "hostmaster", "refresh",
                      "retry", "expire", "ttl", "client_id", "template_id", "a", "cname", "mx"],
-        cappuccinoValues = [coId, coRev, coAttachments, state, domain, nameservers, hostmaster, refresh,
+        cappuccinoValues = [coId, coRev, coAttachments, prevRev, state, domain, nameservers, hostmaster, refresh,
                             retry, expire, ttl, clientId, templateId, a_array, cname_array, mx_array];
 
     for (var i = 0; i < couchKeys.length; i++)
