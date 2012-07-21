@@ -28,7 +28,6 @@
         //[clientsForProjectsPopUp addItemWithTitle:[client name]];
         [itemLookup setObject:item forKey:[item coId]];
     }
-    console.log("itemLookup", self, itemLookup);
 }
 
 /*- (void)viewDidLoad

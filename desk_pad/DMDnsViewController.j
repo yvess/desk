@@ -251,6 +251,7 @@
 
     if ([aItem class] == [self modelClass])
     {
+        [aItem isSelected];
         [self updateDnsOutline:aItem];
     }
 }

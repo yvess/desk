@@ -1,4 +1,5 @@
 @import <CouchResource/COResource.j>
+@import <CouchResource/COResourceVersioned.j>
 @import <CouchResource/COCategories.j>
 @import <CouchResource/COItemsParent.j>
 @import <CouchResource/COSubItem.j>
@@ -44,27 +45,28 @@
 @end
 
 
-@implementation DMDns : COResource
+@implementation DMDns : COResourceVersioned
 {
-    CPString coId         @accessors();
-    CPString coRev        @accessors();
-    CPString state        @accessors();
+    CPString coId          @accessors();
+    CPString coRev         @accessors();
+    CPString coAttachments @accessors();
+    CPString state         @accessors();
 
-    CPString domain       @accessors();
-    CPString nameservers  @accessors();
+    CPString domain        @accessors();
+    CPString nameservers   @accessors();
     // SOA
-    CPString hostmaster   @accessors();
-    CPString refresh      @accessors();
-    CPString retry        @accessors();
-    CPString expire       @accessors();
-    CPString ttl          @accessors();
+    CPString hostmaster    @accessors();
+    CPString refresh       @accessors();
+    CPString retry         @accessors();
+    CPString expire        @accessors();
+    CPString ttl           @accessors();
 
-    //CPString client_id  @accessors();
-    CPString clientId     @accessors();
-    CPString templateId   @accessors();
-    COItemsParent a       @accessors(readonly);
-    COItemsParent cname   @accessors(readonly);
-    COItemsParent mx      @accessors;
+    //CPString client_id   @accessors();
+    CPString clientId      @accessors();
+    CPString templateId    @accessors();
+    COItemsParent a        @accessors(readonly);
+    COItemsParent cname    @accessors(readonly);
+    COItemsParent mx       @accessors;
 }
 
 - (CPString)nameIdentifierString
@@ -104,9 +106,9 @@
     }];
 
     var json = {},
-        couchKeys = ["_id", "_rev", "state","domain", "nameservers", "hostmaster", "refresh",
+        couchKeys = ["_id", "_rev", "_attachments", "state","domain", "nameservers", "hostmaster", "refresh",
                      "retry", "expire", "ttl", "client_id", "template_id", "a", "cname", "mx"],
-        cappuccinoValues = [coId, coRev, state, domain, nameservers, hostmaster, refresh,
+        cappuccinoValues = [coId, coRev, coAttachments, state, domain, nameservers, hostmaster, refresh,
                             retry, expire, ttl, clientId, templateId, a_array, cname_array, mx_array];
 
     for (var i = 0; i < couchKeys.length; i++)
