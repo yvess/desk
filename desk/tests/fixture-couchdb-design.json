@@ -1,0 +1,300 @@
+{
+   "_id": "_design/desk_drawer",
+   "rewrites": [
+       {
+           "to": "../../",
+           "from": ""
+       },
+       {
+           "to": "_update/name/*",
+           "from": "/desk_drawer/*",
+           "method": "POST"
+       },
+       {
+           "to": "_list/list_docs/work_time",
+           "from": "/work_times",
+           "method": "GET",
+           "query": {
+               "reduce": "false",
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "../../*",
+           "from": "/work_times",
+           "method": "POST"
+       },
+       {
+           "to": "../../*",
+           "from": "/work_times/*"
+       },
+       {
+           "to": "_list/list_docs/client",
+           "from": "/clients",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "../../*",
+           "from": "/clients",
+           "method": "POST"
+       },
+       {
+           "to": "../../*",
+           "from": "/clients/*"
+       },
+       {
+           "to": "_list/list_docs/dns",
+           "from": "/dns",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "../../*",
+           "from": "/dns",
+           "method": "POST"
+       },
+       {
+           "to": "../../*",
+           "from": "/dns/*"
+       },
+       {
+           "to": "_list/list_docs/project",
+           "from": "/projects",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "../../*",
+           "from": "/projects",
+           "method": "POST"
+       },
+       {
+           "to": "../../*",
+           "from": "/projects/*",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "_list/list_docs/template",
+           "from": "/templates",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "../../*",
+           "from": "/templates",
+           "method": "POST"
+       },
+       {
+           "to": "../../*",
+           "from": "/templates/*",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "_list/list_docs/queue",
+           "from": "/queues",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "../../*",
+           "from": "/queues",
+           "method": "POST"
+       },
+       {
+           "to": "../../*",
+           "from": "/queues/*",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "_list/list_docs/worker",
+           "from": "/workers",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "../../*",
+           "from": "/workers",
+           "method": "POST"
+       },
+       {
+           "to": "../../*",
+           "from": "/workers/*",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "to": "_show/showjson/*",
+           "from": "/show/*",
+           "method": "GET"
+       }
+   ],
+   "language": "javascript",
+   "views": {
+       "project": {
+           "map": "
+function (doc) {
+    if (doc.type == 'project') {
+        emit([doc._id, 0], {_id:doc._id});
+        //if (doc.client_id) {
+        //    emit([doc._id, 1, doc.client_id], {_id: doc.client_id});
+        //}
+    }
+}"
+       },
+       "dns": {
+           "map": "
+function(doc) {
+  if (doc.type == 'dns') {
+    emit(doc._id, doc._rev);
+  }
+};"
+       },
+       "recent-items": {
+           "map": "
+function(doc) {
+  if (doc.created_at) {
+    emit(doc.created_at, doc);
+  }
+};"
+       },
+       "worker": {
+           "map": "
+function(doc) {
+  if (doc.type == 'worker') {
+    emit(doc.hostname, doc._rev);//, doc._rev, doc.hostname);
+  }
+};"
+       },
+       "work_time": {
+           "map": "
+function(doc) {
+  if (doc.type == 'work_time') {
+    //emit(doc._id, null);
+    emit([doc.project_id, doc.date], 1);
+  }
+};",
+           "reduce": "// reduce
+function(keys, values, rereduce) {
+  return sum(values);
+}"
+       },
+       "queue": {
+           "map": "
+function(doc) {
+  if (doc.type == 'queue') {
+    emit(doc._id, doc._rev);
+  }
+};"
+       },
+       "client": {
+           "map": "
+function(doc) {
+  if (doc.type == 'client') {
+    emit(doc._id, doc._rev);
+  }
+};"
+       },
+       "by_type": {
+           "map": "
+function(doc) {
+  if (doc) {
+    emit(doc.type, null);
+  }
+};"
+       },
+       "template": {
+           "map": "
+function(doc) {
+  if (doc.type == 'template') {
+    emit(doc._id, doc._rev);
+  }
+};"
+       },
+       "todo": {
+           "map": "
+function (doc) {
+    if ((doc.state && doc.state == 'updated') || (doc.state && doc.state == 'created')) {
+        if (doc.type != 'queue') {
+            emit(doc.state, doc);
+        }
+    }
+}"
+       }
+   },
+   "lists": {
+       "list_docs": "
+function (head, req) {
+    // specify that we're providing a JSON response
+    provides('json', function() {
+        // create an array for our result set
+        var results = [];
+        var dataItem = {};
+        while (row = getRow()) {
+            row.doc.coId = row.doc._id;
+            row.doc.coRev = row.doc._rev;
+            if (row.doc.hasOwnProperty('_attachments')) {
+                row.doc.coAttachments = row.doc._attachments;
+            }
+            /*if (row.doc.client_id) {
+                dataItem = row.doc;
+            }*/
+            if (true) {
+                if (dataItem != {} && dataItem.client_id) {
+                    dataItem.client = row.doc;
+                } else {
+                    dataItem = row.doc;
+                }
+                results.push(dataItem);
+                dataItem = {};
+            }
+        }
+        // make sure to stringify the results :)
+        send(JSON.stringify(results));
+    });
+}"
+   },
+   "filters": {
+       "queue": "
+function (doc, req)
+{
+  if (doc.type == 'queue' && doc.state == 'created') {
+    return true;
+  }
+
+  return false;
+}"
+   },
+   "shows": {
+       "showjson": "
+function(doc, req) {
+    delete doc._id;
+    delete doc._rev;
+    delete doc._revisions;
+    delete doc.type;
+    delete doc.name;
+    delete doc.template_type;
+    var html = '<div><pre>' + JSON.stringify(doc, null, 4) + '<\\/pre><\\/div>';
+  return html;
+}"
+   }
+}
