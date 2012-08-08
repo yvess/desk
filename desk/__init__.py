@@ -5,18 +5,23 @@ from __future__ import print_function
 
 import os
 import sys
-from couchdbkit import Server
+from couchdbkit import Server, Consumer
 from couchdbkit.changes import ChangesStream
 sys.path.append("../")
+from desk.utils import ObjectDict
 from desk.plugin import dns
+from desk.pluginbase import Updater
 
 
 class Worker(object):
     def __init__(self, settings, hostname=os.uname()[1]):
-        self.settings = settings
+        if isinstance(settings, dict):
+            settings = ObjectDict(**settings)
         self.db = Server(uri=settings.couchdb_uri)[settings.couchdb_db]
         self.hostname = hostname
         self.provides = {}
+        self.settings = settings
+        self._setup_worker()
 
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
@@ -42,17 +47,24 @@ class Worker(object):
                     except AttributeError:
                         print("not found")
                     if ServiceClass:
-                        #print(type(ServiceClass), ServiceClass)
-                        service = ServiceClass(doc)
-                        service.update()
+                        updater = Updater(self.db, doc, ServiceClass())
+                        updater.do_task()
         else:
             raise
 
+    def _process_queue(self, queue):
+        for notification in queue:
+            for task in self.db.view(self._cmd("todo")):
+                doc = task['value']
+                self._exec_task(doc)
+
     def run(self):
-        self._setup_worker()
         with ChangesStream(self.db, feed="continuous", heartbeat=True,
             filter=self._cmd("queue")) as queue:
-            for notification in queue:
-                print("notification", notification)
-                for task in self.db.view(self._cmd("todo")):
-                    self._exec_task(task['value'])
+            self._process_queue(queue)
+
+    def once(self):
+        c = Consumer(self.db)
+        queue = c.fetch(since=0, filter=self._cmd("queue"))['results']
+        if queue:
+            self._process_queue(queue)

@@ -1,9 +1,14 @@
+# coding: utf-8
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import print_function
+
 from desk.pluginbase.dns import DnsBase
 
+
 class Powerdns(DnsBase):
-    def __init__(self, doc):
-        print "doc:", doc
-        self.doc = doc
+    def create(self):
+        print("create")
+
     def update(self):
-        print self.doc, "PD update"
-        return "done"
+        print("update")

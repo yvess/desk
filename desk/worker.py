@@ -11,7 +11,6 @@ from ConfigParser import ParsingError
 import argparse
 sys.path.append("../")
 from desk import Worker
-from deks.utls import put_json
 
 
 def setup_parser():
@@ -20,6 +19,7 @@ def setup_parser():
     defaults = {
         "couchdb_uri": "http://localhost:5984",
         "couchdb_db": "desk_drawer",
+        "worker_daemon": False
     }
     # first only parse the config file argument
     conf_parser = argparse.ArgumentParser(add_help=False)
@@ -38,7 +38,7 @@ def setup_parser():
         else:
             for section in ['couchdb']:  # put in here all your sections
                 defaults.update(
-                    {'{}_{}'.format(section, k):v for k, v in config.viewitems(section)}
+                    {'{}_{}'.format(section, k):v for k, v in config.items(section)}
                 )
     # parse all other arguments
     parser = argparse.ArgumentParser(
@@ -47,6 +47,8 @@ def setup_parser():
                        Command line switches overwrite config file settings""",
     )
     parser.set_defaults(**defaults)
+    parser.add_argument("-l", "--loop", dest="worker_daemon",
+        help="run as daemon", action="store_true")
     parser.add_argument("-u", "--couchdb_uri", dest="couchdb_uri",
         metavar="URI", help="connection url of the server")
     parser.add_argument("-d", "--couchdb_db", dest="couchdb_db",
@@ -59,4 +61,7 @@ def setup_parser():
 if __name__ == "__main__":
     settings = setup_parser()
     worker = Worker(settings)
-    worker.run()
+    if settings.worker_daemon:
+        worker.run()
+    else:
+        worker.once()
