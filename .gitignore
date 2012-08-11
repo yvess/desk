@@ -9,3 +9,4 @@ desk/.codeintel
 *.sublime-workspace
 .coverage
 desk/htmlcov
+htmlcov
