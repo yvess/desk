@@ -155,9 +155,6 @@
 function (doc) {
     if (doc.type == 'project') {
         emit([doc._id, 0], {_id:doc._id});
-        //if (doc.client_id) {
-        //    emit([doc._id, 1, doc.client_id], {_id: doc.client_id});
-        //}
     }
 }"
        },
@@ -181,7 +178,7 @@ function(doc) {
            "map": "
 function(doc) {
   if (doc.type == 'worker') {
-    emit(doc.hostname, doc._rev);//, doc._rev, doc.hostname);
+    emit(doc.hostname, doc._rev);
   }
 };"
        },
@@ -189,7 +186,6 @@ function(doc) {
            "map": "
 function(doc) {
   if (doc.type == 'work_time') {
-    //emit(doc._id, null);
     emit([doc.project_id, doc.date], 1);
   }
 };",
