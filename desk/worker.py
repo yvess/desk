@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import absolute_import, print_function, unicode_literals, division  # python3
 
 import sys
 import os
@@ -34,7 +34,7 @@ def setup_parser():
             print("Can't open file '{}'".format(args.config))
             sys.exit(0)
         else:
-            for section in ['couchdb']:  # put in here all your sections
+            for section in ['couchdb', 'powerdns']:  # put in here all your sections
                 defaults.update(
                     {'{}_{}'.format(section, k):v for k, v in config.items(section)}
                 )

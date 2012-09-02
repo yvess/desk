@@ -1,6 +1,5 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division, unicode_literals
-
 import abc
 
 
@@ -14,3 +13,7 @@ class DnsBase(object):
     @abc.abstractmethod
     def update(self, record):
         """Update the dns record."""
+
+    def use_doc(self, doc):
+        """sets the doc to use"""
+        self.doc = doc

@@ -40,12 +40,13 @@ class Worker(object):
                     ServiceClass = None
                     doc_type = doc['type']
                     backend = service_settings['backend']
+                    backend_class = backend.title()
                     try:
-                        ServiceClass = getattr(getattr(globals()[doc_type], backend), backend.title())
+                        ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
                     except AttributeError:
                         print("not found")
                     if ServiceClass:
-                        updater = Updater(self.db, doc, ServiceClass())
+                        updater = Updater(self.db, doc, ServiceClass(self.settings))
                         updater.do_task()
         else:
             raise
@@ -62,7 +63,9 @@ class Worker(object):
             self._process_queue(queue)
 
     def once(self):
+        print("worker running once")
         c = Consumer(self.db)
         queue = c.fetch(since=0, filter=self._cmd("queue"))['results']
         if queue:
+            print(queue)
             self._process_queue(queue)
