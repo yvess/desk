@@ -17,6 +17,11 @@ class WorkerTestCase(unittest.TestCase):
             "couchdb_uri": "http://localhost:5984",
             "couchdb_db": "desk_tester",
         }
+        self.conf = {
+            "powerdns_backend": "sqlite",
+            "powerdns_db": "/etc/powerdns/dns.db",
+        }
+        self.conf.update(self.settings)
         s = Server()
         self.s = s
         s.create_db(self.settings['couchdb_db'])
@@ -63,7 +68,8 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self.up.put(data=json.dumps(d), doc_id=queue_id) == 201)
 
         from desk import Worker
-        w = Worker(self.settings, hostname="localhost")
+        
+        w = Worker(self.conf, hostname="localhost")
         w.once()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         # cleanup test

@@ -49,7 +49,7 @@ class Worker(object):
                         updater = Updater(self.db, doc, ServiceClass(self.settings))
                         updater.do_task()
         else:
-            raise
+            raise Exception("I doesn't provide the requested service")
 
     def _process_queue(self, queue):
         for notification in queue:
