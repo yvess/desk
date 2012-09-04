@@ -10,3 +10,4 @@ desk/.codeintel
 .coverage
 desk/htmlcov
 htmlcov
+desk/py27/*
