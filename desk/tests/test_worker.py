@@ -67,7 +67,7 @@ class WorkerTestCase(unittest.TestCase):
         }
         self.assertTrue(self.up.put(data=json.dumps(d), doc_id=queue_id) == 201)
 
-        from desk import Worker
+        from desk.worker import Worker
         
         w = Worker(self.conf, hostname="localhost")
         # w.once() # TODO make queue test work
