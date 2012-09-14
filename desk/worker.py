@@ -35,7 +35,7 @@ class Worker(object):
             startkey=self.hostname, endkey=self.hostname):
             self.provides = worker['provides']
 
-    def _exec_task(self, doc):
+    def _do_task(self, doc):
         if doc['type'] in self.provides:
             for service_settings in self.provides[doc['type']]:
                 if 'server_type' in service_settings \
@@ -60,7 +60,7 @@ class Worker(object):
         for notification in queue:
             for task in self.db.view(self._cmd("todo")):
                 doc = task['value']
-                self._exec_task(doc)
+                self._do_task(doc)
 
     def run(self):
         with ChangesStream(self.db, feed="continuous", heartbeat=True,

@@ -14,6 +14,6 @@ class DnsBase(object):
     def update(self, record):
         """Update the dns record."""
 
-    def use_doc(self, doc):
+    def set_doc(self, doc):
         """sets the doc to use"""
         self.doc = doc
