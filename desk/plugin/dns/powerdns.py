@@ -4,20 +4,6 @@ from desk.plugin.dns import DnsBase
 import sqlite3
 
 
-"""
-
-INSERT INTO domains (name, type) values ('test.com', 'NATIVE');
-INSERT INTO records (domain_id, name, content, type,ttl,prio) VALUES (1,'test.com','localhost ahu@ds9a.nl 1','SOA',86400,NULL);
-INSERT INTO records (domain_id, name, content, type,ttl,prio) VALUES (1,'test.com','dns-us1.powerdns.net','NS',86400,NULL);
-INSERT INTO records (domain_id, name, content, type,ttl,prio) VALUES (1,'test.com','dns-eu1.powerdns.net','NS',86400,NULL);
-INSERT INTO records (domain_id, name, content, type,ttl,prio) VALUES (1,'www.test.com','199.198.197.196','A',120,NULL);
-INSERT INTO records (domain_id, name, content, type,ttl,priority) VALUES (1,'mail.test.com','195.194.193.192','A',120,NULL);
-INSERT INTO records (domain_id, name, content, type,ttl,prio) VALUES (1,'localhost.test.com','127.0.0.1','A',120,NULL);
-INSERT INTO records (domain_id, name, content, type,ttl,prio) VALUES (1,'test.com','mail.test.com','MX',120,25);
-
-"""
-
-
 class Powerdns(DnsBase):
     SETTING_KEYS = ['backend', 'db', 'user', 'name']
 
@@ -41,7 +27,6 @@ class Powerdns(DnsBase):
         self._db("INSERT INTO domains (name, type) VALUES ('{}', 'NATIVE')".format(domain))
         self.domain_id = self._cursor.lastrowid
         self.add_record(domain, 'localhost y@yas.ch 1', rtype="SOA")  # TODO: where to put SOA?
-        
 
     def add_record(self, key, value, rtype='A', ttl=86400, priority='NULL'):
         if self.domain_id:
@@ -56,7 +41,7 @@ class Powerdns(DnsBase):
 
     def update_record(self, key, value, rtype='A', ttl=86400, priority='NULL'):
         if self.domain_id:
-            pass 
+            pass
 
     def create(self):
         sucess = False

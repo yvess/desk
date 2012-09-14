@@ -5,7 +5,7 @@ import os
 import sys
 sys.path.append("../")
 import unittest
-from couchdbkit import Server, Consumer
+from couchdbkit import Server
 from desk.utils import CouchdbUploader
 import time
 import json
@@ -68,7 +68,7 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self.up.put(data=json.dumps(d), doc_id=queue_id) == 201)
 
         from desk.worker import Worker
-        
+
         w = Worker(self.conf, hostname="localhost")
         # w.once() # TODO make queue test work
         # self.assertTrue(self.db.get(dns_id)['state'] == 'live')

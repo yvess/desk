@@ -4,7 +4,7 @@ from __future__ import absolute_import, print_function, division, unicode_litera
 
 class Updater(object):
     def __init__(self, db, doc, service):
-        choose_task = { 'created': service.create, 'live': service.update }
+        choose_task = {'created': service.create, 'live': service.update}
         self.task = choose_task[doc['state']]
         if 'template_id' in doc:
             merged_doc = db.get(doc['template_id'])
@@ -18,4 +18,3 @@ class Updater(object):
         self.task()
         #self.doc['state'] = 'live'
         #self.db.save_doc(self.doc)
-
