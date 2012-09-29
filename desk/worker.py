@@ -51,8 +51,9 @@ class Worker(object):
                     except AttributeError:
                         print("not found")
                     if ServiceClass:
-                        updater = Updater(self.db, doc, ServiceClass(self.settings))
-                        updater.do_task()
+                        with ServiceClass(self.settings) as service:
+                            updater = Updater(self.db, doc, service)
+                            updater.do_task()
         else:
             raise Exception("I doesn't provide the requested service")
 
@@ -68,11 +69,9 @@ class Worker(object):
             self._process_queue(queue)
 
     def once(self):
-        print("worker running once")
         c = Consumer(self.db)
         queue = c.fetch(since=0, filter=self._cmd("queue"))['results']
         if queue:
-            print(queue)
             self._process_queue(queue)
 
 

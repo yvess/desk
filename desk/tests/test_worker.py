@@ -9,6 +9,8 @@ from couchdbkit import Server
 from desk.utils import CouchdbUploader
 import time
 import json
+from desk.plugin.dns.powerdns import Powerdns
+from desk.utils import ObjectDict
 
 
 class WorkerTestCase(unittest.TestCase):
@@ -63,16 +65,18 @@ class WorkerTestCase(unittest.TestCase):
         d = {
             "_id": queue_id,
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
-            "sender": "pad", "type": "queue", "state": "created"
+            "sender": "pad", "type": "queue", "state": "new"
         }
         self.assertTrue(self.up.put(data=json.dumps(d), doc_id=queue_id) == 201)
 
         from desk.worker import Worker
 
         w = Worker(self.conf, hostname="localhost")
-        # w.once() # TODO make queue test work
-        # self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        w.once()
+        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         # cleanup test
+        pdns = Powerdns(ObjectDict(**self.conf))
+        pdns.del_domain('yas.ch')
         self.db.delete_doc([dns_id, queue_id])
 
 if __name__ == '__main__':
