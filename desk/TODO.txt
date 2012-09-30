@@ -1,0 +1,13 @@
+====
+TODO
+====
+
+Worker
+======
+
+- previous version template update on tempalte change
+- cleanup template doc befor merge
+- use_doc for all plugins
+- permission sqlitedb
+- validate couchdb doc for dns
+- placeholder ip @
