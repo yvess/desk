@@ -54,11 +54,11 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(doc['provides']['dns'][0]["backend"] == "powerdns")
 
     def test_queue(self):
-        template_id = "template-email-rackspace-hosting"
+        template_id = "template-email"
         self.assertTrue(self.up.put(data="@fixture-couchdb-template-dns.json", doc_id=template_id) == 201)
 
-        dns_id = "dns-yas.ch"
-        self.assertTrue(self.up.put(data="@fixture-couchdb-dns-yas.json", doc_id=dns_id) == 201)
+        dns_id = "dns-test.tt"
+        self.assertTrue(self.up.put(data="@fixture-couchdb-dns-test.tt.json", doc_id=dns_id) == 201)
 
         current_time = time.localtime()
         queue_id = "queue-{}".format(time.strftime("%Y-%m-%d_%H:%M:%S_%z", current_time))
@@ -76,7 +76,7 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         # cleanup test
         pdns = Powerdns(ObjectDict(**self.conf))
-        pdns.del_domain('yas.ch')
+        # pdns.del_domain('test.tt')
         self.db.delete_doc([dns_id, queue_id])
 
 if __name__ == '__main__':

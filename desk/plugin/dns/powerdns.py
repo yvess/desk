@@ -34,7 +34,7 @@ class Powerdns(DnsBase):
     def add_domain(self, domain):
         self._db("INSERT INTO domains (name, type) VALUES ('{}', 'NATIVE')".format(domain))
         self.domain_id = self._cursor.lastrowid
-        self.add_record(domain, 'localhost y@yas.ch 1', rtype="SOA")  # TODO: where to put SOA?
+        self.add_record(domain, 'localhost dnsmaster@test.tt 1', rtype="SOA")  # TODO: where to put SOA?
 
     def del_domain(self, domain):
         domain_id = self._db("SELECT id FROM domains WHERE name='{}'".format(domain)).fetchone()[0]

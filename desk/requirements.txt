@@ -12,3 +12,4 @@ restkit==4.1.3
 six==1.1.0
 xhtml2pdf==0.0.4
 yolk==0.4.3
+dnspython==1.10.0

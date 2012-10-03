@@ -12,19 +12,24 @@ class OptionsClassDiff(object):
         self.ignore_append = []
 
 
-class Updater(object):
-    def __init__(self, db, doc, service):
-        choose_task = {'new': service.create, 'changed': service.update}
-        self.task = choose_task[doc['state']]
+class MergedDoc(object):
+    def __init__(self, db, doc):
         if 'template_id' in doc:
             merged_doc = db.get(doc['template_id'])
             merged_doc.update(doc)
         self.merged_doc = merged_doc
-        service.set_doc(merged_doc)
+        self.db, self.doc = db, doc
+
+
+class Updater(object):
+    def __init__(self, db, doc, service):
+        choose_task = {'new': service.create, 'changed': service.update}
+        self.task = choose_task[doc['state']]
+        self.merged_doc = MergedDoc(db, doc).merged_doc
+        service.set_doc(self.merged_doc)
         if 'prev_rev' in doc and choose_task == service.update:
             service.set_diff(self._create_diff())
-        self.doc = doc
-        self.db = db
+        self.db, self.doc = db, doc
 
 #    def _doc_for_diff(self, doc):
 #        cleaned_doc = doc.copy()
