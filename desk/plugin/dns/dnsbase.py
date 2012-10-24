@@ -25,7 +25,6 @@ class DnsValidator(object):
                 q = item[q_key]
             answers = []
             for answer in self.resolver.query(q, record_type):
-                print(type(answer), dir(answer))
                 answer_value = answer if hasattr(answer, '__getitem__') else getattr(answer, answer_attr)
                 answer_value = unicode(answer_value)
                 if answer_value.endswith("."):
