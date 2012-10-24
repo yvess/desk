@@ -9,6 +9,9 @@ from couchdbkit import Server
 from desk.utils import CouchdbUploader
 import time
 import json
+
+from desk.plugin.base import MergedDoc
+from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.utils import ObjectDict
 
@@ -35,7 +38,7 @@ class WorkerTestCase(unittest.TestCase):
         )
         if not status_code == 201:
             s.delete_db(self.settings["couchdb_db"])
-            raise Exception("Error with couchdb test database, http code:{}".format(status_code))
+            #raise Exception("Error with couchdb test database, http code:{}".format(status_code))
 
         worker_id = "worker-localhost"
         d = {
@@ -74,9 +77,13 @@ class WorkerTestCase(unittest.TestCase):
         w = Worker(self.conf, hostname="localhost")
         w.once()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        doc = self.db.get('dns-test.tt')
+        doc = MergedDoc(self.db, doc).doc
+        validator = DnsValidator(doc, lookup={'ns1.test.tt': "127.0.0.1", 'ns2.test.tt': "127.0.0.1"})
+        self.assertTrue(validator.is_valid())
         # cleanup test
         pdns = Powerdns(ObjectDict(**self.conf))
-        # pdns.del_domain('test.tt')
+        pdns.del_domain('test.tt')
         self.db.delete_doc([dns_id, queue_id])
 
 if __name__ == '__main__':

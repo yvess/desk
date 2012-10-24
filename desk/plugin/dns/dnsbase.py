@@ -1,35 +1,48 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division, unicode_literals
 import abc
-from desk.plugin.base import MergedDoc
 from socket import gethostbyname
 import dns.resolver
 
 
 class DnsValidator(object):
 
-    def __init__(self, db, doc):
-        self.merged_doc = MergedDoc(db, doc).merged_doc
-        self.db, self.doc = db, doc
+    def __init__(self, doc, lookup=None):
+        self.doc = doc
+        self.domain = doc['domain']
+        self.resolver = dns.resolver.Resolver()
+        self.lookup = lookup
+        self.valid = []
 
-    def validate(self, lookup=None):
-        print("MergedDoc", self.merged_doc['nameservers'])
-        for ns in self.merged_doc['nameservers'].split(','):
-            domain, ns = self.merged_doc['domain'], ns.strip()
-            # Set the DNS Server
-            resolver = dns.resolver.Resolver()
-            resolver.nameservers = [gethostbyname(ns) if not lookup else lookup[ns]]
-            for a in self.merged_doc['a']:
-                print(a)
-                answers = dns.resolver.query("{}.{}".format(a['host'], domain), 'A')
-                for result in answers:
-                    print(result)
-            # self.record = self.r.req(name="www.yas.ch")
-            #     print(record)
-            #     if (record['name'], record['data']) == (a['host'], a['ip']):
-            #         print(True)
-            #     else:
-            #         print(False)
+    def _validate(self, record_type, item_key, q_key='domain', answer_attr='address'):
+        items = self.doc[record_type.lower()]
+        for item in items:
+            if q_key == 'domain':
+                q = self.domain
+            elif not item[q_key].endswith(".") and q_key in ('host', 'alias'):
+                q = "{}.{}".format(item[q_key], self.domain)
+            else:
+                q = item[q_key]
+            answers = []
+            for answer in self.resolver.query(q, record_type):
+                print(type(answer), dir(answer))
+                answer_value = answer if hasattr(answer, '__getitem__') else getattr(answer, answer_attr)
+                answer_value = unicode(answer_value)
+                if answer_value.endswith("."):
+                    answer_value = answer_value[:-1]
+                answers.append(answer_value)
+            item_value = unicode(item[item_key])
+            self.valid.append(True if item_value in answers else False)
+
+    def is_valid(self):
+        for ns in self.doc['nameservers'].split(','):
+            domain, ns = self.domain, ns.strip()
+            self.resolver.nameservers = [gethostbyname(ns) if not self.lookup else self.lookup[ns]]
+            self._validate('A', 'ip', q_key='host')
+            self._validate('MX', 'host', answer_attr='exchange')
+            self._validate('MX', 'priority', answer_attr='preference')
+            self._validate('CNAME', 'host', q_key='alias', answer_attr='target')
+        return all(self.valid)
 
 
 class DnsBase(object):

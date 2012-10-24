@@ -24,12 +24,12 @@ class Powerdns(DnsBase):
         self._conn.close()
 
     def _db(self, sql):
-        try:
+        #try:
             self._cursor.execute(sql)
             self._conn.commit()
             return self._cursor
-        except sqlite3.IntegrityError:
-            raise Exception("db database problem")
+        #except sqlite3.IntegrityError:
+        #    raise Exception("db database problem")
 
     def add_domain(self, domain):
         self._db("INSERT INTO domains (name, type) VALUES ('{}', 'NATIVE')".format(domain))
