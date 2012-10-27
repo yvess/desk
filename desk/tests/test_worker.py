@@ -14,6 +14,7 @@ from desk.plugin.base import MergedDoc
 from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.utils import ObjectDict
+from desk.worker import Worker
 
 
 class WorkerTestCase(unittest.TestCase):
@@ -33,7 +34,7 @@ class WorkerTestCase(unittest.TestCase):
         self.db = self.s.get_db(self.settings["couchdb_db"])
         self.up = CouchdbUploader(path=os.path.dirname(__file__), **self.settings)
         status_code = self.up.put(
-            data="@fixture-couchdb-design.json",
+            data="@fixtures/couchdb-design.json",
             doc_id="_design/{couchdb_db}"
         )
         if not status_code == 201:
@@ -48,21 +49,32 @@ class WorkerTestCase(unittest.TestCase):
            }
         }
         self.assertTrue(self.up.put(data=json.dumps(d), doc_id=worker_id) == 201)
+        self.assertTrue(self.up.put(data="@fixtures/couchdb-template-dns.json", doc_id="template-email") == 201)
 
     def tearDown(self):
         self.s.delete_db(self.settings["couchdb_db"])
 
-    def test_worker_settings(self):
-        doc = self.db.get("worker-localhost")
-        self.assertTrue(doc['provides']['dns'][0]["backend"] == "powerdns")
-
-    def test_queue(self):
-        template_id = "template-email"
-        self.assertTrue(self.up.put(data="@fixture-couchdb-template-dns.json", doc_id=template_id) == 201)
-
+    def _add_domain_test_tt(self):
         dns_id = "dns-test.tt"
-        self.assertTrue(self.up.put(data="@fixture-couchdb-dns-test.tt.json", doc_id=dns_id) == 201)
+        self.assertTrue(self.up.put(data="@fixtures/couchdb-dns-test.tt.json", doc_id=dns_id) == 201)
+        return dns_id
 
+    def _remove_domain_docs(self, domain, docs):
+        # cleanup
+        pdns = Powerdns(ObjectDict(**self.conf))
+        pdns.del_domain('test.tt')
+        self.db.delete_doc(docs)
+
+    def _run_worker(self):
+        w = Worker(self.conf, hostname="localhost")
+        w.once()
+
+    def _get_dns_validator(self, doc_id, lookup={'ns1.test.tt': "127.0.0.1", 'ns2.test.tt': "127.0.0.1"}):
+        doc = MergedDoc(self.db, self.db.get(doc_id)).doc
+        validator = DnsValidator(doc, lookup=lookup)
+        return validator
+
+    def _create_queue_doc(self):
         current_time = time.localtime()
         queue_id = "queue-{}".format(time.strftime("%Y-%m-%d_%H:%M:%S_%z", current_time))
         d = {
@@ -70,21 +82,34 @@ class WorkerTestCase(unittest.TestCase):
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
             "sender": "pad", "type": "queue", "state": "new"
         }
-        self.assertTrue(self.up.put(data=json.dumps(d), doc_id=queue_id) == 201)
+        return (queue_id, d)
 
-        from desk.worker import Worker
+    def test_worker_settings(self):
+        doc = self.db.get("worker-localhost")
+        self.assertTrue(doc['provides']['dns'][0]["backend"] == "powerdns")
 
-        w = Worker(self.conf, hostname="localhost")
-        w.once()
+    def test_new_domain(self):
+        dns_id = self._add_domain_test_tt()
+        queue_id, queue_doc = self._create_queue_doc()
+        self.assertTrue(self.up.put(data=json.dumps(queue_doc), doc_id=queue_id) == 201)
+        self._run_worker()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
-        doc = self.db.get('dns-test.tt')
-        doc = MergedDoc(self.db, doc).doc
-        validator = DnsValidator(doc, lookup={'ns1.test.tt': "127.0.0.1", 'ns2.test.tt': "127.0.0.1"})
-        self.assertTrue(validator.is_valid())
-        # cleanup test
-        pdns = Powerdns(ObjectDict(**self.conf))
-        pdns.del_domain('test.tt')
-        self.db.delete_doc([dns_id, queue_id])
+        dns_doc = self.db.get(dns_id)
+        dns_doc['a'][4]['ip'] = "1.1.1.21"
+        dns_doc['cname'].append({'alias': "forum", 'host': "www"})
+        dns_doc['state'] = 'changed'
+        #self.db.save_doc(dns_doc)
+        self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
+        self._remove_domain_docs('test.tt', [dns_id, queue_id])
+
+    def test_change_domain(self):
+        dns_id = self._add_domain_test_tt()
+        queue_id, queue_doc = self._create_queue_doc()
+        self.assertTrue(self.up.put(data=json.dumps(queue_doc), doc_id=queue_id) == 201)
+        self._run_worker()
+        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
+        self._remove_domain_docs('test.tt', [dns_id, queue_id])
 
 if __name__ == '__main__':
     unittest.main()

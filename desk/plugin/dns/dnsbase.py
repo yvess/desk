@@ -33,7 +33,7 @@ class DnsValidator(object):
             item_value = unicode(item[item_key])
             self.valid.append(True if item_value in answers else False)
 
-    def is_valid(self):
+    def do_check(self):
         for ns in self.doc['nameservers'].split(','):
             domain, ns = self.domain, ns.strip()
             self.resolver.nameservers = [gethostbyname(ns) if not self.lookup else self.lookup[ns]]
