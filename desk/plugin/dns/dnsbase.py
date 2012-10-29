@@ -13,6 +13,8 @@ class DnsValidator(object):
         self.resolver = dns.resolver.Resolver()
         self.lookup = lookup
         self.valid = []
+        #import os
+        #os.system("sudo /etc/init.d/pdns restart")
 
     def _validate(self, record_type, item_key, q_key='domain', answer_attr='address'):
         items = self.doc[record_type.lower()]

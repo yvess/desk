@@ -10,7 +10,7 @@ from desk.utils import CouchdbUploader
 import time
 import json
 
-from desk.plugin.base import MergedDoc
+from desk.plugin.base import MergedDoc, VersionDoc
 from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.utils import ObjectDict
@@ -52,6 +52,9 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self.up.put(data="@fixtures/couchdb-template-dns.json", doc_id="template-email") == 201)
 
     def tearDown(self):
+        has_domain = Powerdns(ObjectDict(**self.conf)).check_domain("test.tt")
+        if has_domain:
+            self._remove_domain("test.tt")
         self.s.delete_db(self.settings["couchdb_db"])
 
     def _add_domain_test_tt(self):
@@ -59,11 +62,12 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self.up.put(data="@fixtures/couchdb-dns-test.tt.json", doc_id=dns_id) == 201)
         return dns_id
 
-    def _remove_domain_docs(self, domain, docs):
+    def _remove_domain(self, domain, docs=None):
         # cleanup
         pdns = Powerdns(ObjectDict(**self.conf))
-        pdns.del_domain('test.tt')
-        self.db.delete_doc(docs)
+        pdns.del_domain(domain)
+        if docs:
+            self.db.delete_doc(docs)
 
     def _run_worker(self):
         w = Worker(self.conf, hostname="localhost")
@@ -76,13 +80,15 @@ class WorkerTestCase(unittest.TestCase):
 
     def _create_queue_doc(self):
         current_time = time.localtime()
-        queue_id = "queue-{}".format(time.strftime("%Y-%m-%d_%H:%M:%S_%z", current_time))
-        d = {
+        queue_id = "queue-{}".format(self.s.next_uuid())
+        queue_doc = {
             "_id": queue_id,
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
+            "type": "queue",
             "sender": "pad", "type": "queue", "state": "new"
         }
-        return (queue_id, d)
+        self.assertTrue(self.up.put(data=json.dumps(queue_doc), doc_id=queue_id) == 201)
+        return queue_id
 
     def test_worker_settings(self):
         doc = self.db.get("worker-localhost")
@@ -90,26 +96,25 @@ class WorkerTestCase(unittest.TestCase):
 
     def test_new_domain(self):
         dns_id = self._add_domain_test_tt()
-        queue_id, queue_doc = self._create_queue_doc()
-        self.assertTrue(self.up.put(data=json.dumps(queue_doc), doc_id=queue_id) == 201)
+        queue_id = self._create_queue_doc()
         self._run_worker()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
+        self._remove_domain('test.tt', docs=[dns_id, queue_id])
+
+    def test_change_record(self):
+        dns_id = self._add_domain_test_tt()
+        queue_id = self._create_queue_doc()
+        self._run_worker()
         dns_doc = self.db.get(dns_id)
         dns_doc['a'][4]['ip'] = "1.1.1.21"
-        dns_doc['cname'].append({'alias': "forum", 'host': "www"})
-        dns_doc['state'] = 'changed'
-        #self.db.save_doc(dns_doc)
-        self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
-        self._remove_domain_docs('test.tt', [dns_id, queue_id])
-
-    def test_change_domain(self):
-        dns_id = self._add_domain_test_tt()
-        queue_id, queue_doc = self._create_queue_doc()
-        self.assertTrue(self.up.put(data=json.dumps(queue_doc), doc_id=queue_id) == 201)
+        VersionDoc(self.db, dns_doc).create_version()
+        queue_id = self._create_queue_doc()
         self._run_worker()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
-        self._remove_domain_docs('test.tt', [dns_id, queue_id])
+        self._remove_domain('test.tt', docs=[dns_id, queue_id])
+        #dns_doc['cname'].append({'alias': "forum", 'host': "www"})
 
 if __name__ == '__main__':
     unittest.main()
