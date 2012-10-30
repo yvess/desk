@@ -83,17 +83,21 @@ class Powerdns(DnsBase):
             )
         )
 
-    def update_record(self, key, value, rtype='A', ttl=86400, priority='NULL', domain=None):
+    def update_record(self, key, value, rtype='A', ttl=86400, priority='NULL', domain=None, lookup='key'):
         if domain:
             self.set_domain(domain)
         # TOOD set ttl
+        if lookup == 'key':
+            where = "name='{}'".format(key)
+        else:
+            where = "content='{}'".format(value)
         self._db(
             """UPDATE records
                SET domain_id={domain_id}, name='{key}', content='{value}',
                    ttl={ttl},prio={priority}
-               WHERE name='{key}' AND type='{rtype}'
+               WHERE {lookup} AND type='{rtype}'
             """.format(
-                domain_id=self.domain_id, key=key, value=value, rtype=rtype, ttl=ttl, priority=priority
+                domain_id=self.domain_id, key=key, value=value, rtype=rtype, ttl=ttl, priority=priority, lookup=where
             )
         )
 
@@ -107,15 +111,22 @@ class Powerdns(DnsBase):
             self.add_domain()
             for nameserver in [n.strip() for n in self.doc['nameservers'].split(",")]:
                 self.add_record(self.domain, nameserver, rtype="NS")
-            if 'a' in self.doc:
-                for a in self.doc['a']:
-                    self.add_record(".".join([a['host'], self.domain]), a['ip'], rtype="A")  # TODO add special case for main @ self.domain?
-            if 'cname' in self.doc:
-                for cname in self.doc['cname']:
-                    self.add_record(".".join([cname['alias'], self.domain]), cname['host'], rtype="CNAME")
-            if 'mx' in self.doc:
-                for mx in self.doc['mx']:
-                    self.add_record(self.domain, mx['host'], priority=int(mx['priority']), rtype="MX")
+            for rtype in self.structure:
+                name, key_id, value_id = rtype['name'], rtype['key_id'], rtype['value_id']
+                if name in self.doc:
+                    for d in self.doc[name]:  # TODO merge with create logic
+                        if 'key_trans' in rtype:
+                            key = rtype['key_trans'](d[key_id], self.domain)
+                        else:
+                            key = d[key_id]
+                        if 'value_trans' in rtype:
+                            value = rtype['value_trans'](d[value_id], self.domain)
+                        else:
+                            value = d[value_id]
+                        if name.upper() == "MX":
+                            self.add_record(self.domain, key, priority=int(value), rtype="MX")
+                        else:
+                            self.add_record(key, value, rtype=name.upper())  # TODO add special case for main @ self.domain?
             self._conn.commit()
             self.update_serial()
         return sucess
@@ -127,21 +138,15 @@ class Powerdns(DnsBase):
         if self.diff:
             # TODO nameserver record
             for rtype in self.structure:
-                # for key, value in self.diff['_append'][rtype]:
-                #     if 'key_trans' in rtypes[rtype]:
-                #         key = rtypes['key_trans'](key)
-                #     self.add_record(key, value, rtype=rtype.upper())  # TODO add special case for main @ domain?
-                #print("RTYPE", rtype, self.diff['_update'][rtype])
-                update = self.diff['update'][rtype['name']]
+                name, key_id, value_id = rtype['name'], rtype['key_id'], rtype['value_id']
+                update = self.diff['update'][name] if name in self.diff['update'] else []
                 for d in update:
-                    key, value = d[rtype['key']], d[rtype['value']]
+                    key, value, lookup = d[key_id], d[value_id], d['lookup']
                     if 'key_trans' in rtype:
                         key = rtype['key_trans'](key, self.domain)
                     if 'value_trans' in rtype:
                         value = rtype['value_trans'](value, self.domain)
-                    self.update_record(key, value, rtype=rtype['name'].upper())
-                # for key, value in self.diff['_remove'][rtype]:
-                #     self.del_record(key, value, rtype=rtype.upper())
+                    self.update_record(key, value, rtype=name.upper(), lookup=lookup)
             self._conn.commit()
             self.update_serial()
         return sucess

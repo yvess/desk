@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division, unicode_literals
 from StringIO import StringIO
-from copy import copy
 import json
 import json_diff
 
@@ -52,22 +51,6 @@ class Updater(object):
         if 'prev_rev' in doc and doc['state'] == 'changed':
             service.set_diff(self._create_diff())
 
-#    def _doc_for_diff(self, doc):
-#        cleaned_doc = doc.copy()
-#        for key in ['_attachments', 'prev_rev', '_rev', 'state', 'client_id', 'template_id']:  # TODO: what todo with template_id?
-#            if key in cleaned_doc:
-#                del cleaned_doc[key]
-#        return cleaned_doc#
-
-    # def _merge_update_diff(self, diff):
-    #     def rm_update(update_dict):
-    #         if hasattr(update_dict, 'viewkeys'):
-    #             update_dict = rm_update(update_dict[list(update_dict.viewkeys())[0]])
-    #         return update_dict
-    #     diff = rm_update(diff)
-    #     print("DIFF", diff)
-    #     return diff
-
     def _prepare_docs(self, doc, prev_doc):
         for key in ['_attachments', '_rev']:
             if key in doc:
@@ -78,21 +61,24 @@ class Updater(object):
 
     def _create_diff(self):
         prev_doc = json.loads(self.db.fetch_attachment(self.doc['_id'], self.doc['prev_rev']))
-        doc = copy(self.doc)
+        doc = MergedDoc(self.db, self.doc).doc
         doc, prev_doc = self._prepare_docs(doc, prev_doc)
         diffator = json_diff.Comparator(StringIO(json.dumps(prev_doc)), StringIO(json.dumps(doc)), opts=OptionsClassDiff())
         diff = diffator.compare_dicts()
         diff_merged = {'update': {}}
-        for attr in self.service.structure:
-            attr_name = attr['name']
-            if attr_name in diff['_update']:
-                attr_diff = diff['_update'][attr_name]['_update']
-                attr_diff_merged = []
-                for i in attr_diff:
-                    attr_diff_merged.append({'host': doc[attr_name][i]['host'], 'ip': attr_diff[i]['_update']['ip']})
-                diff_merged['update'][attr_name] = attr_diff_merged
-                diff_merged['update']['cname'] = []
-                diff_merged['update']['mx'] = []
+        for item in self.service.structure:
+            name, key_id, value_id = item['name'], item['key_id'], item['value_id']
+            if '_update' in diff and name in diff['_update']:
+                item_diff = diff['_update'][name]['_update']
+                item_diff_merged = []
+                for i in item_diff:
+                    if value_id in item_diff[i]['_update']:
+                        key, value, lookup = doc[name][i][key_id], item_diff[i]['_update'][value_id], 'key'
+                    else:
+                        key, value, lookup = item_diff[i]['_update'][key_id], doc[name][i][value_id], 'value'
+                    item_diff_merged.append({key_id: key, value_id: value, 'lookup': lookup}
+                    )
+                diff_merged['update'][name] = item_diff_merged
         return diff_merged
 
     def do_task(self):

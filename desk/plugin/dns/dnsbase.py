@@ -21,7 +21,7 @@ class DnsValidator(object):
         for item in items:
             if q_key == 'domain':
                 q = self.domain
-            elif not item[q_key].endswith(".") and q_key in ('host', 'alias'):
+            elif q_key in ('host', 'alias') and not item[q_key].endswith("."):  # TODO do in host name calc in one place
                 q = "{}.{}".format(item[q_key], self.domain)
             else:
                 q = item[q_key]
@@ -29,11 +29,21 @@ class DnsValidator(object):
             for answer in self.resolver.query(q, record_type):
                 answer_value = answer if hasattr(answer, '__getitem__') else getattr(answer, answer_attr)
                 answer_value = unicode(answer_value)
+                is_fqdn = False
                 if answer_value.endswith("."):
-                    answer_value = answer_value[:-1]
+                    is_fqdn = True
                 answers.append(answer_value)
             item_value = unicode(item[item_key])
-            self.valid.append(True if item_value in answers else False)
+            if is_fqdn and not item_value.endswith("."):
+                if record_type == "MX":
+                    item_value = "{}.".format(item_value)
+                else:
+                    item_value = "{}.{}.".format(item_value, self.domain)  # TODO do in host name calc in one place
+            valid = True if item_value in answers else False
+            if not valid:
+                print("***Q2", record_type, q, item_value, answers)
+
+            self.valid.append(valid)
 
     def do_check(self):
         for ns in self.doc['nameservers'].split(','):
@@ -52,13 +62,18 @@ class DnsBase(object):
     structure = [
         {
             'name': 'a',
-            'key': 'host', 'value': 'ip',
+            'key_id': 'host', 'value_id': 'ip',
             'key_trans': lambda k, domain: ".".join([k, domain])
         },
         {
             'name': 'cname',
-            'key': 'alias', 'value': 'host',
+            'key_id': 'alias', 'value_id': 'host',
+            'key_trans': lambda k, domain: k[:-1] if k.endswith(".") else ".".join([k, domain]),
             'value_trans': lambda v, domain: v[:-1] if v.endswith(".") else ".".join([v, domain])
+        },
+        {
+            'name': 'mx',
+            'key_id': 'host', 'value_id': 'priority'
         }
         #{'name': 'cname', 'alias': 'host', 'value': 'host'},
     ]

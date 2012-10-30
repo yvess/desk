@@ -108,6 +108,8 @@ class WorkerTestCase(unittest.TestCase):
         self._run_worker()
         dns_doc = self.db.get(dns_id)
         dns_doc['a'][4]['ip'] = "1.1.1.21"
+        dns_doc['a'][1]['host'] = "ns3"
+        dns_doc['cname'][0]['host'] = "ns1"
         VersionDoc(self.db, dns_doc).create_version()
         queue_id = self._create_queue_doc()
         self._run_worker()
