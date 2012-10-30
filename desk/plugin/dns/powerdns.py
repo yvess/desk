@@ -1,7 +1,9 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division, unicode_literals
-from desk.plugin.dns import DnsBase
 import sqlite3
+import time
+import os
+from desk.plugin.dns import DnsBase
 
 
 class Powerdns(DnsBase):
@@ -38,16 +40,28 @@ class Powerdns(DnsBase):
         self.domain = domain
         if not new:
             self.domain_id = self._db('SELECT id FROM domains WHERE name="{}"'.format(domain)).fetchone()[0]
-            print(self.domain_id)
-            #if self.domain_id:
-            #    self.domain_id = self.domain_id[0]
+
+    def update_serial(self, domain=None):
+        if domain:
+            self.set_domain(domain)
+        current_serial = self._db(
+            'SELECT content FROM records WHERE name="{}" AND type="SOA"'.format(self.domain)
+        ).fetchone()[0].split(" ")[-1]
+        serial_datetime, serial_counter = current_serial[:-4], int(current_serial[-4:])
+        current_datetime = time.strftime("%Y%m%d%H%M", time.localtime())
+        if serial_datetime == current_datetime:
+            serial_counter += 1
+        serial = "{}{:04d}".format(current_datetime, serial_counter)
+        self.update_record(self.domain, "localhost dnsmaster@test.tt {}".format(serial), rtype="SOA")
+        os.system("sudo pdns_control purge {}$".format(self.domain))  # TODO sudoers
 
     def add_domain(self, domain=None):
         if domain:
             self.set_domain(domain, new=True)
         self._db("INSERT INTO domains (name, type) VALUES ('{}', 'NATIVE')".format(self.domain))
         self.domain_id = self._cursor.lastrowid
-        self.add_record(self.domain, 'localhost dnsmaster@test.tt 1', rtype="SOA")  # TODO: where to put SOA?
+        serial = time.strftime("%Y%m%d%H%M0001", time.localtime())
+        self.add_record(self.domain, "localhost dnsmaster@test.tt {}".format(serial), rtype="SOA")  # TODO: where to put SOA?
 
     def del_domain(self, domain=None):
         if domain:
@@ -76,7 +90,7 @@ class Powerdns(DnsBase):
         self._db(
             """UPDATE records
                SET domain_id={domain_id}, name='{key}', content='{value}',
-                   type='{rtype}',ttl={ttl},prio={priority}
+                   ttl={ttl},prio={priority}
                WHERE name='{key}' AND type='{rtype}'
             """.format(
                 domain_id=self.domain_id, key=key, value=value, rtype=rtype, ttl=ttl, priority=priority
@@ -103,6 +117,7 @@ class Powerdns(DnsBase):
                 for mx in self.doc['mx']:
                     self.add_record(self.domain, mx['host'], priority=int(mx['priority']), rtype="MX")
             self._conn.commit()
+            self.update_serial()
         return sucess
 
     def update(self):
@@ -135,4 +150,5 @@ class Powerdns(DnsBase):
                 # for key, value in self.diff['_remove'][rtype]:
                 #     self.del_record(key, value, rtype=rtype.upper())
             self._conn.commit()
+            self.update_serial()
         return sucess
