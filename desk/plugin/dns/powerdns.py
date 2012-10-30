@@ -126,16 +126,7 @@ class Powerdns(DnsBase):
             self.set_domain(self.doc['domain'])
         if self.diff:
             # TODO nameserver record
-            rtypes = [
-                {
-                    'name': 'a',
-                    'key_trans': lambda k: ".".join([k, self.domain]),
-                    'map': {'key': 'host', 'value': 'ip'}
-                }
-                #'cname': {'key_trans': lambda k: ".".join([k, self.domain])},
-                #'mx': {'key_trans': lambda k: ".".join([k, self.domain])}
-            ]  # ".".join([a['host'], domain])
-            for rtype in rtypes:
+            for rtype in self.structure:
                 # for key, value in self.diff['_append'][rtype]:
                 #     if 'key_trans' in rtypes[rtype]:
                 #         key = rtypes['key_trans'](key)
@@ -143,9 +134,11 @@ class Powerdns(DnsBase):
                 #print("RTYPE", rtype, self.diff['_update'][rtype])
                 update = self.diff['update'][rtype['name']]
                 for d in update:
-                    key, value = d[rtype['map']['key']], d[rtype['map']['value']]
+                    key, value = d[rtype['key']], d[rtype['value']]
                     if 'key_trans' in rtype:
-                        key = rtype['key_trans'](key)
+                        key = rtype['key_trans'](key, self.domain)
+                    if 'value_trans' in rtype:
+                        value = rtype['value_trans'](value, self.domain)
                     self.update_record(key, value, rtype=rtype['name'].upper())
                 # for key, value in self.diff['_remove'][rtype]:
                 #     self.del_record(key, value, rtype=rtype.upper())

@@ -102,7 +102,7 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, queue_id])
 
-    def test_change_record(self):
+    def test_update_record(self):
         dns_id = self._add_domain_test_tt()
         queue_id = self._create_queue_doc()
         self._run_worker()
@@ -114,7 +114,19 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, queue_id])
-        #dns_doc['cname'].append({'alias': "forum", 'host': "www"})
+
+    def _test_append_record(self):
+        dns_id = self._add_domain_test_tt()
+        queue_id = self._create_queue_doc()
+        self._run_worker()
+        dns_doc = self.db.get(dns_id)
+        dns_doc['a'].append({'host': "forum", 'ip': "1.1.1.25"})
+        VersionDoc(self.db, dns_doc).create_version()
+        queue_id = self._create_queue_doc()
+        self._run_worker()
+        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
+        self._remove_domain('test.tt', docs=[dns_id, queue_id])
 
 if __name__ == '__main__':
     unittest.main()

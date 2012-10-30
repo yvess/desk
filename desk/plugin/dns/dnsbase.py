@@ -49,6 +49,19 @@ class DnsValidator(object):
 class DnsBase(object):
     __metaclass__ = abc.ABCMeta
     validator = DnsValidator
+    structure = [
+        {
+            'name': 'a',
+            'key': 'host', 'value': 'ip',
+            'key_trans': lambda k, domain: ".".join([k, domain])
+        },
+        {
+            'name': 'cname',
+            'key': 'alias', 'value': 'host',
+            'value_trans': lambda v, domain: v[:-1] if v.endswith(".") else ".".join([v, domain])
+        }
+        #{'name': 'cname', 'alias': 'host', 'value': 'host'},
+    ]
 
     @abc.abstractmethod
     def create(self):

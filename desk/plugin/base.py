@@ -48,6 +48,7 @@ class Updater(object):
         self.task = choose_task[doc['state']]
         self.merged_doc = MergedDoc(db, doc).doc
         service.set_doc(self.merged_doc)
+        self.service = service
         if 'prev_rev' in doc and doc['state'] == 'changed':
             service.set_diff(self._create_diff())
 
@@ -81,14 +82,17 @@ class Updater(object):
         doc, prev_doc = self._prepare_docs(doc, prev_doc)
         diffator = json_diff.Comparator(StringIO(json.dumps(prev_doc)), StringIO(json.dumps(doc)), opts=OptionsClassDiff())
         diff = diffator.compare_dicts()
-        a_diff = diff['_update']['a']['_update']
         diff_merged = {'update': {}}
-        a_diff_merged = []
-        for i in a_diff:
-            a_diff_merged.append({'host': doc['a'][i]['host'], 'ip': a_diff[i]['_update']['ip']})
-        diff_merged['update']['a'] = a_diff_merged
-        diff_merged['update']['cname'] = []
-        diff_merged['update']['mx'] = []
+        for attr in self.service.structure:
+            attr_name = attr['name']
+            if attr_name in diff['_update']:
+                attr_diff = diff['_update'][attr_name]['_update']
+                attr_diff_merged = []
+                for i in attr_diff:
+                    attr_diff_merged.append({'host': doc[attr_name][i]['host'], 'ip': attr_diff[i]['_update']['ip']})
+                diff_merged['update'][attr_name] = attr_diff_merged
+                diff_merged['update']['cname'] = []
+                diff_merged['update']['mx'] = []
         return diff_merged
 
     def do_task(self):
