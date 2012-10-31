@@ -13,11 +13,13 @@ class DnsValidator(object):
         self.resolver = dns.resolver.Resolver()
         self.lookup = lookup
         self.valid = []
-        #import os
-        #os.system("sudo /etc/init.d/pdns restart")
 
-    def _validate(self, record_type, item_key, q_key='domain', answer_attr='address'):
-        items = self.doc[record_type.lower()]
+    def _setup_resolver(self, ns):
+        self.resolver.nameservers = [gethostbyname(ns) if not self.lookup else self.lookup[ns]]
+
+    def _validate(self, record_type, item_key, q_key='domain', answer_attr='address', return_check=False, items=None):
+        if not items:
+            items = self.doc[record_type.lower()]
         for item in items:
             if q_key == 'domain':
                 q = self.domain
@@ -40,20 +42,37 @@ class DnsValidator(object):
                 else:
                     item_value = "{}.{}.".format(item_value, self.domain)  # TODO do in host name calc in one place
             valid = True if item_value in answers else False
-            if not valid:
-                print("***Q2", record_type, q, item_value, answers)
+            if return_check:
+                return valid
+            else:
+                self.valid.append(valid)
 
-            self.valid.append(valid)
+    def check_one_record(self, record_type, item_key, q_key='domain', item=None):
+        record_type = record_type.upper()
+        lookup_answer_attr = {'CNAME': 'target', 'A': 'address'}
+        answer_attr = lookup_answer_attr[record_type]
+        for ns in self.doc['nameservers'].split(','):
+            domain, ns = self.domain, ns.strip()
+            self._setup_resolver(ns)
+            try:
+                self._validate(record_type, item_key, q_key=q_key, items=[item], answer_attr=answer_attr)
+            except dns.resolver.NoAnswer:
+                self.valid.append(False)
+        is_valid = all(self.valid)
+        self.valid = []
+        return is_valid
 
     def do_check(self):
         for ns in self.doc['nameservers'].split(','):
             domain, ns = self.domain, ns.strip()
-            self.resolver.nameservers = [gethostbyname(ns) if not self.lookup else self.lookup[ns]]
+            self._setup_resolver(ns)
             self._validate('A', 'ip', q_key='host')
             self._validate('MX', 'host', answer_attr='exchange')
             self._validate('MX', 'priority', answer_attr='preference')
             self._validate('CNAME', 'host', q_key='alias', answer_attr='target')
-        return all(self.valid)
+        is_valid = all(self.valid)
+        self.valid = []
+        return is_valid
 
 
 class DnsBase(object):

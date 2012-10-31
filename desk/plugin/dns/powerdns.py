@@ -101,8 +101,16 @@ class Powerdns(DnsBase):
             )
         )
 
-    def del_record():
-        pass
+    def del_record(self, key, value, rtype='A', domain=None):
+        if domain:
+            self.set_domain(domain)
+        self._db(
+            """DELETE FROM records
+               WHERE name='{key}' AND type='{rtype}'
+            """.format(
+                domain_id=self.domain_id, key=key, value=value, rtype=rtype
+            )
+        )
 
     def create(self):
         sucess = False
@@ -136,7 +144,8 @@ class Powerdns(DnsBase):
         if self.doc:
             self.set_domain(self.doc['domain'])
         if self.diff:
-            # TODO nameserver record
+            print("DIFF", self.diff)
+            # TODO nameserver record, cleanup duplication
             for rtype in self.structure:
                 name, key_id, value_id = rtype['name'], rtype['key_id'], rtype['value_id']
                 update = self.diff['update'][name] if name in self.diff['update'] else []
@@ -149,13 +158,20 @@ class Powerdns(DnsBase):
                     self.update_record(key, value, rtype=name.upper(), lookup=lookup)
                 append = self.diff['append'][name] if name in self.diff['append'] else []
                 for d in append:
-                    print("###D ", d, append)
                     key, value = d[key_id], d[value_id]
                     if 'key_trans' in rtype:
                         key = rtype['key_trans'](key, self.domain)
                     if 'value_trans' in rtype:
                         value = rtype['value_trans'](value, self.domain)
                     self.add_record(key, value, rtype=name.upper())
+                remove = self.diff['remove'][name] if name in self.diff['remove'] else []
+                for d in remove:
+                    key, value = d[key_id], d[value_id]
+                    if 'key_trans' in rtype:
+                        key = rtype['key_trans'](key, self.domain)
+                    if 'value_trans' in rtype:
+                        value = rtype['value_trans'](value, self.domain)
+                    self.del_record(key, value, rtype=name.upper())
             self._conn.commit()
             self.update_serial()
         return sucess

@@ -67,9 +67,10 @@ class Updater(object):
         diff = diffator.compare_dicts()
         diff_merged = {
             'update': {},
-            'append': {}
+            'append': {},
+            'remove': {}
         }
-        for item in self.service.structure:
+        for item in self.service.structure:  # TODO cleanup lot of duplication
             name, key_id, value_id = item['name'], item['key_id'], item['value_id']
             if '_update' in diff and name in diff['_update'] and '_update' in diff['_update'][name]:
                 item_diff = diff['_update'][name]['_update']
@@ -87,6 +88,12 @@ class Updater(object):
                 for i in item_diff:
                     item_diff_merged.append(item_diff[i])
                 diff_merged['append'][name] = item_diff_merged
+            if '_update' in diff and name in diff['_update'] and '_remove' in diff['_update'][name]:
+                item_diff = diff['_update'][name]['_remove']
+                item_diff_merged = []
+                for i in item_diff:
+                    item_diff_merged.append(item_diff[i])
+                diff_merged['remove'][name] = item_diff_merged
         return diff_merged
 
     def do_task(self):
