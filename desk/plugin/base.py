@@ -65,10 +65,13 @@ class Updater(object):
         doc, prev_doc = self._prepare_docs(doc, prev_doc)
         diffator = json_diff.Comparator(StringIO(json.dumps(prev_doc)), StringIO(json.dumps(doc)), opts=OptionsClassDiff())
         diff = diffator.compare_dicts()
-        diff_merged = {'update': {}}
+        diff_merged = {
+            'update': {},
+            'append': {}
+        }
         for item in self.service.structure:
             name, key_id, value_id = item['name'], item['key_id'], item['value_id']
-            if '_update' in diff and name in diff['_update']:
+            if '_update' in diff and name in diff['_update'] and '_update' in diff['_update'][name]:
                 item_diff = diff['_update'][name]['_update']
                 item_diff_merged = []
                 for i in item_diff:
@@ -76,9 +79,14 @@ class Updater(object):
                         key, value, lookup = doc[name][i][key_id], item_diff[i]['_update'][value_id], 'key'
                     else:
                         key, value, lookup = item_diff[i]['_update'][key_id], doc[name][i][value_id], 'value'
-                    item_diff_merged.append({key_id: key, value_id: value, 'lookup': lookup}
-                    )
+                    item_diff_merged.append({key_id: key, value_id: value, 'lookup': lookup})
                 diff_merged['update'][name] = item_diff_merged
+            if '_update' in diff and name in diff['_update'] and '_append' in diff['_update'][name]:
+                item_diff = diff['_update'][name]['_append']
+                item_diff_merged = []
+                for i in item_diff:
+                    item_diff_merged.append(item_diff[i])
+                diff_merged['append'][name] = item_diff_merged
         return diff_merged
 
     def do_task(self):

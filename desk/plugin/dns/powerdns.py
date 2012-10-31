@@ -147,6 +147,15 @@ class Powerdns(DnsBase):
                     if 'value_trans' in rtype:
                         value = rtype['value_trans'](value, self.domain)
                     self.update_record(key, value, rtype=name.upper(), lookup=lookup)
+                append = self.diff['append'][name] if name in self.diff['append'] else []
+                for d in append:
+                    print("###D ", d, append)
+                    key, value = d[key_id], d[value_id]
+                    if 'key_trans' in rtype:
+                        key = rtype['key_trans'](key, self.domain)
+                    if 'value_trans' in rtype:
+                        value = rtype['value_trans'](value, self.domain)
+                    self.add_record(key, value, rtype=name.upper())
             self._conn.commit()
             self.update_serial()
         return sucess

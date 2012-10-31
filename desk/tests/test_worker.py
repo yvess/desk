@@ -117,12 +117,13 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, queue_id])
 
-    def _test_append_record(self):
+    def test_append_record(self):
         dns_id = self._add_domain_test_tt()
         queue_id = self._create_queue_doc()
         self._run_worker()
         dns_doc = self.db.get(dns_id)
         dns_doc['a'].append({'host': "forum", 'ip': "1.1.1.25"})
+        dns_doc['cname'].append({'alias': "super", 'host': "www"})
         VersionDoc(self.db, dns_doc).create_version()
         queue_id = self._create_queue_doc()
         self._run_worker()
