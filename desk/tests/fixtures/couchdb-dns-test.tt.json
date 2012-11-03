@@ -30,6 +30,10 @@
       {
          "alias":"blog",
          "host":"www"
+      },
+      {
+         "alias":"new",
+         "host":"www"
       }
    ],
    "type":"dns"

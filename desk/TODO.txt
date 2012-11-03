@@ -11,5 +11,6 @@ Worker
 - permission sqlitedb
 - validate couchdb doc for dns
 - placeholder ip @
+- doc strings
 
 states new, changed, live

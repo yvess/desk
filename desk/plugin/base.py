@@ -1,13 +1,17 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division, unicode_literals
 from StringIO import StringIO
+from copy import copy
 import json
 import json_diff
 
 
 class OptionsClassDiff(object):
     def __init__(self):
-        self.exclude = ['_attachments', 'prev_rev', '_rev', 'state', 'client_id', 'template_id']
+        self.exclude = [
+            '_attachments', 'prev_rev', '_rev', 'state',
+            'client_id', 'template_id', 'template_type'
+        ]
         self.include = []
         self.ignore_append = []
 
@@ -46,24 +50,26 @@ class Updater(object):
         choose_task = {'new': service.create, 'changed': service.update}
         self.task = choose_task[doc['state']]
         self.merged_doc = MergedDoc(db, doc).doc
-        service.set_doc(self.merged_doc)
+        if 'prev_rev' in doc:
+            self.prev_doc = json.loads(db.fetch_attachment(doc['_id'], doc['prev_rev']))
+        else:
+            self.prev_doc = None
+        service.set_docs(self.merged_doc, self.prev_doc)
         self.service = service
         if 'prev_rev' in doc and doc['state'] == 'changed':
             service.set_diff(self._create_diff())
 
-    def _prepare_docs(self, doc, prev_doc):
-        for key in ['_attachments', '_rev']:
-            if key in doc:
-                del doc[key]
-            if key in doc:
-                del prev_doc[key]
-        return (doc, prev_doc)
+    def _remove_attachment(self, doc):
+        if '_attachments' in doc:
+            doc = copy(doc)
+            del doc['_attachments']
+        return doc
 
     def _create_diff(self):
-        prev_doc = json.loads(self.db.fetch_attachment(self.doc['_id'], self.doc['prev_rev']))
-        doc = MergedDoc(self.db, self.doc).doc
-        doc, prev_doc = self._prepare_docs(doc, prev_doc)
-        diffator = json_diff.Comparator(StringIO(json.dumps(prev_doc)), StringIO(json.dumps(doc)), opts=OptionsClassDiff())
+        diffator = json_diff.Comparator(
+            StringIO(json.dumps(self._remove_attachment(self.prev_doc))),
+            StringIO(json.dumps(self._remove_attachment(self.merged_doc))), opts=OptionsClassDiff()
+        )
         diff = diffator.compare_dicts()
         diff_merged = {
             'update': {},
@@ -72,22 +78,28 @@ class Updater(object):
         }
         for item in self.service.structure:  # TODO cleanup lot of duplication
             name, key_id, value_id = item['name'], item['key_id'], item['value_id']
+            # an existing entry changed
             if '_update' in diff and name in diff['_update'] and '_update' in diff['_update'][name]:
                 item_diff = diff['_update'][name]['_update']
                 item_diff_merged = []
                 for i in item_diff:
-                    if value_id in item_diff[i]['_update']:
-                        key, value, lookup = doc[name][i][key_id], item_diff[i]['_update'][value_id], 'key'
-                    else:
-                        key, value, lookup = item_diff[i]['_update'][key_id], doc[name][i][value_id], 'value'
+                    changes = item_diff[i]['_update']
+                    if value_id in changes and key_id in changes:  # both changed, lookup via id of old entry
+                        key, value, lookup = changes[key_id], self.doc[name][i][value_id], 'id'
+                    elif value_id in changes:  # value changed, lookup key
+                        key, value, lookup = self.doc[name][i][key_id], changes[value_id], 'key'
+                    elif key_id in changes:  # key changed, lookup value
+                        key, value, lookup = changes[key_id], self.doc[name][i][value_id], 'value'
                     item_diff_merged.append({key_id: key, value_id: value, 'lookup': lookup})
                 diff_merged['update'][name] = item_diff_merged
+            # a new entry
             if '_update' in diff and name in diff['_update'] and '_append' in diff['_update'][name]:
                 item_diff = diff['_update'][name]['_append']
                 item_diff_merged = []
                 for i in item_diff:
                     item_diff_merged.append(item_diff[i])
                 diff_merged['append'][name] = item_diff_merged
+            # delete entry
             if '_update' in diff and name in diff['_update'] and '_remove' in diff['_update'][name]:
                 item_diff = diff['_update'][name]['_remove']
                 item_diff_merged = []

@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function, division, unicode_litera
 import sqlite3
 import time
 import os
+from copy import copy
 from desk.plugin.dns import DnsBase
 
 
@@ -89,7 +90,7 @@ class Powerdns(DnsBase):
         # TOOD set ttl
         if lookup == 'key':
             where = "name='{}'".format(key)
-        else:
+        elif lookup == 'value':
             where = "content='{}'".format(value)
         self._db(
             """UPDATE records
@@ -123,14 +124,8 @@ class Powerdns(DnsBase):
                 name, key_id, value_id = rtype['name'], rtype['key_id'], rtype['value_id']
                 if name in self.doc:
                     for d in self.doc[name]:  # TODO merge with create logic
-                        if 'key_trans' in rtype:
-                            key = rtype['key_trans'](d[key_id], self.domain)
-                        else:
-                            key = d[key_id]
-                        if 'value_trans' in rtype:
-                            value = rtype['value_trans'](d[value_id], self.domain)
-                        else:
-                            value = d[value_id]
+                        key = rtype['key_trans'](d[key_id], self.domain) if 'key_trans' in rtype else d[key_id]
+                        value = rtype['value_trans'](d[value_id], self.domain) if 'value_trans' in rtype else d[value_id]
                         if name.upper() == "MX":
                             self.add_record(self.domain, key, priority=int(value), rtype="MX")
                         else:
@@ -139,39 +134,44 @@ class Powerdns(DnsBase):
             self.update_serial()
         return sucess
 
+    def _trans(self, key, value, rtype=None):
+        key = rtype['key_trans'](key, self.domain) if 'key_trans' in rtype else key
+        value = rtype['value_trans'](value, self.domain) if 'value_trans' in rtype else value
+        return (key, value)
+
     def update(self):
         sucess = False
         if self.doc:
             self.set_domain(self.doc['domain'])
         if self.diff:
-            print("DIFF", self.diff)
-            # TODO nameserver record, cleanup duplication
+            # TODO nameserver record
             for rtype in self.structure:
                 name, key_id, value_id = rtype['name'], rtype['key_id'], rtype['value_id']
-                update = self.diff['update'][name] if name in self.diff['update'] else []
-                for d in update:
-                    key, value, lookup = d[key_id], d[value_id], d['lookup']
-                    if 'key_trans' in rtype:
-                        key = rtype['key_trans'](key, self.domain)
-                    if 'value_trans' in rtype:
-                        value = rtype['value_trans'](value, self.domain)
-                    self.update_record(key, value, rtype=name.upper(), lookup=lookup)
-                append = self.diff['append'][name] if name in self.diff['append'] else []
-                for d in append:
-                    key, value = d[key_id], d[value_id]
-                    if 'key_trans' in rtype:
-                        key = rtype['key_trans'](key, self.domain)
-                    if 'value_trans' in rtype:
-                        value = rtype['value_trans'](value, self.domain)
-                    self.add_record(key, value, rtype=name.upper())
+                # remove records
                 remove = self.diff['remove'][name] if name in self.diff['remove'] else []
                 for d in remove:
-                    key, value = d[key_id], d[value_id]
-                    if 'key_trans' in rtype:
-                        key = rtype['key_trans'](key, self.domain)
-                    if 'value_trans' in rtype:
-                        value = rtype['value_trans'](value, self.domain)
+                    key, value = self._trans(d[key_id], d[value_id], rtype=rtype)
                     self.del_record(key, value, rtype=name.upper())
+                # new records
+                append = self.diff['append'][name] if name in self.diff['append'] else []
+                for d in append:
+                    key, value = self._trans(d[key_id], d[value_id], rtype=rtype)
+                    self.add_record(key, value, rtype=name.upper())
+                # update records
+                update = self.diff['update'][name] if name in self.diff['update'] else []
+                for d in update:
+                    key, value = self._trans(d[key_id], d[value_id], rtype=rtype)
+                    lookup = d['lookup']
+                    if lookup in ('key', 'value'):
+                        self.update_record(key, value, rtype=name.upper(), lookup=lookup)
+                    elif lookup == 'id':
+                        record = copy(d)
+                        del record['lookup']
+                        index = self.doc[name].index(record)
+                        d_old = self.prev_doc[name][index]
+                        key_old, value_old = self._trans(d_old[key_id], d_old[value_id], rtype=rtype)
+                        self.del_record(key_old, value_old, rtype=name.upper())
+                        self.add_record(key, value, rtype=name.upper())
             self._conn.commit()
             self.update_serial()
         return sucess

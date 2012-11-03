@@ -6,7 +6,6 @@ import dns.resolver
 
 
 class DnsValidator(object):
-
     def __init__(self, doc, lookup=None):
         self.doc = doc
         self.domain = doc['domain']
@@ -94,7 +93,6 @@ class DnsBase(object):
             'name': 'mx',
             'key_id': 'host', 'value_id': 'priority'
         }
-        #{'name': 'cname', 'alias': 'host', 'value': 'host'},
     ]
 
     @abc.abstractmethod
@@ -125,9 +123,10 @@ class DnsBase(object):
     def del_record(self, key, value, rtype='A', ttl=86400, priority='NULL'):
         """delete record"""
 
-    def set_doc(self, doc):
+    def set_docs(self, doc, prev_doc=None):
         """sets the doc to use"""
         self.doc = doc
+        self.prev_doc = prev_doc
 
     def set_diff(self, diff):
         """sets the json diff to use"""

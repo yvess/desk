@@ -9,6 +9,7 @@ from couchdbkit import Server
 from desk.utils import CouchdbUploader
 import time
 import json
+from copy import copy
 
 from desk.plugin.base import MergedDoc, VersionDoc
 from desk.plugin.dns.dnsbase import DnsValidator
@@ -113,6 +114,20 @@ class WorkerTestCase(unittest.TestCase):
         queue_id = self._create_queue_doc()
         self._run_worker()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
+        self._remove_domain('test.tt', docs=[dns_id, queue_id])
+
+    def test_complete_change_record(self):
+        dns_id, queue_id = self._add_domain_test_tt()
+        dns_doc = self.db.get(dns_id)
+        changed_a = copy(dns_doc['a'][4])
+        dns_doc['a'][4]['ip'] = "1.1.1.21"
+        dns_doc['a'][4]['host'] = "www2"
+        VersionDoc(self.db, dns_doc).create_version()
+        queue_id = self._create_queue_doc()
+        self._run_worker()
+        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertFalse(self._get_dns_validator('dns-test.tt').check_one_record('A', 'ip', q_key='host', item=changed_a))
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, queue_id])
 
