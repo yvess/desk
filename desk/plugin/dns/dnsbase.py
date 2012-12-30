@@ -35,6 +35,8 @@ class DnsValidator(object):
                     is_fqdn = True
                 answers.append(answer_value)
             item_value = unicode(item[item_key])
+            if item_value.startswith('@ip_'):
+                item_value = self.lookup_map[item_value]
             if is_fqdn and not item_value.endswith("."):
                 if record_type == "MX":
                     item_value = "{}.".format(item_value)
@@ -94,6 +96,7 @@ class DnsBase(object):
             'key_id': 'host', 'value_id': 'priority'
         }
     ]
+    map_doc_id = 'map-ips'
 
     @abc.abstractmethod
     def create(self):
@@ -131,3 +134,7 @@ class DnsBase(object):
     def set_diff(self, diff):
         """sets the json diff to use"""
         self.diff = diff
+
+    def set_lookup_map(self, doc):
+        self.lookup_map = doc['map']
+        self.validator.lookup_map = doc['map']

@@ -51,6 +51,7 @@ class WorkerTestCase(unittest.TestCase):
         }
         self.assertTrue(self.up.put(data=json.dumps(d), doc_id=worker_id) == 201)
         self.assertTrue(self.up.put(data="@fixtures/couchdb-template-dns.json", doc_id="template-email") == 201)
+        self.assertTrue(self.up.put(data="@fixtures/couchdb-map-ips.json", doc_id="map-ips") == 201)
 
     def tearDown(self):
         has_domain = Powerdns(ObjectDict(**self.conf)).check_domain("test.tt")

@@ -24,6 +24,10 @@
       {
          "host":"www",
          "ip":"1.1.1.20"
+      },
+      {
+         "host":"blog2",
+         "ip":"@ip_web1"
       }
    ],
    "cname":[

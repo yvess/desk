@@ -74,6 +74,8 @@ class Powerdns(DnsBase):
         if domain:
             self.set_domain(domain)
         # TOOD set ttl
+        if value.startswith('@ip_'):  # get ip value from hashmap
+            value = self.lookup_map[value]
         self._db(
             """INSERT INTO records
                (domain_id, name, content, type, ttl, prio)
@@ -88,6 +90,8 @@ class Powerdns(DnsBase):
         if domain:
             self.set_domain(domain)
         # TOOD set ttl
+        if value.startswith('@ip_'):  # get ip value from hashmap
+            value = self.lookup_map[value]
         if lookup == 'key':
             where = "name='{}'".format(key)
         elif lookup == 'value':
