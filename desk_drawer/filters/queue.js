@@ -1,6 +1,6 @@
 function (doc, req)
 {
-  if (doc.type == "queue" && doc.state == "created") {
+  if (doc.type == "queue" && doc.state == "new") {
     return true;
   }
 
