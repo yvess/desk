@@ -11,6 +11,7 @@
 @import <AppKit/CPTextField.j>
 @import <AppKit/CPPopUpButton.j>
 @import <AppKit/CPButtonBar.j>
+@import <GrowlCappuccino/GrowlCappuccino.j>
 
 @import <CouchResource/COViewController.j>
 @import "DMClient.j"
@@ -108,17 +109,17 @@
                                 //[COViewController alloc]
                                 initWithCibName:@"ClientView"
                                 bundle:nil //],
-                                modelClass:[DMClient class]],
-        projectViewController = [[DMProjectViewController alloc]
-                                initWithCibName:@"ProjectView"
-                                bundle:nil
-                                modelClass:[DMProject class]
-                                clients:[clientViewController items]
-                                clientLookup:[clientViewController itemLookup]],
-        workTimeViewController = [[DMWorkTimeViewController alloc]
-                                initWithCibName:@"WorkTimeView"
-                                bundle:nil
-                                modelClass:[DMWorkTime class]],
+                                modelClass:[DMClient class]] //,
+        // projectViewController = [[DMProjectViewController alloc]
+        //                         initWithCibName:@"ProjectView"
+        //                         bundle:nil
+        //                         modelClass:[DMProject class]
+        //                         clients:[clientViewController items]
+        //                         clientLookup:[clientViewController itemLookup]],
+        // workTimeViewController = [[DMWorkTimeViewController alloc]
+        //                         initWithCibName:@"WorkTimeView"
+        //                         bundle:nil
+        //                         modelClass:[DMWorkTime class]],
         dnsViewController = [[DMDnsViewController alloc]
                                 initWithCibName:@"DnsView"
                                 bundle:nil
@@ -127,8 +128,8 @@
                                 clientLookup:[clientViewController itemLookup]];
 
     [[mainTabView tabViewItemAtIndex:0] setView:[clientViewController view]];
-    [[mainTabView tabViewItemAtIndex:1] setView:[projectViewController view]];
-    [[mainTabView tabViewItemAtIndex:2] setView:[workTimeViewController view]];
+    // [[mainTabView tabViewItemAtIndex:1] setView:[projectViewController view]];
+    // [[mainTabView tabViewItemAtIndex:2] setView:[workTimeViewController view]];
     [[mainTabView tabViewItemAtIndex:3] setView:[dnsViewController view]];
 }
 
@@ -137,14 +138,50 @@
 
     // This is called when the application is done loading.
     [clientsSwitchButton setAction:@selector(switchTabFromButton:)];
-    [projectsSwitchButton setAction:@selector(switchTabFromButton:)];
-    [workTimesSwitchButton setAction:@selector(switchTabFromButton:)];
+    // [projectsSwitchButton setAction:@selector(switchTabFromButton:)];
+    // [workTimesSwitchButton setAction:@selector(switchTabFromButton:)];
     [dnsSwitchButton setAction:@selector(switchTabFromButton:)];
     [queueButton setAction:@selector(pushUpdate)];
     [queueButton setTarget:self];
 
     [mainTabView selectTabViewItemAtIndex:0];
-    //[self switchTabFromButton:@"Clients"];
+    [self switchTabFromButton:@"Clients"];
+
+    var growl = [TNGrowlCenter defaultCenter];
+
+    [growl setView:mainTabView];
+    var doNotification = function(data) {
+        var message = [CPString stringWithFormat:@"id:\n%@ \n\nsender:%@", data.id, data.doc.sender];
+        [growl pushNotificationWithTitle:@"queue done" message:message];
+    }
+
+    if (!!window.EventSource)
+    {
+        var since = localStorage['desk-pad-queue-seq'];
+        if (!since) since = 0;
+        var source = new EventSource("/queues/changes?since="+since);
+        source.addEventListener('message', function(e) {
+          var data = JSON.parse(e.data);
+          if (data.seq > since)
+          {
+            since = data.seq;
+            localStorage['desk-pad-queue-seq'] = since;
+            doNotification(data)
+          };
+        }, false);
+
+        source.addEventListener('open', function(e) {
+          // Connection was opened.
+        }, false);
+
+        source.addEventListener('error', function(e) {
+          if (e.readyState == EventSource.CLOSED)
+          {
+            // Connection was closed.
+            console.log("SSE Connection was closed");
+          }
+        }, false);
+    }
 }
 
 @end

@@ -12,5 +12,8 @@ Worker
 - validate couchdb doc for dns
 - placeholder ip @
 - doc strings
+- check affected rows from sql
+- undo queue feature
 
 states new, changed, live
+

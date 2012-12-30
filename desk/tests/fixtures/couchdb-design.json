@@ -1,18 +1,17 @@
 {
-   "_id": "_design/desk_drawer",
    "rewrites": [
        {
-           "to": "../../",
-           "from": ""
+           "from": "",
+           "to": "../../"
        },
        {
-           "to": "_update/name/*",
            "from": "/desk_drawer/*",
+           "to": "_update/name/*",
            "method": "POST"
        },
        {
-           "to": "_list/list_docs/work_time",
            "from": "/work_times",
+           "to": "_list/list_docs/work_time",
            "method": "GET",
            "query": {
                "reduce": "false",
@@ -20,131 +19,140 @@
            }
        },
        {
-           "to": "../../*",
            "from": "/work_times",
+           "to": "../../*",
            "method": "POST"
        },
        {
-           "to": "../../*",
-           "from": "/work_times/*"
+           "from": "/work_times/*",
+           "to": "../../*"
        },
        {
+           "from": "/clients",
            "to": "_list/list_docs/client",
-           "from": "/clients",
            "method": "GET",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "to": "../../*",
            "from": "/clients",
+           "to": "../../*",
            "method": "POST"
        },
        {
-           "to": "../../*",
-           "from": "/clients/*"
+           "from": "/clients/*",
+           "to": "../../*"
        },
        {
+           "from": "/dns",
            "to": "_list/list_docs/dns",
-           "from": "/dns",
            "method": "GET",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "to": "../../*",
            "from": "/dns",
+           "to": "../../*",
            "method": "POST"
        },
        {
-           "to": "../../*",
-           "from": "/dns/*"
+           "from": "/dns/*",
+           "to": "../../*"
        },
        {
+           "from": "/projects",
            "to": "_list/list_docs/project",
-           "from": "/projects",
            "method": "GET",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "to": "../../*",
            "from": "/projects",
+           "to": "../../*",
            "method": "POST"
        },
        {
-           "to": "../../*",
            "from": "/projects/*",
+           "to": "../../*",
            "query": {
                "include_docs": "true"
            }
        },
        {
+           "from": "/templates",
            "to": "_list/list_docs/template",
-           "from": "/templates",
            "method": "GET",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "to": "../../*",
            "from": "/templates",
+           "to": "../../*",
            "method": "POST"
        },
        {
-           "to": "../../*",
            "from": "/templates/*",
+           "to": "../../*",
            "query": {
                "include_docs": "true"
            }
        },
        {
+           "from": "/queues/changes",
+           "to": "../../_changes",
+           "query": {
+               "feed": "eventsource",
+               "filter": "desk_drawer/queue-done",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/queues",
            "to": "_list/list_docs/queue",
-           "from": "/queues",
            "method": "GET",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "to": "../../*",
            "from": "/queues",
+           "to": "../../*",
            "method": "POST"
        },
        {
-           "to": "../../*",
            "from": "/queues/*",
+           "to": "../../*",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "to": "_list/list_docs/worker",
            "from": "/workers",
+           "to": "_list/list_docs/worker",
            "method": "GET",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "to": "../../*",
            "from": "/workers",
+           "to": "../../*",
            "method": "POST"
        },
        {
-           "to": "../../*",
            "from": "/workers/*",
+           "to": "../../*",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "to": "_show/showjson/*",
            "from": "/show/*",
+           "to": "_show/showjson/*",
            "method": "GET"
        }
    ],
@@ -251,9 +259,6 @@ function (head, req) {
             if (row.doc.hasOwnProperty('_attachments')) {
                 row.doc.coAttachments = row.doc._attachments;
             }
-            /*if (row.doc.client_id) {
-                dataItem = row.doc;
-            }*/
             if (true) {
                 if (dataItem != {} && dataItem.client_id) {
                     dataItem.client = row.doc;
@@ -274,6 +279,15 @@ function (head, req) {
 function (doc, req)
 {
   if (doc.type == 'queue' && doc.state == 'new') {
+    return true;
+  }
+
+  return false;
+}",
+        "queue-done": "
+function (doc, req)
+{
+  if (doc.type == 'queue' && doc.state == 'done') {
     return true;
   }
 
