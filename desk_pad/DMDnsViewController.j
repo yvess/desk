@@ -264,14 +264,15 @@
     }];
     [tplForDnsPopUp addItemWithTitle:@" "];
     [self setDnsRecordTemplates:[DMTemplate all]];
-    console.log("[DMTemplate all]", [[DMTemplate all] className]);
     [[self dnsRecordTemplates] enumerateObjectsUsingBlock:function(item) {
         [tplForDnsPopUp addItemWithTitle:[item name]];
         var menuItem = [tplForDnsPopUp itemWithTitle:[item name]];
         [menuItem setRepresentedObject: item];
     }];
     [arrayController addObserver:self forKeyPath:@"selection.domain" options:nil context:@"domain"];
-    [self updateDnsOutline:[self lastSelectedObject]];
+    var last = [self lastSelectedObject];
+    if (last != nil)
+        [self updateDnsOutline:[self lastSelectedObject]];
 
     [addDnsAButton setAction:@selector(addDnsA:)];
     [addDnsAButton setTarget:self];
@@ -284,7 +285,6 @@
 
     [showTplButton setAction:@selector(showTpl:)];
     [showTplButton setTarget:self];
-
 
     //[saveDnsButton setTarget:self];
     //[saveDnsButton setAction:@selector(saveDns:)]
