@@ -30,10 +30,13 @@ class Worker(object):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def _setup_worker(self):
-        for worker in self.db.list(self._cmd("list_docs"),
+        worker_result = self.db.list(
+            self._cmd("list_docs"),
             "worker", include_docs=True,
-            startkey=self.hostname, endkey=self.hostname):
-            self.provides = worker['provides']
+            keys=[self.hostname]
+        )
+        if worker_result:
+            self.provides = worker_result[0]['provides']
 
     def _do_task(self, doc):
         if doc['type'] in self.provides:
