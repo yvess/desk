@@ -109,7 +109,7 @@
                                 //[COViewController alloc]
                                 initWithCibName:@"ClientView"
                                 bundle:nil //],
-                                modelClass:[DMClient class]] //,
+                                modelClass:[DMClient class]], //,
         // projectViewController = [[DMProjectViewController alloc]
         //                         initWithCibName:@"ProjectView"
         //                         bundle:nil
@@ -178,7 +178,6 @@
           if (e.readyState == EventSource.CLOSED)
           {
             // Connection was closed.
-            console.log("SSE Connection was closed");
           }
         }, false);
     }
