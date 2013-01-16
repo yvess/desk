@@ -30,15 +30,15 @@
     CPWindow              theWindow; //this "outlet" is connected automatically by the Cib
 
 /*    CPMutableArray        workTimes;
-    IBOutlet              WorkTimeArrayController workTimeArrayController;
-    IBOutlet              CPTableView workTimesTable;*/
+    @outlet              WorkTimeArrayController workTimeArrayController;
+    @outlet              CPTableView workTimesTable;*/
 
-    IBOutlet              CPTabView mainTabView;
-    IBOutlet              CPButton clientsSwitchButton;
-    IBOutlet              CPButton projectsSwitchButton;
-    IBOutlet              CPButton workTimesSwitchButton;
-    IBOutlet              CPButton dnsSwitchButton;
-    IBOutlet              CPButton queueButton;
+    @outlet              CPTabView mainTabView;
+    @outlet              CPButton clientsSwitchButton;
+    @outlet              CPButton projectsSwitchButton;
+    @outlet              CPButton workTimesSwitchButton;
+    @outlet              CPButton dnsSwitchButton;
+    @outlet              CPButton queueButton;
 
 }
 

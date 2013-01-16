@@ -3,7 +3,7 @@
 
 @implementation DMProjectViewController : COViewController
 {
-    IBOutlet              CPPopUpButton clientsForProjectsPopUp;
+    @outlet              CPPopUpButton clientsForProjectsPopUp;
     CPMutableDictionary   itemLookup;
     CPMutableArray        clients;
     CPMutableDictionary   clientLookup;

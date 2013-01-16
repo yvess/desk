@@ -125,20 +125,20 @@
 
 @implementation DMDnsViewController : COViewController
 {
-    IBOutlet              CPButton addDnsCnameButton;
-    IBOutlet              CPButton addDnsAButton;
-    IBOutlet              CPButton addDnsMxButton;
-    IBOutlet              CPPopUpButton clientsForDnsPopUp;
-    IBOutlet              CPOutlineView aDnsOutline;
-    IBOutlet              DMEditCellView editButtonCell;
-    IBOutlet              CPPopover popoverDns;
-    IBOutlet              CPView viewDnsA;
-    IBOutlet              CPView viewDnsCname;
-    IBOutlet              CPView viewDnsMx;
-    IBOutlet              CPPopUpButton tplForDnsPopUp;
-    IBOutlet              CPButton showTplButton;
-    IBOutlet              CPPopover popoverTpl;
-    IBOutlet              CPWebView webviewTpl;
+    @outlet              CPButton addDnsCnameButton;
+    @outlet              CPButton addDnsAButton;
+    @outlet              CPButton addDnsMxButton;
+    @outlet              CPPopUpButton clientsForDnsPopUp;
+    @outlet              CPOutlineView aDnsOutline;
+    @outlet              DMEditCellView editButtonCell;
+    @outlet              CPPopover popoverDns;
+    @outlet              CPView viewDnsA;
+    @outlet              CPView viewDnsCname;
+    @outlet              CPView viewDnsMx;
+    @outlet              CPPopUpButton tplForDnsPopUp;
+    @outlet              CPButton showTplButton;
+    @outlet              CPPopover popoverTpl;
+    @outlet              CPWebView webviewTpl;
 
 
     //CPMutableArray        dns;

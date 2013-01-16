@@ -15,6 +15,8 @@ var ENV = require("system").env,
     configuration = ENV["CONFIG"] || ENV["CONFIGURATION"] || ENV["c"] || "Debug",
     OS = require("os");
 
+ENV["OBJJ_INCLUDE_PATHS"] = "Frameworks/Debug:Frameworks";
+
 app ("desk_pad", function(task)
 {
     task.setBuildIntermediatesPath(FILE.join("Build", "desk_pad.build", configuration));

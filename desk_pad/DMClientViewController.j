@@ -42,9 +42,9 @@
     console.log("viewDidLoad", itemLookup);
 }*/
 /*{
-    IBOutlet              DMArrayController clientArrayController;
-    IBOutlet              CPTableView clientsTable;
-    IBOutlet              CPButton saveClientButton;
+    @outlet              DMArrayController clientArrayController;
+    @outlet              CPTableView clientsTable;
+    @outlet              CPButton saveClientButton;
 
     CPMutableArray        clients;
     CPMutableDictionary   itemLookup;
