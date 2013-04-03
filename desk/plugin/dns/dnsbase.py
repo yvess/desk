@@ -23,7 +23,10 @@ class DnsValidator(object):
             if q_key == 'domain':
                 q = self.domain
             elif q_key in ('host', 'alias') and not item[q_key].endswith("."):  # TODO do in host name calc in one place
-                q = "{}.{}".format(item[q_key], self.domain)
+                if item[q_key] == "@":
+                    q = self.domain  # special case for empty root domain
+                else:
+                    q = "{}.{}".format(item[q_key], self.domain)
             else:
                 q = item[q_key]
             answers = []
@@ -83,7 +86,7 @@ class DnsBase(object):
         {
             'name': 'a',
             'key_id': 'host', 'value_id': 'ip',
-            'key_trans': lambda k, domain: ".".join([k, domain])
+            'key_trans': lambda k, domain: ".".join([k, domain]) if k != "@" else domain
         },
         {
             'name': 'cname',
