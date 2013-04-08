@@ -46,7 +46,7 @@ class WorkerTestCase(unittest.TestCase):
         d = {
            "_id": worker_id, "type": "worker", "hostname": "localhost",
            "provides": {
-               "dns": [{"backend": "powerdns", "server_type": "master"}]
+               "dns": [{"backend": "powerdns"}]
            }
         }
         self.assertTrue(self.up.put(data=json.dumps(d), doc_id=worker_id) == 201)
@@ -89,8 +89,7 @@ class WorkerTestCase(unittest.TestCase):
         queue_doc = {
             "_id": queue_id,
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
-            "type": "queue",
-            "sender": "pad", "type": "queue", "state": "new"
+            "type": "queue", "sender": "pad", "state": "new"
         }
         self.assertTrue(self.up.put(data=json.dumps(queue_doc), doc_id=queue_id) == 201)
         return queue_id

@@ -44,7 +44,6 @@ class Worker(object):
                 if 'server_type' in service_settings \
                 and 'master' in service_settings['server_type'] \
                 or not ('server_type' in service_settings):
-                    #print(doc['type'], service_settings['backend'])
                     ServiceClass = None
                     doc_type = doc['type']
                     backend = service_settings['backend']
