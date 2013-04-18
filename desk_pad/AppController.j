@@ -157,17 +157,10 @@
 
     if (!!window.EventSource)
     {
-        var since = localStorage['desk-pad-queue-seq'];
-        if (!since) since = 0;
-        var source = new EventSource("/queues/changes?since="+since);
+        var source = new EventSource("/queues/changes?since=now");
         source.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
-          if (data.seq > since)
-          {
-            since = data.seq;
-            localStorage['desk-pad-queue-seq'] = since;
-            doNotification(data)
-          };
+          doNotification(data)
         }, false);
 
         source.addEventListener('open', function(e) {
