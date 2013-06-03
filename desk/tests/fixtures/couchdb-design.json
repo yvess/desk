@@ -102,7 +102,16 @@
            }
        },
        {
-           "from": "/queues/changes",
+           "from": "/queue/changes",
+           "to": "../../_changes",
+           "query": {
+               "feed": "eventsource",
+               "filter": "desk_drawer/queue",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/queue/done",
            "to": "../../_changes",
            "query": {
                "feed": "eventsource",
@@ -111,7 +120,7 @@
            }
        },
        {
-           "from": "/queues",
+           "from": "/queue",
            "to": "_list/list_docs/queue",
            "method": "GET",
            "query": {
@@ -119,12 +128,12 @@
            }
        },
        {
-           "from": "/queues",
+           "from": "/queue",
            "to": "../../*",
            "method": "POST"
        },
        {
-           "from": "/queues/*",
+           "from": "/queue/*",
            "to": "../../*",
            "query": {
                "include_docs": "true"
@@ -205,8 +214,8 @@ function(keys, values, rereduce) {
        "queue": {
            "map": "
 function(doc) {
-  if (doc.type == 'queue') {
-    emit(doc._id, doc._rev);
+  if (doc.type == 'queue' && doc.state  == 'new') {
+    emit(doc._id, doc.sender);
   }
 };"
        },
@@ -278,7 +287,7 @@ function (head, req) {
        "queue": "
 function (doc, req)
 {
-  if (doc.type == 'queue' && doc.state == 'new') {
+  if (doc.type == 'queue' && doc.state != 'done') {
     return true;
   }
 
@@ -287,7 +296,7 @@ function (doc, req)
         "queue-done": "
 function (doc, req)
 {
-  if (doc.type == 'queue' && doc.state == 'done') {
+  if (doc.type == 'queue' && doc.state == 'done' && sender == 'foreman') {
     return true;
   }
 
