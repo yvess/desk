@@ -157,7 +157,7 @@
 
     if (!!window.EventSource)
     {
-        var source = new EventSource("/queues/changes?since=now");
+        var source = new EventSource("/queue/changes?since=now");
         source.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
           doNotification(data)
