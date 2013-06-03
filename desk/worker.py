@@ -13,7 +13,7 @@ from couchdbkit.changes import ChangesStream
 sys.path.append("../")
 from desk.utils import ObjectDict
 from desk.plugin import dns
-from desk.plugin.base import Updater
+from desk.plugin.base import Updater, MergedDoc
 
 
 class Worker(object):
@@ -38,6 +38,18 @@ class Worker(object):
         if worker_result:
             self.provides = worker_result[0]['provides']
 
+    def _create_tasks_foreman(self, doc):
+        service_type = (doc['type'])
+        try:
+            ServiceModule = getattr(globals()[service_type], '{}base'.format(service_type))
+            print(ServiceModule)
+            ServiceBaseClass = getattr(ServiceModule, '{}Provider'.format(service_type.capitalize()))
+            print(ServiceBaseClass)
+        except AttributeError:
+            print("not found")
+        providers = ServiceBaseClass().get_providers(doc=doc)
+        print(providers)
+
     def _do_task(self, doc):
         if doc['type'] in self.provides:
             for service_settings in self.provides[doc['type']]:
@@ -61,18 +73,32 @@ class Worker(object):
 
     def _process_queue(self, queue):
         for notification in queue:
-            for task in self.db.view(self._cmd("todo")):
-                doc = task['value']
-                self._do_task(doc)
+            # for foreman
+            worker_is_foreman = self.settings.worker_is_foreman if hasattr(self.settings, 'worker_is_foreman') else False
+            if worker_is_foreman and notification['doc']['sender'] == 'pad':
+                for task in self.db.view(self._cmd("todo")):
+                    doc = task['value']
+                    doc = MergedDoc(self.db, self.db.get(doc['_id'])).doc
+                    self._create_tasks_foreman(doc)
+            # for workers
+            if notification['doc']['sender'] == 'foreman' and \
+            (notification['doc']['state'] != 'done' or notification['doc']['claimed'] != True):
+                for task in self.db.view(self._cmd("todo")):
+                    doc = task['value']
+                    #self._do_task(doc)
 
     def run(self):
-        with ChangesStream(self.db, feed="continuous", heartbeat=True,
-            filter=self._cmd("queue")) as queue:
+        with ChangesStream(self.db,
+            feed="continuous", heartbeat=True,
+            include_docs=True,
+            filter=self._cmd("queue")):
             self._process_queue(queue)
 
     def once(self):
         c = Consumer(self.db)
-        queue = c.fetch(since=0, filter=self._cmd("queue"))['results']
+        queue = c.fetch(since=0,
+            include_docs=True,
+            filter=self._cmd("queue"))['results']
         if queue:
             self._process_queue(queue)
 
@@ -83,7 +109,8 @@ def setup_parser():
     defaults = {
         "couchdb_uri": "http://localhost:5984",
         "couchdb_db": "desk_drawer",
-        "worker_daemon": False
+        "worker_daemon": True,
+        "worker_is_foreman": False,
     }
     # first only parse the config file argument
     conf_parser = argparse.ArgumentParser(add_help=False)
@@ -111,12 +138,14 @@ def setup_parser():
                        Command line switches overwrite config file settings""",
     )
     parser.set_defaults(**defaults)
-    parser.add_argument("-l", "--loop", dest="worker_daemon",
-        help="run as daemon", action="store_true")
+    parser.add_argument("-o", "--once", dest="worker_daemon",
+        help="run only once not as daemon", action="store_false", default=True)
     parser.add_argument("-u", "--couchdb_uri", dest="couchdb_uri",
         metavar="URI", help="connection url of the server")
     parser.add_argument("-d", "--couchdb_db", dest="couchdb_db",
         metavar="NAME", help="database of the server")
+    parser.add_argument("-f", "--foreman", dest="worker_is_foreman",
+        help="be the foreman and a worker", action="store_true", default=False)
 
     args = parser.parse_args(remaining_args)
 

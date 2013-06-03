@@ -20,7 +20,7 @@ from desk.worker import Worker
 
 class WorkerTestCase(unittest.TestCase):
     def setUp(self):
-        self.settings = {
+        self.db_conf = {
             "couchdb_uri": "http://localhost:5984",
             "couchdb_db": "desk_tester",
         }
@@ -28,18 +28,22 @@ class WorkerTestCase(unittest.TestCase):
             "powerdns_backend": "sqlite",
             "powerdns_db": "/etc/powerdns/dns.db",
         }
-        self.conf.update(self.settings)
+        self.conf_foreman = {
+            "worker_is_foreman": True,
+        }
+        self.conf.update(self.db_conf)
+        self.conf_foreman.update(self.db_conf)
         s = Server()
         self.s = s
-        s.create_db(self.settings['couchdb_db'])
-        self.db = self.s.get_db(self.settings["couchdb_db"])
-        self.up = CouchdbUploader(path=os.path.dirname(__file__), **self.settings)
+        s.create_db(self.db_conf['couchdb_db'])
+        self.db = self.s.get_db(self.db_conf["couchdb_db"])
+        self.up = CouchdbUploader(path=os.path.dirname(__file__), **self.db_conf)
         status_code = self.up.put(
             data="@fixtures/couchdb-design.json",
             doc_id="_design/{couchdb_db}"
         )
         if not status_code == 201:
-            s.delete_db(self.settings["couchdb_db"])
+            s.delete_db(self.db_conf["couchdb_db"])
             #raise Exception("Error with couchdb test database, http code:{}".format(status_code))
 
         worker_id = "worker-localhost"
@@ -57,14 +61,23 @@ class WorkerTestCase(unittest.TestCase):
         has_domain = Powerdns(ObjectDict(**self.conf)).check_domain("test.tt")
         if has_domain:
             self._remove_domain("test.tt")
-        self.s.delete_db(self.settings["couchdb_db"])
+        self.s.delete_db(self.db_conf["couchdb_db"])
+
+    def _run_task(self):
+        self._run_worker(is_foreman=True)
+        self._run_worker()
+
+    def _run_worker(self, is_foreman=False):
+        conf = self.conf_foreman if is_foreman else self.conf
+        w = Worker(conf, hostname="localhost")
+        w.once()
 
     def _add_domain_test_tt(self, run=True):
         dns_id = "dns-test.tt"
         self.assertTrue(self.up.put(data="@fixtures/couchdb-dns-test.tt.json", doc_id=dns_id) == 201)
         queue_id = self._create_queue_doc()
         if run:
-            self._run_worker()
+            self._run_task()
         return (dns_id, queue_id)
 
     def _remove_domain(self, domain, docs=None):
@@ -73,10 +86,6 @@ class WorkerTestCase(unittest.TestCase):
         pdns.del_domain(domain)
         if docs:
             self.db.delete_doc(docs)
-
-    def _run_worker(self):
-        w = Worker(self.conf, hostname="localhost")
-        w.once()
 
     def _get_dns_validator(self, doc_id, lookup={'ns1.test.tt': "127.0.0.1", 'ns2.test.tt': "127.0.0.1"}):
         doc = MergedDoc(self.db, self.db.get(doc_id)).doc
@@ -112,7 +121,7 @@ class WorkerTestCase(unittest.TestCase):
         dns_doc['cname'][0]['host'] = "ns1"
         VersionDoc(self.db, dns_doc).create_version()
         queue_id = self._create_queue_doc()
-        self._run_worker()
+        self._run_task()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, queue_id])
@@ -125,7 +134,7 @@ class WorkerTestCase(unittest.TestCase):
         dns_doc['a'][4]['host'] = "www2"
         VersionDoc(self.db, dns_doc).create_version()
         queue_id = self._create_queue_doc()
-        self._run_worker()
+        self._run_task()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertFalse(self._get_dns_validator('dns-test.tt').check_one_record('A', 'ip', q_key='host', item=changed_a))
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
@@ -138,7 +147,7 @@ class WorkerTestCase(unittest.TestCase):
         dns_doc['cname'].append({'alias': "super", 'host': "www"})
         VersionDoc(self.db, dns_doc).create_version()
         queue_id = self._create_queue_doc()
-        self._run_worker()
+        self._run_task()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, queue_id])
@@ -149,7 +158,7 @@ class WorkerTestCase(unittest.TestCase):
         removed_a = dns_doc['a'].pop(4)
         VersionDoc(self.db, dns_doc).create_version()
         queue_id = self._create_queue_doc()
-        self._run_worker()
+        self._run_task()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertFalse(self._get_dns_validator('dns-test.tt').check_one_record('A', 'ip', q_key='host', item=removed_a))
         self._remove_domain('test.tt', docs=[dns_id, queue_id])
