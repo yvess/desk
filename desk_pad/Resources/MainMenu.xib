@@ -59,6 +59,7 @@
 							<string key="NSFrame">{{-4, -4}, {808, 556}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<reference key="NSWindow"/>
+							<reference key="NSNextKeyView" ref="128646764"/>
 							<object class="NSMutableArray" key="NSTabViewItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSTabViewItem" id="554002022">
@@ -69,6 +70,7 @@
 										<string key="NSFrame">{{10, 7}, {788, 536}}</string>
 										<reference key="NSSuperview" ref="397527688"/>
 										<reference key="NSWindow"/>
+										<reference key="NSNextKeyView"/>
 									</object>
 									<string key="NSLabel">Clients</string>
 									<object class="NSColor" key="NSColor" id="673766860">
@@ -225,7 +227,7 @@
 						<object class="NSButton" id="446185069">
 							<reference key="NSNextResponder" ref="439893737"/>
 							<int key="NSvFlags">265</int>
-							<string key="NSFrame">{{652, 557}, {143, 32}}</string>
+							<string key="NSFrame">{{726, 557}, {74, 32}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<reference key="NSWindow"/>
 							<reference key="NSNextKeyView" ref="397527688"/>
@@ -234,7 +236,7 @@
 							<object class="NSButtonCell" key="NSCell" id="189380253">
 								<int key="NSCellFlags">67108864</int>
 								<int key="NSCellFlags2">134217728</int>
-								<string key="NSContents">push to workers</string>
+								<string key="NSContents">order</string>
 								<reference key="NSSupport" ref="136169850"/>
 								<string key="NSCellIdentifier">_NS:9</string>
 								<reference key="NSControlView" ref="446185069"/>
@@ -306,14 +308,6 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
-						<string key="label">dnsSwitchButton</string>
-						<reference key="source" ref="635946545"/>
-						<reference key="destination" ref="472593824"/>
-					</object>
-					<int key="connectionID">840</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
 						<string key="label">mainTabView</string>
 						<reference key="source" ref="635946545"/>
 						<reference key="destination" ref="397527688"/>
@@ -322,11 +316,19 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
-						<string key="label">queueButton</string>
+						<string key="label">orderButton</string>
 						<reference key="source" ref="635946545"/>
 						<reference key="destination" ref="446185069"/>
 					</object>
-					<int key="connectionID">978</int>
+					<int key="connectionID">979</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">domainSwitchButton</string>
+						<reference key="source" ref="635946545"/>
+						<reference key="destination" ref="472593824"/>
+					</object>
+					<int key="connectionID">980</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -643,7 +645,7 @@
 				<reference key="dict.values" ref="0"/>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">978</int>
+			<int key="maxID">980</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -656,10 +658,10 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>clientsSwitchButton</string>
-							<string>dnsSwitchButton</string>
+							<string>domainSwitchButton</string>
 							<string>mainTabView</string>
+							<string>orderButton</string>
 							<string>projectsSwitchButton</string>
-							<string>queueButton</string>
 							<string>workTimesSwitchButton</string>
 						</object>
 						<object class="NSArray" key="dict.values">
@@ -677,10 +679,10 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>clientsSwitchButton</string>
-							<string>dnsSwitchButton</string>
+							<string>domainSwitchButton</string>
 							<string>mainTabView</string>
+							<string>orderButton</string>
 							<string>projectsSwitchButton</string>
-							<string>queueButton</string>
 							<string>workTimesSwitchButton</string>
 						</object>
 						<object class="NSArray" key="dict.values">
@@ -690,7 +692,7 @@
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">dnsSwitchButton</string>
+								<string key="name">domainSwitchButton</string>
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
@@ -698,11 +700,11 @@
 								<string key="candidateClassName">NSTabView</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">projectsSwitchButton</string>
+								<string key="name">orderButton</string>
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">queueButton</string>
+								<string key="name">projectsSwitchButton</string>
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">

@@ -1,46 +1,46 @@
-@import "DMDns.j"
+@import "DMDomain.j"
 @import <CouchResource/COResource.j>
 @import "FixTableColumn.j"
 
-@implementation DMDnsRecordsOutlineController : CPObject
+@implementation DMDomainRecordsOutlineController : CPObject
 {
-    Dns dnsRecord @accessors(readonly);
-    CPOutlineView dnsOutline @accessors(readonly);
+    Domain domainRecord @accessors(readonly);
+    CPOutlineView domainOutline @accessors(readonly);
     CPPopover popover @accessors;
     CPView  editCell @accessors;
-    CPMutableDictionary lookupDnsEntries @accessors;
+    CPMutableDictionary lookupDomainEntries @accessors;
     CPPopover popover @accessors;
-    CPView viewDnsA @accessors;
-    CPView viewDnsCname @accessors;
-    CPView viewDnsMx @accessors;
+    CPView viewDomainA @accessors;
+    CPView viewDomainCname @accessors;
+    CPView viewDomainMx @accessors;
 }
 
-- (id)initWithDns:(DMDns)aDns dnsOutline:(CPOutlineView)aDnsOutline editCell:(CPView)aEditCell
-      popover:(CPPopover)aPopover viewDnsA:(CPView) aViewDnsA viewDnsCname:(CPView) aViewDnsCname viewDnsMx:(CPView) aViewDnsMx
+- (id)initWithDomain:(DMDomain)aDomain domainOutline:(CPOutlineView)aDomainOutline editCell:(CPView)aEditCell
+      popover:(CPPopover)aPopover viewDomainA:(CPView) aViewDomainA viewDomainCname:(CPView) aViewDomainCname viewDomainMx:(CPView) aViewDomainMx
 {
     self = [super init];
     if (self)
     {
-        dnsRecord = aDns;
-        dnsOutline = aDnsOutline;
+        domainRecord = aDomain;
+        domainOutline = aDomainOutline;
         popover = aPopover;
-        viewDnsA = aViewDnsA;
-        viewDnsCname = aViewDnsCname;
-        viewDnsMx = aViewDnsMx;
+        viewDomainA = aViewDomainA;
+        viewDomainCname = aViewDomainCname;
+        viewDomainMx = aViewDomainMx;
         [self setEditCell:aEditCell];
-        [self setLookupForDnsEntries];
+        [self setLookupForDomainEntries];
     }
     return self;
 }
 
-- (CPMutableDictionary)setLookupForDnsEntries
+- (CPMutableDictionary)setLookupForDomainEntries
 {
-    lookupDnsEntries = [[CPMutableDictionary alloc] init];
-    var dnsEntries = [[CPMutableArray alloc] initWithArray:[[[self dnsRecord] a] items]];
-    [dnsEntries addObjectsFromArray:[[[self dnsRecord] cname] items]];
-    [dnsEntries addObjectsFromArray:[[[self dnsRecord] mx] items]];
-    [dnsEntries enumerateObjectsUsingBlock:function(item) {
-        [lookupDnsEntries setObject:item forKey:[item objectValueForOutlineColumn:@"entry"]];
+    lookupDomainEntries = [[CPMutableDictionary alloc] init];
+    var domainEntries = [[CPMutableArray alloc] initWithArray:[[[self domainRecord] a] items]];
+    [domainEntries addObjectsFromArray:[[[self domainRecord] cname] items]];
+    [domainEntries addObjectsFromArray:[[[self domainRecord] mx] items]];
+    [domainEntries enumerateObjectsUsingBlock:function(item) {
+        [lookupDomainEntries setObject:item forKey:[item objectValueForOutlineColumn:@"entry"]];
     }];
 }
 
@@ -67,13 +67,13 @@
         switch (index)
         {
         case 0:
-            result = [[self dnsRecord] a];
+            result = [[self domainRecord] a];
             break;
         case 1:
-            result = [[self dnsRecord] cname];
+            result = [[self domainRecord] cname];
             break;
         case 2:
-            result = [[self dnsRecord] mx];
+            result = [[self domainRecord] mx];
             break;
         }
     } else {

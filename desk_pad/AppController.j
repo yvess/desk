@@ -20,10 +20,10 @@
 @import "DMProjectViewController.j"
 @import "DMWorkTime.j"
 @import "DMWorkTimeViewController.j"
-@import "DMDns.j"
-@import "DMDnsViewController.j"
-@import "DMQueue.j"
-//@import "DMDnsViewController.j"
+@import "DMDomain.j"
+@import "DMDomainViewController.j"
+@import "DMOrder.j"
+//@import "DMDomainViewController.j"
 
 @implementation AppController : CPObject
 {
@@ -37,8 +37,8 @@
     @outlet              CPButton clientsSwitchButton;
     @outlet              CPButton projectsSwitchButton;
     @outlet              CPButton workTimesSwitchButton;
-    @outlet              CPButton dnsSwitchButton;
-    @outlet              CPButton queueButton;
+    @outlet              CPButton domainSwitchButton;
+    @outlet              CPButton orderButton;
 
 }
 
@@ -64,12 +64,12 @@
 - (void)pushUpdate
 {
     //console.log([CPDate date]);
-    var queue = [DMQueue new];
-    [queue setDate:[CPString stringWithFormat:@"%@", [[CPDate date] description]]]; // [CPDate date]
-    [queue setCoId:[DMQueue couchId:queue]];
-    [queue setSender:@"pad"];
-    [queue setState:@"new"];
-    [queue save];
+    var order = [DMOrder new];
+    [order setDate:[CPString stringWithFormat:@"%@", [[CPDate date] description]]]; // [CPDate date]
+    [order setCoId:[DMOrder couchId:order]];
+    [order setSender:@"pad"];
+    [order setState:@"new"];
+    [order save];
 }
 
 - (void)observeValueForKeyPath:(CPString)aKeyPath
@@ -120,17 +120,17 @@
         //                         initWithCibName:@"WorkTimeView"
         //                         bundle:nil
         //                         modelClass:[DMWorkTime class]],
-        dnsViewController = [[DMDnsViewController alloc]
-                                initWithCibName:@"DnsView"
+        domainViewController = [[DMDomainViewController alloc]
+                                initWithCibName:@"DomainView"
                                 bundle:nil
-                                modelClass:[DMDns class]
+                                modelClass:[DMDomain class]
                                 clients:[clientViewController items]
                                 clientLookup:[clientViewController itemLookup]];
 
     [[mainTabView tabViewItemAtIndex:0] setView:[clientViewController view]];
     // [[mainTabView tabViewItemAtIndex:1] setView:[projectViewController view]];
     // [[mainTabView tabViewItemAtIndex:2] setView:[workTimeViewController view]];
-    [[mainTabView tabViewItemAtIndex:3] setView:[dnsViewController view]];
+    [[mainTabView tabViewItemAtIndex:3] setView:[domainViewController view]];
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
@@ -140,9 +140,9 @@
     [clientsSwitchButton setAction:@selector(switchTabFromButton:)];
     // [projectsSwitchButton setAction:@selector(switchTabFromButton:)];
     // [workTimesSwitchButton setAction:@selector(switchTabFromButton:)];
-    [dnsSwitchButton setAction:@selector(switchTabFromButton:)];
-    [queueButton setAction:@selector(pushUpdate)];
-    [queueButton setTarget:self];
+    [domainSwitchButton setAction:@selector(switchTabFromButton:)];
+    [orderButton setAction:@selector(pushUpdate)];
+    [orderButton setTarget:self];
 
     [mainTabView selectTabViewItemAtIndex:0];
     [self switchTabFromButton:@"Clients"];
@@ -152,12 +152,12 @@
     [growl setView:mainTabView];
     var doNotification = function(data) {
         var message = [CPString stringWithFormat:@"id:\n%@ \n\nsender:%@", data.id, data.doc.sender];
-        [growl pushNotificationWithTitle:@"queue done" message:message];
+        [growl pushNotificationWithTitle:@"order done" message:message];
     }
 
     if (!!window.EventSource)
     {
-        var source = new EventSource("/queue/changes?since=now");
+        var source = new EventSource("/order/changes?since=now");
         source.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
           doNotification(data)

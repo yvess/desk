@@ -45,20 +45,20 @@
            "to": "../../*"
        },
        {
-           "from": "/dns",
-           "to": "_list/list_docs/dns",
+           "from": "/domains",
+           "to": "_list/list_docs/domain",
            "method": "GET",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "from": "/dns",
+           "from": "/domains",
            "to": "../../*",
            "method": "POST"
        },
        {
-           "from": "/dns/*",
+           "from": "/domains/*",
            "to": "../../*"
        },
        {
@@ -102,38 +102,38 @@
            }
        },
        {
-           "from": "/queue/changes",
+           "from": "/orders/changes",
            "to": "../../_changes",
            "query": {
                "feed": "eventsource",
-               "filter": "desk_drawer/queue",
+               "filter": "desk_drawer/order",
                "include_docs": "true"
            }
        },
        {
-           "from": "/queue/done",
+           "from": "/orders/done",
            "to": "../../_changes",
            "query": {
                "feed": "eventsource",
-               "filter": "desk_drawer/queue-done",
+               "filter": "desk_drawer/order-done",
                "include_docs": "true"
            }
        },
        {
-           "from": "/queue",
-           "to": "_list/list_docs/queue",
+           "from": "/orders",
+           "to": "_list/list_docs/order",
            "method": "GET",
            "query": {
                "include_docs": "true"
            }
        },
        {
-           "from": "/queue",
+           "from": "/orders",
            "to": "../../*",
            "method": "POST"
        },
        {
-           "from": "/queue/*",
+           "from": "/orders/*",
            "to": "../../*",
            "query": {
                "include_docs": "true"
@@ -175,10 +175,10 @@ function (doc) {
     }
 }"
        },
-       "dns": {
+       "domain": {
            "map": "
 function(doc) {
-  if (doc.type == 'dns') {
+  if (doc.type == 'domain') {
     emit(doc._id, doc._rev);
   }
 };"
@@ -211,10 +211,10 @@ function(keys, values, rereduce) {
   return sum(values);
 }"
        },
-       "queue": {
+       "order": {
            "map": "
 function(doc) {
-  if (doc.type == 'queue' && doc.state  == 'new') {
+  if (doc.type == 'order' && doc.state  == 'new') {
     emit(doc._id, doc.sender);
   }
 };"
@@ -247,7 +247,7 @@ function(doc) {
            "map": "
 function (doc) {
     if ((doc.state && doc.state == 'changed') || (doc.state && doc.state == 'new')) {
-        if (doc.type != 'queue') {
+        if (doc.type != 'order') {
             emit(doc.state, doc);
         }
     }
@@ -284,19 +284,19 @@ function (head, req) {
 }"
    },
    "filters": {
-       "queue": "
+       "order": "
 function (doc, req)
 {
-  if (doc.type == 'queue' && doc.state != 'done') {
+  if (doc.type == 'order' && doc.state != 'done') {
     return true;
   }
 
   return false;
 }",
-        "queue-done": "
+        "order-done": "
 function (doc, req)
 {
-  if (doc.type == 'queue' && doc.state == 'done' && sender == 'foreman') {
+  if (doc.type == 'order' && doc.state == 'done' && sender == 'foreman') {
     return true;
   }
 

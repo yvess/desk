@@ -1,6 +1,6 @@
 @import <CouchResource/COResource.j>
 
-@implementation DMQueue : COResource
+@implementation DMOrder : COResource
 {
     /* default ivars for couchdb */
     CPString coId      @accessors();
@@ -10,7 +10,7 @@
     CPString date     @accessors();
     CPString user     @accessors();
     CPString sender   @accessors();
-    CPString state    @accessors();	
+    CPString state    @accessors();
 }
 
 - (CPString)nameIdentifierString

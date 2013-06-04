@@ -6,7 +6,7 @@
 @import <Foundation/CPMutableArray.j>
 
 
-@implementation DMDnsA : COSubItem
+@implementation DMDomainA : COSubItem
 {
     CPString host @accessors();
     CPString ip @accessors();
@@ -19,7 +19,7 @@
 @end
 
 
-@implementation DMDnsCname : COSubItem
+@implementation DMDomainCname : COSubItem
 {
     CPString alias @accessors();
     CPString host @accessors();
@@ -32,7 +32,7 @@
 @end
 
 
-@implementation DMDnsMx : COSubItem
+@implementation DMDomainMx : COSubItem
 {
     CPString host @accessors();
     CPString priority @accessors();
@@ -45,7 +45,7 @@
 @end
 
 
-@implementation DMDns : COResourceVersioned
+@implementation DMDomain : COResourceVersioned
 {
     CPString coId          @accessors();
     CPString coRev         @accessors();
@@ -78,11 +78,6 @@
 - (CPString)transformLabel:(CPString) aLabel
 {
     return [aLabel uppercaseString];
-}
-
-+ (CPURL)resourcePath
-{
-    return [CPURL URLWithString:@"/dns"];
 }
 
 - (JSObject)attributes

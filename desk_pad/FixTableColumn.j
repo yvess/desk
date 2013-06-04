@@ -1,4 +1,4 @@
-@import "DMDns.j"
+@import "DMDomain.j"
 @import <CouchResource/COResource.j>
 
 @implementation CPTableColumn (FixTableColumn)
@@ -12,7 +12,7 @@
         item = [tableView itemAtRow:aRowIndex];
     }
 
-    if ([item isKindOfClass:[DMDnsA class]] || [item isKindOfClass:[DMDnsCname class]] || [item isKindOfClass:[DMDnsMx class]])
+    if ([item isKindOfClass:[DMDomainA class]] || [item isKindOfClass:[DMDomainCname class]] || [item isKindOfClass:[DMDomainMx class]])
     {
         var editCell = [[tableView delegate] editCell],
             textfield = [[editCell subviews] objectAtIndex:0],

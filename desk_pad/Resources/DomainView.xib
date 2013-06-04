@@ -54,7 +54,7 @@
 		<object class="NSMutableArray" key="IBDocument.RootObjects" id="1000">
 			<bool key="EncodedWithXMLCoder">YES</bool>
 			<object class="NSCustomObject" id="1001">
-				<string key="NSClassName">DMDnsViewController</string>
+				<string key="NSClassName">DMDomainViewController</string>
 			</object>
 			<object class="NSCustomObject" id="1003">
 				<string key="NSClassName">FirstResponder</string>
@@ -1096,7 +1096,7 @@
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<string>domain</string>
 				</object>
-				<string key="NSObjectClassName">DMDns</string>
+				<string key="NSObjectClassName">DMDomain</string>
 				<bool key="NSEditable">YES</bool>
 				<object class="_NSManagedProxy" key="_NSManagedProxy"/>
 				<bool key="NSAvoidsEmptySelection">YES</bool>
@@ -1686,30 +1686,6 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
-						<string key="label">popoverDns</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="194230206"/>
-					</object>
-					<int key="connectionID">168</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">viewDnsA</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="813411592"/>
-					</object>
-					<int key="connectionID">169</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">viewDnsCname</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="863912187"/>
-					</object>
-					<int key="connectionID">170</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
 						<string key="label">arrayController</string>
 						<reference key="source" ref="1001"/>
 						<reference key="destination" ref="706393564"/>
@@ -1726,67 +1702,11 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
-						<string key="label">addDnsCnameButton</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="79191433"/>
-					</object>
-					<int key="connectionID">180</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">addDnsAButton</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="712758515"/>
-					</object>
-					<int key="connectionID">179</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">aDnsOutline</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="929224990"/>
-					</object>
-					<int key="connectionID">63</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
 						<string key="label">saveModelButton</string>
 						<reference key="source" ref="1001"/>
 						<reference key="destination" ref="641354034"/>
 					</object>
 					<int key="connectionID">183</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">clientsForDnsPopUp</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="357960276"/>
-					</object>
-					<int key="connectionID">65</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">addDnsMxButton</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="301416972"/>
-					</object>
-					<int key="connectionID">257</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">viewDnsMx</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="573877631"/>
-					</object>
-					<int key="connectionID">275</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">tplForDnsPopUp</string>
-						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="137497214"/>
-					</object>
-					<int key="connectionID">282</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
@@ -1811,6 +1731,86 @@
 						<reference key="destination" ref="704010990"/>
 					</object>
 					<int key="connectionID">296</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">addDomainAButton</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="712758515"/>
+					</object>
+					<int key="connectionID">297</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">addDomainCnameButton</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="79191433"/>
+					</object>
+					<int key="connectionID">298</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">addDomainMxButton</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="301416972"/>
+					</object>
+					<int key="connectionID">299</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">aDomainOutline</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="929224990"/>
+					</object>
+					<int key="connectionID">300</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">clientsForDomainPopUp</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="357960276"/>
+					</object>
+					<int key="connectionID">301</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">popoverDomain</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="194230206"/>
+					</object>
+					<int key="connectionID">302</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">tplForDomainPopUp</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="137497214"/>
+					</object>
+					<int key="connectionID">303</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">viewDomainA</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="813411592"/>
+					</object>
+					<int key="connectionID">304</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">viewDomainCname</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="863912187"/>
+					</object>
+					<int key="connectionID">305</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">viewDomainMx</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="573877631"/>
+					</object>
+					<int key="connectionID">306</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBBindingConnection" key="connection">
@@ -2333,7 +2333,7 @@
 						<int key="objectID">47</int>
 						<reference key="object" ref="706393564"/>
 						<reference key="parent" ref="1002"/>
-						<string key="objectName">Dns AC</string>
+						<string key="objectName">Domain AC</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">106</int>
@@ -2403,7 +2403,7 @@
 							<reference ref="327988259"/>
 						</object>
 						<reference key="parent" ref="1002"/>
-						<string key="objectName">ViewDnsA</string>
+						<string key="objectName">ViewDomainA</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">125</int>
@@ -2493,13 +2493,13 @@
 						<int key="objectID">142</int>
 						<reference key="object" ref="14634177"/>
 						<reference key="parent" ref="1002"/>
-						<string key="objectName">PopoverDns VC</string>
+						<string key="objectName">PopoverDomain VC</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">143</int>
 						<reference key="object" ref="194230206"/>
 						<reference key="parent" ref="1002"/>
-						<string key="objectName">PopoverDns</string>
+						<string key="objectName">PopoverDomain</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">148</int>
@@ -2527,7 +2527,7 @@
 							<reference ref="983548150"/>
 						</object>
 						<reference key="parent" ref="1002"/>
-						<string key="objectName">ViewDnsCname</string>
+						<string key="objectName">ViewDomainCname</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">151</int>
@@ -3012,7 +3012,7 @@
 							<reference ref="944202810"/>
 						</object>
 						<reference key="parent" ref="1002"/>
-						<string key="objectName">ViewDnsMx</string>
+						<string key="objectName">ViewDomainMx</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">265</int>
@@ -3463,7 +3463,7 @@
 				<reference key="dict.values" ref="1002"/>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">296</int>
+			<int key="maxID">306</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -3524,25 +3524,25 @@
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
-					<string key="className">DMDnsViewController</string>
+					<string key="className">DMDomainViewController</string>
 					<string key="superclassName">COViewController</string>
 					<object class="NSMutableDictionary" key="outlets">
 						<bool key="EncodedWithXMLCoder">YES</bool>
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<string>aDnsOutline</string>
-							<string>addDnsAButton</string>
-							<string>addDnsCnameButton</string>
-							<string>addDnsMxButton</string>
-							<string>clientsForDnsPopUp</string>
+							<string>aDomainOutline</string>
+							<string>addDomainAButton</string>
+							<string>addDomainCnameButton</string>
+							<string>addDomainMxButton</string>
+							<string>clientsForDomainPopUp</string>
 							<string>editButtonCell</string>
-							<string>popoverDns</string>
+							<string>popoverDomain</string>
 							<string>popoverTpl</string>
 							<string>showTplButton</string>
-							<string>tplForDnsPopUp</string>
-							<string>viewDnsA</string>
-							<string>viewDnsCname</string>
-							<string>viewDnsMx</string>
+							<string>tplForDomainPopUp</string>
+							<string>viewDomainA</string>
+							<string>viewDomainCname</string>
+							<string>viewDomainMx</string>
 							<string>webviewTpl</string>
 						</object>
 						<object class="NSArray" key="dict.values">
@@ -3567,41 +3567,41 @@
 						<bool key="EncodedWithXMLCoder">YES</bool>
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<string>aDnsOutline</string>
-							<string>addDnsAButton</string>
-							<string>addDnsCnameButton</string>
-							<string>addDnsMxButton</string>
-							<string>clientsForDnsPopUp</string>
+							<string>aDomainOutline</string>
+							<string>addDomainAButton</string>
+							<string>addDomainCnameButton</string>
+							<string>addDomainMxButton</string>
+							<string>clientsForDomainPopUp</string>
 							<string>editButtonCell</string>
-							<string>popoverDns</string>
+							<string>popoverDomain</string>
 							<string>popoverTpl</string>
 							<string>showTplButton</string>
-							<string>tplForDnsPopUp</string>
-							<string>viewDnsA</string>
-							<string>viewDnsCname</string>
-							<string>viewDnsMx</string>
+							<string>tplForDomainPopUp</string>
+							<string>viewDomainA</string>
+							<string>viewDomainCname</string>
+							<string>viewDomainMx</string>
 							<string>webviewTpl</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<object class="IBToOneOutletInfo">
-								<string key="name">aDnsOutline</string>
+								<string key="name">aDomainOutline</string>
 								<string key="candidateClassName">NSOutlineView</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">addDnsAButton</string>
+								<string key="name">addDomainAButton</string>
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">addDnsCnameButton</string>
+								<string key="name">addDomainCnameButton</string>
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">addDnsMxButton</string>
+								<string key="name">addDomainMxButton</string>
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">clientsForDnsPopUp</string>
+								<string key="name">clientsForDomainPopUp</string>
 								<string key="candidateClassName">NSPopUpButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
@@ -3609,7 +3609,7 @@
 								<string key="candidateClassName">DMEditCellView</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">popoverDns</string>
+								<string key="name">popoverDomain</string>
 								<string key="candidateClassName">NSPopover</string>
 							</object>
 							<object class="IBToOneOutletInfo">
@@ -3621,19 +3621,19 @@
 								<string key="candidateClassName">NSButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">tplForDnsPopUp</string>
+								<string key="name">tplForDomainPopUp</string>
 								<string key="candidateClassName">NSPopUpButton</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">viewDnsA</string>
+								<string key="name">viewDomainA</string>
 								<string key="candidateClassName">NSView</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">viewDnsCname</string>
+								<string key="name">viewDomainCname</string>
 								<string key="candidateClassName">NSView</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">viewDnsMx</string>
+								<string key="name">viewDomainMx</string>
 								<string key="candidateClassName">NSView</string>
 							</object>
 							<object class="IBToOneOutletInfo">
@@ -3644,7 +3644,7 @@
 					</object>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/DMDnsViewController.h</string>
+						<string key="minorKey">./Classes/DMDomainViewController.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
