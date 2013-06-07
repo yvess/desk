@@ -102,11 +102,29 @@
            }
        },
        {
-           "from": "/orders/changes",
+           "from": "/tasks/open",
            "to": "../../_changes",
            "query": {
                "feed": "eventsource",
-               "filter": "desk_drawer/order",
+               "filter": "desk_drawer/tasks_open",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/tasks/done",
+           "to": "../../_changes",
+           "query": {
+               "feed": "eventsource",
+               "filter": "desk_drawer/tasks_done",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/orders/open",
+           "to": "../../_changes",
+           "query": {
+               "feed": "eventsource",
+               "filter": "desk_drawer/orders_open",
                "include_docs": "true"
            }
        },
@@ -115,7 +133,7 @@
            "to": "../../_changes",
            "query": {
                "feed": "eventsource",
-               "filter": "desk_drawer/order-done",
+               "filter": "desk_drawer/orders_done",
                "include_docs": "true"
            }
        },
@@ -284,7 +302,25 @@ function (head, req) {
 }"
    },
    "filters": {
-       "order": "
+       "tasks_open": "
+function (doc, req)
+{
+  if (doc.type == 'task' && doc.state != 'done') {
+    return true;
+  }
+
+  return false;
+}",
+        "tasks_done": "
+function (doc, req)
+{
+  if (doc.type == 'task' && doc.state == 'done') {
+    return true;
+  }
+
+  return false;
+}",
+       "orders_open": "
 function (doc, req)
 {
   if (doc.type == 'order' && doc.state != 'done') {
@@ -293,10 +329,10 @@ function (doc, req)
 
   return false;
 }",
-        "order-done": "
+        "orders_done": "
 function (doc, req)
 {
-  if (doc.type == 'order' && doc.state == 'done' && sender == 'foreman') {
+  if (doc.type == 'order' && doc.state == 'done') {
     return true;
   }
 

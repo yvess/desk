@@ -63,7 +63,7 @@ class WorkerTestCase(unittest.TestCase):
             self._remove_domain("test.tt")
         self.s.delete_db(self.db_conf["couchdb_db"])
 
-    def _run_task(self):
+    def _run_order(self):
         self._run_worker(is_foreman=True)
         self._run_worker()
 
@@ -75,10 +75,10 @@ class WorkerTestCase(unittest.TestCase):
     def _add_domain_test_tt(self, run=True):
         dns_id = "dns-test.tt"
         self.assertTrue(self.up.put(data="@fixtures/couchdb-dns-test.tt.json", doc_id=dns_id) == 201)
-        queue_id = self._create_queue_doc()
+        order_id = self._create_order_doc()
         if run:
-            self._run_task()
-        return (dns_id, queue_id)
+            self._run_order()
+        return (dns_id, order_id)
 
     def _remove_domain(self, domain, docs=None):
         # cleanup
@@ -92,76 +92,76 @@ class WorkerTestCase(unittest.TestCase):
         validator = DnsValidator(doc, lookup=lookup)
         return validator
 
-    def _create_queue_doc(self):
+    def _create_order_doc(self):
         current_time = time.localtime()
-        queue_id = "queue-{}".format(self.s.next_uuid())
-        queue_doc = {
-            "_id": queue_id,
+        order_id = "order-{}".format(self.s.next_uuid())
+        order_doc = {
+            "_id": order_id,
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
-            "type": "queue", "sender": "pad", "state": "new"
+            "type": "order", "sender": "pad", "state": "new"
         }
-        self.assertTrue(self.up.put(data=json.dumps(queue_doc), doc_id=queue_id) == 201)
-        return queue_id
+        self.assertTrue(self.up.put(data=json.dumps(order_doc), doc_id=order_id) == 201)
+        return order_id
 
     def test_worker_settings(self):
         doc = self.db.get("worker-localhost")
         self.assertTrue(doc['provides']['dns'][0]["backend"] == "powerdns")
 
     def test_new_domain(self):
-        dns_id, queue_id = self._add_domain_test_tt()
+        dns_id, order_id = self._add_domain_test_tt()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
-        self._remove_domain('test.tt', docs=[dns_id, queue_id])
+        self._remove_domain('test.tt', docs=[dns_id, order_id])
 
     def test_update_record(self):
-        dns_id, queue_id = self._add_domain_test_tt()
+        dns_id, order_id = self._add_domain_test_tt()
         dns_doc = self.db.get(dns_id)
         dns_doc['a'][4]['ip'] = "1.1.1.21"
         dns_doc['a'][1]['host'] = "ns3"
         dns_doc['cname'][0]['host'] = "ns1"
         VersionDoc(self.db, dns_doc).create_version()
-        queue_id = self._create_queue_doc()
-        self._run_task()
+        order_id = self._create_order_doc()
+        self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
-        self._remove_domain('test.tt', docs=[dns_id, queue_id])
+        self._remove_domain('test.tt', docs=[dns_id, order_id])
 
     def test_complete_change_record(self):
-        dns_id, queue_id = self._add_domain_test_tt()
+        dns_id, order_id = self._add_domain_test_tt()
         dns_doc = self.db.get(dns_id)
         changed_a = copy(dns_doc['a'][4])
         dns_doc['a'][4]['ip'] = "1.1.1.21"
         dns_doc['a'][4]['host'] = "www2"
         VersionDoc(self.db, dns_doc).create_version()
-        queue_id = self._create_queue_doc()
-        self._run_task()
+        order_id = self._create_order_doc()
+        self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertFalse(self._get_dns_validator('dns-test.tt').check_one_record('A', 'ip', q_key='host', item=changed_a))
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
-        self._remove_domain('test.tt', docs=[dns_id, queue_id])
+        self._remove_domain('test.tt', docs=[dns_id, order_id])
 
     def test_append_record(self):
-        dns_id, queue_id = self._add_domain_test_tt()
+        dns_id, order_id = self._add_domain_test_tt()
         dns_doc = self.db.get(dns_id)
         dns_doc['a'].append({'host': "forum", 'ip': "1.1.1.25"})
         dns_doc['cname'].append({'alias': "super", 'host': "www"})
         VersionDoc(self.db, dns_doc).create_version()
-        queue_id = self._create_queue_doc()
-        self._run_task()
+        order_id = self._create_order_doc()
+        self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
-        self._remove_domain('test.tt', docs=[dns_id, queue_id])
+        self._remove_domain('test.tt', docs=[dns_id, order_id])
 
     def test_delete_record(self):
-        dns_id, queue_id = self._add_domain_test_tt()
+        dns_id, order_id = self._add_domain_test_tt()
         dns_doc = self.db.get(dns_id)
         removed_a = dns_doc['a'].pop(4)
         VersionDoc(self.db, dns_doc).create_version()
-        queue_id = self._create_queue_doc()
-        self._run_task()
+        order_id = self._create_order_doc()
+        self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertFalse(self._get_dns_validator('dns-test.tt').check_one_record('A', 'ip', q_key='host', item=removed_a))
-        self._remove_domain('test.tt', docs=[dns_id, queue_id])
+        self._remove_domain('test.tt', docs=[dns_id, order_id])
 
 if __name__ == '__main__':
     unittest.main()

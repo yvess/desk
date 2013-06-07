@@ -7,8 +7,13 @@ import os
 from ConfigParser import SafeConfigParser
 from ConfigParser import ParsingError
 import argparse
+from gevent import monkey; monkey.patch_all()
+import gevent
 from couchdbkit import Server, Consumer
 from couchdbkit.changes import ChangesStream
+from restkit.conn import Connection
+from socketpool.pool import ConnectionPool
+
 
 sys.path.append("../")
 from desk.utils import ObjectDict
@@ -20,7 +25,8 @@ class Worker(object):
     def __init__(self, settings, hostname=os.uname()[1]):
         if isinstance(settings, dict):
             settings = ObjectDict(**settings)
-        self.db = Server(uri=settings.couchdb_uri)[settings.couchdb_db]
+        self.pool = ConnectionPool(factory=Connection, backend="gevent")
+        self.db = Server(uri=settings.couchdb_uri, pool=self.pool)[settings.couchdb_db]
         self.hostname = hostname
         self.provides = {}
         self.settings = settings
@@ -38,7 +44,7 @@ class Worker(object):
         if worker_result:
             self.provides = worker_result[0]['provides']
 
-    def _create_tasks_foreman(self, doc):
+    def _create_tasks(self, doc):
         service_type = (doc['type'])
         try:
             ServiceModule = getattr(globals()[service_type], '{}base'.format(service_type))
@@ -71,36 +77,68 @@ class Worker(object):
         else:
             raise Exception("I doesn't provide the requested service")
 
-    def _process_queue(self, queue):
-        for notification in queue:
-            # for foreman
-            worker_is_foreman = self.settings.worker_is_foreman if hasattr(self.settings, 'worker_is_foreman') else False
-            if worker_is_foreman and notification['doc']['sender'] == 'pad':
-                for task in self.db.view(self._cmd("todo")):
-                    doc = task['value']
-                    doc = MergedDoc(self.db, self.db.get(doc['_id'])).doc
-                    self._create_tasks_foreman(doc)
-            # for workers
-            if notification['doc']['sender'] == 'foreman' and \
-            (notification['doc']['state'] != 'done' or notification['doc']['claimed'] != True):
-                for task in self.db.view(self._cmd("todo")):
-                    doc = task['value']
-                    #self._do_task(doc)
+    # def _process_order(self, orders):
+    #     # for foreman
+    #     if is_foreman:
+    #         for task in self.db.view(self._cmd("todo")):
+    #             doc = task['value']
+    #             doc = MergedDoc(self.db, self.db.get(doc['_id'])).doc
+    #             self._create_tasks(doc)
+    #     # for workers
+    #     if notification['doc']['state'] != 'done' or notification['doc']['claimed'] != True:
+    #         for task in self.db.view(self._cmd("todo")):
+    #             doc = task['value']
+    #             #self._do_task(doc)
+
+    def _process_orders(self, orders):
+        for order in orders:
+            print('order')
+        # for task in self.db.view(self._cmd("todo")):
+        #     doc = task['value']
+        #     doc = MergedDoc(self.db, self.db.get(doc['_id'])).doc
+        #     self._create_tasks(doc)
+
+    def _process_tasks(self, tasks):
+        for task in tasks:
+            print('tasks')
+
+    def get_queues(self, is_foreman=False):
+        def orders_queue():
+            with ChangesStream(self.db, feed="continuous", heartbeat=True,
+                include_docs=True, filter=self._cmd("orders_open")) as orders:
+                self._process_orders(orders)
+
+        def tasks_queue():
+            with ChangesStream(self.db, feed="continuous", heartbeat=True,
+                include_docs=True, filter=self._cmd("tasks_open")) as tasks:
+                self._process_tasks(tasks)
+
+        queues = [gevent.spawn(orders_queue), gevent.spawn(tasks_queue)] if is_foreman else [gevent.spawn(tasks_queue)]
+        return queues
+
+    def _check_is_foreman(self):
+        if hasattr(self.settings, 'worker_is_foreman'):
+            return self.settings.worker_is_foreman
+        else:
+            return False
 
     def run(self):
-        with ChangesStream(self.db,
-            feed="continuous", heartbeat=True,
-            include_docs=True,
-            filter=self._cmd("queue")):
-            self._process_queue(queue)
+        is_foreman = self._check_is_foreman()
+        queues = self.get_queues(is_foreman=is_foreman)
+        gevent.joinall(queues)
 
     def once(self):
         c = Consumer(self.db)
-        queue = c.fetch(since=0,
+        orders = c.fetch(since=0,
             include_docs=True,
-            filter=self._cmd("queue"))['results']
-        if queue:
-            self._process_queue(queue)
+            filter=self._cmd("orders_open"))['results']
+        tasks = c.fetch(since=0,
+            include_docs=True,
+            filter=self._cmd("tasks_open"))['results']
+        if orders:
+            self._process_orders(orders)
+        if tasks:
+            self._process_orders(orders)
 
 
 def setup_parser():
@@ -112,6 +150,8 @@ def setup_parser():
         "worker_daemon": True,
         "worker_is_foreman": False,
     }
+    boolean_types = ['worker_daemon', 'worker_is_foreman']
+    conf_sections = ['couchdb', 'powerdns', 'worker']
     # first only parse the config file argument
     conf_parser = argparse.ArgumentParser(add_help=False)
     conf_parser.add_argument("-c", "--config", dest="config",
@@ -127,10 +167,15 @@ def setup_parser():
             print("Can't open file '{}'".format(args.config))
             sys.exit(0)
         else:
-            for section in ['couchdb', 'powerdns']:  # put in here all your sections
-                defaults.update(
-                    {'{}_{}'.format(section, k):v for k, v in config.items(section)}
-                )
+            for section in conf_sections:  # put in here all your sections
+                conf_section = {}
+                for k, v in config.items(section):
+                    section_prop = '{}_{}'.format(section, k)
+                    if section_prop in boolean_types:
+                        conf_section[section_prop] = config.getboolean(section, k)
+                    else:
+                        conf_section[section_prop] = config.get(section, k)
+                defaults.update(conf_section)
     # parse all other arguments
     parser = argparse.ArgumentParser(
         parents=[conf_parser],
@@ -145,11 +190,11 @@ def setup_parser():
     parser.add_argument("-d", "--couchdb_db", dest="couchdb_db",
         metavar="NAME", help="database of the server")
     parser.add_argument("-f", "--foreman", dest="worker_is_foreman",
-        help="be the foreman and a worker", action="store_true", default=False)
+        help="be the foreman and a worker", action="store_true")
 
-    args = parser.parse_args(remaining_args)
+    settings = parser.parse_args(remaining_args)
 
-    return args
+    return settings
 
 if __name__ == "__main__":
     settings = setup_parser()
