@@ -92,13 +92,16 @@ class Worker(object):
 
     def _process_orders(self, orders):
         for order in orders:
-            print('order')
+            print('order', order)
+            editor = order['editor']
+            
         # for task in self.db.view(self._cmd("todo")):
         #     doc = task['value']
         #     doc = MergedDoc(self.db, self.db.get(doc['_id'])).doc
         #     self._create_tasks(doc)
 
     def _process_tasks(self, tasks):
+        print("***Tasks")
         for task in tasks:
             print('tasks')
 
@@ -129,16 +132,18 @@ class Worker(object):
 
     def once(self):
         c = Consumer(self.db)
-        orders = c.fetch(since=0,
-            include_docs=True,
-            filter=self._cmd("orders_open"))['results']
+        is_foreman = self._check_is_foreman()
+        if is_foreman:
+            orders = c.fetch(since=0,
+                include_docs=True,
+                filter=self._cmd("orders_open"))['results']
+            if orders:
+                self._process_orders(orders)
         tasks = c.fetch(since=0,
             include_docs=True,
             filter=self._cmd("tasks_open"))['results']
-        if orders:
-            self._process_orders(orders)
         if tasks:
-            self._process_orders(orders)
+            self._process_tasks(tasks)
 
 
 def setup_parser():

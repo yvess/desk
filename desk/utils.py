@@ -11,10 +11,11 @@ class ObjectDict(object):
 
 
 class CouchdbUploader(object):
-    def __init__(self, couchdb_uri=None, couchdb_db=None, path=None):
+    def __init__(self, couchdb_uri=None, couchdb_db=None, path=None, auth=()):
         self.uri = couchdb_uri
         self.db = couchdb_db
         self.path = path
+        self.auth = auth
 
     def put(self, data, doc_id):
         if data[0] == "@":
@@ -22,6 +23,12 @@ class CouchdbUploader(object):
             with open(filename, "r") as f:
                 data = "".join([l.strip() for l in f.readlines() if not l.strip().find("//") == 0])  # remove comments in json
         r = requests.put("{}/{}/{}".format(self.uri, self.db, doc_id.format(couchdb_db=self.db)), data=data,
-            headers={'Content-type': 'application/json', 'Accept': 'text/plain'}
+            headers={'Content-type': 'application/json', 'Accept': 'text/plain'},  auth=self.auth
+        )
+        return r.status_code
+
+    def update(self, handler, doc_id):
+        r = requests.put("{}/{}/_design/{}/_update/{}/{}".format(self.uri, self.db, self.db, handler, doc_id.format(couchdb_db=self.db)),
+            headers={'Content-type': 'application/json', 'Accept': 'text/plain'},  auth=self.auth
         )
         return r.status_code

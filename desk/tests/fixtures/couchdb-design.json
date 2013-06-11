@@ -181,9 +181,16 @@
            "from": "/show/*",
            "to": "_show/showjson/*",
            "method": "GET"
+       },
+       {
+           "from": "/add-editor/*",
+           "to": "_update/add-editor/*",
+           "method": "PUT"
        }
    ],
    "language": "javascript",
+
+
    "views": {
        "project": {
            "map": "
@@ -193,6 +200,7 @@ function (doc) {
     }
 }"
        },
+
        "domain": {
            "map": "
 function(doc) {
@@ -201,6 +209,7 @@ function(doc) {
   }
 };"
        },
+
        "recent-items": {
            "map": "
 function(doc) {
@@ -209,6 +218,7 @@ function(doc) {
   }
 };"
        },
+
        "worker": {
            "map": "
 function(doc) {
@@ -217,6 +227,7 @@ function(doc) {
   }
 };"
        },
+
        "work_time": {
            "map": "
 function(doc) {
@@ -229,14 +240,16 @@ function(keys, values, rereduce) {
   return sum(values);
 }"
        },
+
        "order": {
            "map": "
 function(doc) {
   if (doc.type == 'order' && doc.state  == 'new') {
-    emit(doc._id, doc.sender);
+    emit(doc._id, doc.editor);
   }
 };"
        },
+
        "client": {
            "map": "
 function(doc) {
@@ -245,6 +258,7 @@ function(doc) {
   }
 };"
        },
+
        "by_type": {
            "map": "
 function(doc) {
@@ -253,6 +267,7 @@ function(doc) {
   }
 };"
        },
+
        "template": {
            "map": "
 function(doc) {
@@ -261,6 +276,7 @@ function(doc) {
   }
 };"
        },
+
        "todo": {
            "map": "
 function (doc) {
@@ -272,6 +288,8 @@ function (doc) {
 }"
        }
    },
+
+
    "lists": {
        "list_docs": "
 function (head, req) {
@@ -301,6 +319,8 @@ function (head, req) {
     });
 }"
    },
+
+
    "filters": {
        "tasks_open": "
 function (doc, req)
@@ -311,6 +331,7 @@ function (doc, req)
 
   return false;
 }",
+
         "tasks_done": "
 function (doc, req)
 {
@@ -320,6 +341,7 @@ function (doc, req)
 
   return false;
 }",
+
        "orders_open": "
 function (doc, req)
 {
@@ -329,6 +351,7 @@ function (doc, req)
 
   return false;
 }",
+
         "orders_done": "
 function (doc, req)
 {
@@ -338,8 +361,17 @@ function (doc, req)
 
   return false;
 }"
-   },
-   "shows": {
+    },
+    "updates": {
+        "add-editor": "
+function(doc, req) {
+    var editor = req.userCtx.name;
+    doc['editor'] = editor;
+    var message = 'added editor';
+    return [doc, message];
+}"
+    },
+    "shows": {
        "showjson": "
 function(doc, req) {
     delete doc._id;
