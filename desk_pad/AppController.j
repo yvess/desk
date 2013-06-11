@@ -13,6 +13,7 @@
 @import <AppKit/CPButtonBar.j>
 @import <GrowlCappuccino/GrowlCappuccino.j>
 
+@import <CouchResource/COCategories.j>
 @import <CouchResource/COViewController.j>
 @import "DMClient.j"
 @import "DMClientViewController.j"
@@ -65,7 +66,8 @@
 {
     //console.log([CPDate date]);
     var order = [DMOrder new];
-    [order setDate:[CPString stringWithFormat:@"%@", [[CPDate date] description]]]; // [CPDate date]
+    //[order setDate:[CPString stringWithFormat:@"%@", [[CPDate date] description]]]; // [CPDate date]
+    [order setDate:[CPString stringWithFormat:@"%@", Date.now()]];
     [order setCoId:[DMOrder couchId:order]];
     [order setSender:@"pad"];
     [order setState:@"new"];
