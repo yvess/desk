@@ -66,12 +66,29 @@ class WorkerTestCase(unittest.TestCase):
 
     def _run_order(self):
         self._run_worker(is_foreman=True)
-        self._run_worker(is_foreman=False)
+        #self._run_worker(is_foreman=False)
 
     def _run_worker(self, is_foreman=False):
         conf = self.conf_foreman if is_foreman else self.conf
         w = Worker(conf, hostname="localhost")
         w.once()
+
+    def _get_dns_validator(self, doc_id, lookup={'ns1.test.tt': "127.0.0.1", 'ns2.test.tt': "127.0.0.1"}):
+        doc = MergedDoc(self.db, self.db.get(doc_id)).doc
+        validator = DnsValidator(doc, lookup=lookup)
+        return validator
+
+    def _create_order_doc(self):
+        current_time = time.localtime()
+        order_id = "order-{}".format(time.mktime(current_time))
+        order_doc = {
+            "_id": order_id,
+            "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
+            "type": "order", "sender": "pad", "state": "new"
+        }
+        self.assertTrue(self.co.put(data=json.dumps(order_doc), doc_id=order_id) == 201)
+        self.assertTrue(self.co.update(handler='add-editor', doc_id=order_id) == 201)
+        return order_id
 
     def _add_domain_test_tt(self, run=True):
         dns_id = "dns-test.tt"
@@ -88,23 +105,6 @@ class WorkerTestCase(unittest.TestCase):
         pdns.del_domain(domain)
         if docs:
             self.db.delete_doc(docs)
-
-    def _get_dns_validator(self, doc_id, lookup={'ns1.test.tt': "127.0.0.1", 'ns2.test.tt': "127.0.0.1"}):
-        doc = MergedDoc(self.db, self.db.get(doc_id)).doc
-        validator = DnsValidator(doc, lookup=lookup)
-        return validator
-
-    def _create_order_doc(self):
-        current_time = time.localtime()
-        order_id = "order-{}".format(self.s.next_uuid())
-        order_doc = {
-            "_id": order_id,
-            "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
-            "type": "order", "sender": "pad", "state": "new"
-        }
-        self.assertTrue(self.co.put(data=json.dumps(order_doc), doc_id=order_id) == 201)
-        self.assertTrue(self.co.update(handler='add-editor', doc_id=order_id) == 201)
-        return order_id
 
     def test_worker_settings(self):
         doc = self.db.get("worker-localhost")

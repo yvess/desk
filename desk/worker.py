@@ -4,6 +4,7 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 
 import sys
 import os
+import time
 from ConfigParser import SafeConfigParser
 from ConfigParser import ParsingError
 import argparse
@@ -44,38 +45,49 @@ class Worker(object):
         if worker_result:
             self.provides = worker_result[0]['provides']
 
-    def _create_tasks(self, doc):
-        service_type = (doc['type'])
-        try:
-            ServiceModule = getattr(globals()[service_type], '{}base'.format(service_type))
-            print(ServiceModule)
-            ServiceBaseClass = getattr(ServiceModule, '{}Provider'.format(service_type.capitalize()))
-            print(ServiceBaseClass)
-        except AttributeError:
-            print("not found")
-        providers = ServiceBaseClass().get_providers(doc=doc)
-        print(providers)
+    def _create_tasks(self, providers=None, order_id=None):
+        current_time = time.mktime(time.localtime())
+        for provider in providers:
+            task_id = "task-{}-{}".format(provider, current_time)
+            doc = {
+                "_id": task_id,
+                "type": "task",
+                "state": "new",
+                "order_id": order_id,
+                "docs": providers[provider]
+            }
+            self.db.save_doc(doc)
+        # service_type = (doc['type'])
+        # try:
+        #     ServiceModule = getattr(globals()[service_type], '{}base'.format(service_type))
+        #     print(ServiceModule)
+        #     ServiceBaseClass = getattr(ServiceModule, '{}Provider'.format(service_type.capitalize()))
+        #     print(ServiceBaseClass)
+        # except AttributeError:
+        #     print("not found")
+        # providers = ServiceBaseClass().get_providers(doc=doc)
+        # print(providers)
 
-    def _do_task(self, doc):
-        if doc['type'] in self.provides:
-            for service_settings in self.provides[doc['type']]:
-                if 'server_type' in service_settings \
-                and 'master' in service_settings['server_type'] \
-                or not ('server_type' in service_settings):
-                    ServiceClass = None
-                    doc_type = doc['type']
-                    backend = service_settings['backend']
-                    backend_class = backend.title()
-                    try:
-                        ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
-                    except AttributeError:
-                        print("not found")
-                    if ServiceClass:
-                        with ServiceClass(self.settings) as service:
-                            updater = Updater(self.db, doc, service)
-                            updater.do_task()
-        else:
-            raise Exception("I doesn't provide the requested service")
+    # def _do_task(self, doc):
+    #     if doc['type'] in self.provides:
+    #         for service_settings in self.provides[doc['type']]:
+    #             if 'server_type' in service_settings \
+    #             and 'master' in service_settings['server_type'] \
+    #             or not ('server_type' in service_settings):
+    #                 ServiceClass = None
+    #                 doc_type = doc['type']
+    #                 backend = service_settings['backend']
+    #                 backend_class = backend.title()
+    #                 try:
+    #                     ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
+    #                 except AttributeError:
+    #                     print("not found")
+    #                 if ServiceClass:
+    #                     with ServiceClass(self.settings) as service:
+    #                         updater = Updater(self.db, doc, service)
+    #                         updater.do_task()
+    #     else:
+    #         raise Exception("I doesn't provide the requested service")
 
     # def _process_order(self, orders):
     #     # for foreman
@@ -92,18 +104,31 @@ class Worker(object):
 
     def _process_orders(self, orders):
         for order in orders:
-            print('order', order)
-            editor = order['editor']
-            
+            order_doc = order['doc']
+            editor = order_doc['editor']
+            providers = {}
+            docs = []
+            for result in self.db.view(self._cmd("new_by_editor"), key=editor, include_docs=True):
+                doc = result['doc']
+                merged_doc = MergedDoc(self.db, doc).doc
+                get_providers = getattr(globals()[doc['type']], 'get_providers')
+                for provider in (get_providers(merged_doc)):
+                    if provider in providers:
+                        providers[provider].append(result['id'])
+                    else:
+                        providers[provider] = [result['id']]
+                docs.append(result['id'])
+            order_doc['docs'] = docs
+            self.db.save_doc(order_doc)
+            self._create_tasks(providers=providers, order_id=order_doc["_id"])
         # for task in self.db.view(self._cmd("todo")):
         #     doc = task['value']
         #     doc = MergedDoc(self.db, self.db.get(doc['_id'])).doc
         #     self._create_tasks(doc)
 
     def _process_tasks(self, tasks):
-        print("***Tasks")
         for task in tasks:
-            print('tasks')
+            print('tasks', task)
 
     def get_queues(self, is_foreman=False):
         def orders_queue():

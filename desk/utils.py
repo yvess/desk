@@ -17,18 +17,19 @@ class CouchdbUploader(object):
         self.path = path
         self.auth = auth
 
-    def put(self, data, doc_id):
+    def put(self, data, doc_id, only_status=True):
         if data[0] == "@":
             filename = "{}/{}".format(self.path, data[1:])
             with open(filename, "r") as f:
                 data = "".join([l.strip() for l in f.readlines() if not l.strip().find("//") == 0])  # remove comments in json
-        r = requests.put("{}/{}/{}".format(self.uri, self.db, doc_id.format(couchdb_db=self.db)), data=data,
+        url = "{}/{}/{}".format(self.uri, self.db, doc_id.format(couchdb_db=self.db))
+        r = requests.put(url, data=data,
             headers={'Content-type': 'application/json', 'Accept': 'text/plain'},  auth=self.auth
         )
-        return r.status_code
+        return r.status_code if only_status else r
 
-    def update(self, handler, doc_id):
+    def update(self, handler, doc_id, only_status=True):
         r = requests.put("{}/{}/_design/{}/_update/{}/{}".format(self.uri, self.db, self.db, handler, doc_id.format(couchdb_db=self.db)),
             headers={'Content-type': 'application/json', 'Accept': 'text/plain'},  auth=self.auth
         )
-        return r.status_code
+        return r.status_code if only_status else r

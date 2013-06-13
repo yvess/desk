@@ -143,13 +143,9 @@ class DnsBase(object):
         self.validator.lookup_map = doc['map']
 
 
-class DnsProvider(object):
+def get_providers(doc):
     provider_key = 'nameservers'
-
-    def get_providers(self, doc=None):
-        if not doc:
-            doc = self.doc
-        nameservers = doc[self.provider_key]
-        nameservers.replace(" ", "")
-        nameservers = nameservers.split(",")
-        return nameservers
+    nameservers = doc[provider_key]
+    nameservers.replace(" ", "")
+    nameservers = nameservers.split(",")
+    return nameservers
