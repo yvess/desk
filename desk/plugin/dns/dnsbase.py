@@ -2,7 +2,9 @@
 from __future__ import absolute_import, print_function, division, unicode_literals
 import abc
 from socket import gethostbyname
+from gevent import monkey; monkey.patch_all()
 import dns.resolver
+
 
 
 class DnsValidator(object):
