@@ -54,7 +54,8 @@ class Worker(object):
                 "type": "task",
                 "state": "new",
                 "order_id": order_id,
-                "docs": providers[provider]
+                "docs": providers[provider],
+                "provider": provider
             }
             self.db.save_doc(doc)
         # service_type = (doc['type'])
@@ -67,27 +68,6 @@ class Worker(object):
         #     print("not found")
         # providers = ServiceBaseClass().get_providers(doc=doc)
         # print(providers)
-
-    # def _do_task(self, doc):
-    #     if doc['type'] in self.provides:
-    #         for service_settings in self.provides[doc['type']]:
-    #             if 'server_type' in service_settings \
-    #             and 'master' in service_settings['server_type'] \
-    #             or not ('server_type' in service_settings):
-    #                 ServiceClass = None
-    #                 doc_type = doc['type']
-    #                 backend = service_settings['backend']
-    #                 backend_class = backend.title()
-    #                 try:
-    #                     ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
-    #                 except AttributeError:
-    #                     print("not found")
-    #                 if ServiceClass:
-    #                     with ServiceClass(self.settings) as service:
-    #                         updater = Updater(self.db, doc, service)
-    #                         updater.do_task()
-    #     else:
-    #         raise Exception("I doesn't provide the requested service")
 
     # def _process_order(self, orders):
     #     # for foreman
@@ -127,8 +107,39 @@ class Worker(object):
         #     self._create_tasks(doc)
 
     def _process_tasks(self, tasks):
+        provider_lookup = {}
+        for (servcie_type, services) in self.provides.viewitems():
+            for service in services:
+                provider_lookup[service['name']] = servcie_type
         for task in tasks:
-            print('tasks', task)
+            if task['doc']['provider'] in provider_lookup:
+                self._prepare_tasks(task['doc']['docs'])
+
+    def _prepare_tasks(self, docs):
+        for doc_id in docs:
+            doc = MergedDoc(self.db, self.db.get(doc_id)).doc
+            self._do_task(doc)
+
+    def _do_task(self, doc):
+        if doc['type'] in self.provides:
+            for service_settings in self.provides[doc['type']]:
+                if 'server_type' in service_settings \
+                and 'master' in service_settings['server_type'] \
+                or not ('server_type' in service_settings):
+                    ServiceClass = None
+                    doc_type = doc['type']
+                    backend = service_settings['backend']
+                    backend_class = backend.title()
+                    try:
+                        ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
+                    except AttributeError:
+                        print("not found")
+                    if ServiceClass:
+                        with ServiceClass(self.settings) as service:
+                            updater = Updater(self.db, doc, service)
+                            updater.do_task()
+        else:
+            raise Exception("I doesn't provide the requested service")
 
     def get_queues(self, is_foreman=False):
         def orders_queue():

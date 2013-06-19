@@ -19,7 +19,7 @@ class Powerdns(DnsBase):
             self._conn = sqlite3.connect(settings.powerdns_db)
             self._cursor = self._conn.cursor()
         else:
-            raise Exception("can't init database")
+            raise Exception("can't get database connection")
 
     def __enter__(self):
         return self

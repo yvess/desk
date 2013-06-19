@@ -27,7 +27,7 @@ class WorkerTestCase(unittest.TestCase):
         self.conf = {
             "powerdns_backend": "sqlite",
             "powerdns_db": "/etc/powerdns/dns.db",
-            "worker_is_foreman": False,
+            "worker_is_foreman": True,
         }
         self.conf_foreman = {
             "worker_is_foreman": True,
@@ -51,7 +51,7 @@ class WorkerTestCase(unittest.TestCase):
         d = {
            "_id": worker_id, "type": "worker", "hostname": "localhost",
            "provides": {
-               "dns": [{"backend": "powerdns"}]
+               "dns": [{"backend": "powerdns", "name": "ns1.test.tt"}]
            }
         }
         self.assertTrue(self.co.put(data=json.dumps(d), doc_id=worker_id) == 201)
@@ -69,7 +69,8 @@ class WorkerTestCase(unittest.TestCase):
         #self._run_worker(is_foreman=False)
 
     def _run_worker(self, is_foreman=False):
-        conf = self.conf_foreman if is_foreman else self.conf
+        #conf = self.conf_foreman if is_foreman else self.conf
+        conf = self.conf
         w = Worker(conf, hostname="localhost")
         w.once()
 
