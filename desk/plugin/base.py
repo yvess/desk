@@ -112,6 +112,7 @@ class Updater(object):
         return diff_merged
 
     def do_task(self):
-        self.task()
+        success = self.task()
         self.doc['state'] = 'live'
         self.db.save_doc(self.doc)
+        return success

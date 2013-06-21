@@ -136,6 +136,7 @@ class Powerdns(DnsBase):
                             self.add_record(key, value, rtype=name.upper())  # TODO add special case for main @ self.domain?
             self._conn.commit()
             self.update_serial()
+            sucess = True
         return sucess
 
     def _trans(self, key, value, rtype=None):
@@ -178,4 +179,5 @@ class Powerdns(DnsBase):
                         self.add_record(key, value, rtype=name.upper())
             self._conn.commit()
             self.update_serial()
+            sucess = True
         return sucess
