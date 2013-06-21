@@ -12,20 +12,20 @@ from desk.utils import CouchdbUploader
 class UtilTestCase(unittest.TestCase):
     def setUp(self):
         self.settings = {
-            "couchdb_uri": "http://localhost:5984",
+            "couchdb_uri": "http://admin-test:admin-test@localhost:5984",
             "couchdb_db": "desk_tester",
         }
-        s = Server()
+        s = Server(self.settings["couchdb_uri"])
         self.s = s
         s.create_db(self.settings['couchdb_db'])
-        self.up = CouchdbUploader(path=os.path.dirname(__file__), **self.settings)
+        self.up = CouchdbUploader(path=os.path.dirname(__file__), auth=('admin-test', 'admin-test'), **self.settings)
 
     def tearDown(self):
         self.s.delete_db(self.settings["couchdb_db"])
 
     def test_broken_json(self):
         json = """ { "_id": "broken-json", "type": "worker", "hostname": "tworkerbroken", } """  # no ","
-        status_code = self.up.put(data=json, doc_id="borken-json")
+        status_code = self.up.put(data=json, doc_id="broken-json")
         self.assertTrue(status_code == 400)
 
 if __name__ == '__main__':
