@@ -17,7 +17,7 @@ from socketpool.pool import ConnectionPool
 
 
 sys.path.append("../")
-from desk.utils import ObjectDict
+from desk.utils import ObjectDict, CouchdbUploader
 from desk.plugin import dns
 from desk.plugin.base import Updater, MergedDoc
 
@@ -44,20 +44,6 @@ class Worker(object):
         )
         if worker_result:
             self.provides = worker_result[0]['provides']
-
-    def _create_tasks(self, providers=None, order_id=None):
-        current_time = time.mktime(time.localtime())
-        for provider in providers:
-            task_id = "task-{}-{}".format(provider, current_time)
-            doc = {
-                "_id": task_id,
-                "type": "task",
-                "state": "new",
-                "order_id": order_id,
-                "docs": providers[provider],
-                "provider": provider
-            }
-            self.db.save_doc(doc)
         # service_type = (doc['type'])
         # try:
         #     ServiceModule = getattr(globals()[service_type], '{}base'.format(service_type))
@@ -89,10 +75,9 @@ class Worker(object):
             providers = {}
             docs = []
             for result in self.db.view(self._cmd("new_by_editor"), key=editor, include_docs=True):
-                doc = result['doc']
-                merged_doc = MergedDoc(self.db, doc).doc
+                doc = MergedDoc(self.db, result['doc']).doc
                 get_providers = getattr(globals()[doc['type']], 'get_providers')
-                for provider in (get_providers(merged_doc)):
+                for provider in (get_providers(doc)):
                     if provider in providers:
                         providers[provider].append(result['id'])
                     else:
@@ -101,10 +86,23 @@ class Worker(object):
             order_doc['docs'] = docs
             self.db.save_doc(order_doc)
             self._create_tasks(providers=providers, order_id=order_doc["_id"])
-        # for task in self.db.view(self._cmd("todo")):
-        #     doc = task['value']
-        #     doc = MergedDoc(self.db, self.db.get(doc['_id'])).doc
-        #     self._create_tasks(doc)
+
+    def _create_tasks(self, providers=None, order_id=None):
+        current_time = time.mktime(time.localtime())
+        for provider in providers:
+            task_id = "task-{}-{}".format(provider, current_time)  # TODO uuid
+            doc = {
+                "_id": task_id,
+                "type": "task",
+                "state": "new",
+                "order_id": order_id,
+                "docs": providers[provider],
+                "provider": provider
+            }
+            self.db.save_doc(doc)
+
+    def _update_order(self, tasks):
+        print("update order", tasks)
 
     def _process_tasks(self, tasks):
         provider_lookup = {}
@@ -112,13 +110,23 @@ class Worker(object):
             for service in services:
                 provider_lookup[service['name']] = servcie_type
         for task in tasks:
+            print(task)
             if task['doc']['provider'] in provider_lookup:
-                self._prepare_tasks(task['doc']['docs'])
+                self._run_tasks(task_id=task['id'], docs=task['doc']['docs'])
 
-    def _prepare_tasks(self, docs):
+    def _run_tasks(self, task_id, docs):
+        successfull_tasks = []
         for doc_id in docs:
             doc = MergedDoc(self.db, self.db.get(doc_id)).doc
-            self._do_task(doc)
+            successfull_tasks.append(self._do_task(doc))
+        task_doc = self.db.get(task_id)
+        if all(successfull_tasks):
+            print("**successfull_tasks", successfull_tasks)
+            task_doc['state'] = 'done'
+            self.db.save_doc(task_doc)
+        else:
+            task_doc['state'] = 'failed'
+            self.db.save_doc(task_doc)
 
     def _do_task(self, doc):
         if doc['type'] in self.provides:
@@ -137,22 +145,30 @@ class Worker(object):
                     if ServiceClass:
                         with ServiceClass(self.settings) as service:
                             updater = Updater(self.db, doc, service)
-                            updater.do_task()
+                            return updater.do_task()
         else:
             raise Exception("I doesn't provide the requested service")
 
     def get_queues(self, is_foreman=False):
-        def orders_queue():
+        def orders_open():
             with ChangesStream(self.db, feed="continuous", heartbeat=True,
                 include_docs=True, filter=self._cmd("orders_open")) as orders:
                 self._process_orders(orders)
 
-        def tasks_queue():
+        def tasks_open():
             with ChangesStream(self.db, feed="continuous", heartbeat=True,
                 include_docs=True, filter=self._cmd("tasks_open")) as tasks:
                 self._process_tasks(tasks)
 
-        queues = [gevent.spawn(orders_queue), gevent.spawn(tasks_queue)] if is_foreman else [gevent.spawn(tasks_queue)]
+        def tasks_done():
+            with ChangesStream(self.db, feed="continuous", heartbeat=True,
+                include_docs=True, filter=self._cmd("tasks_done")) as tasks:
+                self._update_order(tasks)
+
+        if is_foreman:
+            queues = [gevent.spawn(orders_open), gevent.spawn(tasks_open), gevent.spawn(tasks_done)]
+        else:
+            queues = [gevent.spawn(tasks_open)]
         return queues
 
     def _check_is_foreman(self):
@@ -180,6 +196,11 @@ class Worker(object):
             filter=self._cmd("tasks_open"))['results']
         if tasks:
             self._process_tasks(tasks)
+        if is_foreman:
+            tasks_done = c.fetch(since=0,
+                include_docs=True,
+                filter=self._cmd("tasks_done"))['results']
+            self._update_order(tasks_done)
 
 
 def setup_parser():

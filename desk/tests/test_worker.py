@@ -81,7 +81,8 @@ class WorkerTestCase(unittest.TestCase):
 
     def _create_order_doc(self):
         current_time = time.localtime()
-        order_id = "order-{}".format(time.mktime(current_time))
+        order_id = "order-{}-{}".format(int(time.mktime(current_time)), self.s.next_uuid())
+
         order_doc = {
             "_id": order_id,
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
