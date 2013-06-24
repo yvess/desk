@@ -48,7 +48,7 @@ class Updater(object):
     def __init__(self, db, doc, service):
         self.db, self.doc = db, doc
         choose_task = {'new': service.create, 'changed': service.update}
-        self.task = choose_task[doc['state']]
+        self.task = choose_task[doc['state']] if doc['state'] in choose_task else None
         self.merged_doc = MergedDoc(db, doc).doc
         if 'prev_rev' in doc:
             self.prev_doc = json.loads(db.fetch_attachment(doc['_id'], doc['prev_rev']))
@@ -60,7 +60,8 @@ class Updater(object):
             service.set_lookup_map(lookup_map_doc)
         self.service = service
         if 'prev_rev' in doc and doc['state'] == 'changed':
-            service.set_diff(self._create_diff())
+            diff = self._create_diff()
+            service.set_diff(diff)
 
     def _remove_attachment(self, doc):
         if '_attachments' in doc:
@@ -112,7 +113,7 @@ class Updater(object):
         return diff_merged
 
     def do_task(self):
-        success = self.task()
-        self.doc['state'] = 'live'
-        self.db.save_doc(self.doc)
-        return success
+        was_successfull = False
+        if self.task:
+            was_successfull = self.task()
+        return was_successfull

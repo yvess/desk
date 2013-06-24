@@ -290,8 +290,10 @@ function (doc) {
        "new_by_editor": {
             "map": "
 function (doc) {
-    if (doc.state  == 'new' && doc.type != 'order' && doc.type != 'task') {
-        emit(doc.editor, doc._id);
+    if (doc.type != 'order' && doc.type != 'task') {
+        if (doc.state  == 'new' || doc.state == 'changed') {
+          emit(doc.editor, doc._id);
+        } 
     }
 }"
        }

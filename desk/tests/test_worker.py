@@ -59,9 +59,10 @@ class WorkerTestCase(unittest.TestCase):
         self.assertTrue(self.co.put(data="@fixtures/couchdb-map-ips.json", doc_id="map-ips") == 201)
 
     def tearDown(self):
-        has_domain = Powerdns(ObjectDict(**self.conf)).check_domain("test.tt")
-        if has_domain:
-            self._remove_domain("test.tt")
+        has_domain1, has_domain2 = Powerdns(ObjectDict(**self.conf)).check_domain("test.tt"),\
+                                   Powerdns(ObjectDict(**self.conf)).check_domain("test2.tt")
+        self._remove_domain("test.tt") if has_domain1 else None
+        self._remove_domain("test2.tt") if has_domain2 else None
         self.s.delete_db(self.db_conf["couchdb_db"])
 
     def _run_order(self):
@@ -96,8 +97,19 @@ class WorkerTestCase(unittest.TestCase):
         dns_id = "dns-test.tt"
         self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test.tt.json", doc_id=dns_id) == 201)
         self.assertTrue(self.co.update(handler='add-editor', doc_id=dns_id) == 201)
-        order_id = self._create_order_doc()
+        order_id = None
         if run:
+            order_id = self._create_order_doc()
+            self._run_order()
+        return (dns_id, order_id)
+
+    def _add_domain_test2_tt(self, run=True):
+        dns_id = "dns-test2.tt"
+        self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test2.tt.json", doc_id=dns_id) == 201)
+        self.assertTrue(self.co.update(handler='add-editor', doc_id=dns_id) == 201)
+        order_id = None
+        if run:
+            order_id = self._create_order_doc()
             self._run_order()
         return (dns_id, order_id)
 
@@ -158,15 +170,28 @@ class WorkerTestCase(unittest.TestCase):
         self._remove_domain('test.tt', docs=[dns_id, order_id])
 
     def test_delete_record(self):
-        dns_id, order_id = self._add_domain_test_tt()
+        dns_id, order1_id = self._add_domain_test_tt()
         dns_doc = self.db.get(dns_id)
         removed_a = dns_doc['a'].pop(4)
-        VersionDoc(self.db, dns_doc).create_version()
-        order_id = self._create_order_doc()
+        vd = VersionDoc(self.db, dns_doc)
+        vd.create_version()
+        order2_id = self._create_order_doc()
         self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertFalse(self._get_dns_validator('dns-test.tt').check_one_record('A', 'ip', q_key='host', item=removed_a))
-        self._remove_domain('test.tt', docs=[dns_id, order_id])
+        self._remove_domain('test.tt', docs=[dns_id, order1_id, order2_id])
+
+    def test_two_domains(self):
+        dns1_id, order_id = self._add_domain_test_tt(run=False)
+        dns2_id, order_id = self._add_domain_test2_tt(run=False)
+        order1_id = self._create_order_doc()
+        self._run_order()
+        self.assertTrue(self.db.get(dns1_id)['state'] == 'live')
+        self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
+        self.assertTrue(self.db.get(dns2_id)['state'] == 'live')
+        self.assertTrue(self._get_dns_validator('dns-test2.tt').do_check())
+        self._remove_domain('test.tt', docs=[dns1_id, order1_id])
+        self._remove_domain('test2.tt', docs=[dns2_id])
 
 if __name__ == '__main__':
     unittest.main()

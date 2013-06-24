@@ -1,0 +1,14 @@
+{
+   "_id":"dns-test2.tt",
+   "state":"new",
+   "domain":"test2.tt",
+   "client_id":"client-test",
+   "template_id":"template-email",
+   "a":[
+      {
+         "host":"www",
+         "ip":"1.1.1.22"
+      }
+   ],
+   "type":"dns"
+}

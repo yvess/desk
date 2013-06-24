@@ -27,7 +27,8 @@ class Worker(object):
         if isinstance(settings, dict):
             settings = ObjectDict(**settings)
         self.pool = ConnectionPool(factory=Connection, backend="gevent")
-        self.db = Server(uri=settings.couchdb_uri, pool=self.pool)[settings.couchdb_db]
+        self.server = Server(uri=settings.couchdb_uri, pool=self.pool)
+        self.db = self.server[settings.couchdb_db]
         self.hostname = hostname
         self.provides = {}
         self.settings = settings
@@ -82,15 +83,17 @@ class Worker(object):
                         providers[provider].append(result['id'])
                     else:
                         providers[provider] = [result['id']]
+                    providers[provider].sort()
                 docs.append(result['id'])
-            order_doc['docs'] = docs
+            #order_doc['docs'] = docs
+            order_doc['providers'] = providers
             self.db.save_doc(order_doc)
             self._create_tasks(providers=providers, order_id=order_doc["_id"])
 
     def _create_tasks(self, providers=None, order_id=None):
         current_time = time.mktime(time.localtime())
         for provider in providers:
-            task_id = "task-{}-{}".format(provider, current_time)  # TODO uuid
+            task_id = "task-{}-{}".format(provider, self.server.next_uuid())  # int(time.mktime(current_time))
             doc = {
                 "_id": task_id,
                 "type": "task",
@@ -102,7 +105,26 @@ class Worker(object):
             self.db.save_doc(doc)
 
     def _update_order(self, tasks):
-        print("update order", tasks)
+        for task in tasks:
+            task_doc = task['doc']
+            order_id = task_doc['order_id']
+            order_doc = self.db.get(order_id)
+            providers_done = {}
+            if 'providers_done' in order_doc:
+                providers_done = providers_done.update(order_doc['providers_done'])
+            providers_done[task_doc['provider']] = task_doc['docs']
+            if order_doc['providers'] == providers_done:
+                order_doc['state'] = 'done'
+                update_docs_id = []
+                [update_docs_id.extend(v) for v in providers_done.viewvalues()]
+                bulk_docs = self.db.all_docs(keys=update_docs_id, include_docs=True)
+                update_docs = []
+                for result in bulk_docs:
+                    doc = result['doc']
+                    doc['state'] = 'live'
+                    update_docs.append(doc)
+                self.db.bulk_save(update_docs)
+            self.db.save_doc(order_doc)
 
     def _process_tasks(self, tasks):
         provider_lookup = {}
@@ -110,18 +132,16 @@ class Worker(object):
             for service in services:
                 provider_lookup[service['name']] = servcie_type
         for task in tasks:
-            print(task)
             if task['doc']['provider'] in provider_lookup:
                 self._run_tasks(task_id=task['id'], docs=task['doc']['docs'])
 
     def _run_tasks(self, task_id, docs):
         successfull_tasks = []
         for doc_id in docs:
-            doc = MergedDoc(self.db, self.db.get(doc_id)).doc
+            doc = self.db.get(doc_id)
             successfull_tasks.append(self._do_task(doc))
         task_doc = self.db.get(task_id)
         if all(successfull_tasks):
-            print("**successfull_tasks", successfull_tasks)
             task_doc['state'] = 'done'
             self.db.save_doc(task_doc)
         else:
@@ -131,21 +151,19 @@ class Worker(object):
     def _do_task(self, doc):
         if doc['type'] in self.provides:
             for service_settings in self.provides[doc['type']]:
-                if 'server_type' in service_settings \
-                and 'master' in service_settings['server_type'] \
-                or not ('server_type' in service_settings):
-                    ServiceClass = None
-                    doc_type = doc['type']
-                    backend = service_settings['backend']
-                    backend_class = backend.title()
-                    try:
-                        ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
-                    except AttributeError:
-                        print("not found")
-                    if ServiceClass:
-                        with ServiceClass(self.settings) as service:
-                            updater = Updater(self.db, doc, service)
-                            return updater.do_task()
+                ServiceClass = None
+                doc_type = doc['type']
+                backend = service_settings['backend']
+                backend_class = backend.title()
+                try:
+                    ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
+                except AttributeError:
+                    print("not found")
+                if ServiceClass:
+                    with ServiceClass(self.settings) as service:
+                        updater = Updater(self.db, doc, service)
+                        was_successfull = updater.do_task()
+                        return was_successfull
         else:
             raise Exception("I doesn't provide the requested service")
 

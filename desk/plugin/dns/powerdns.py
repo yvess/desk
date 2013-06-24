@@ -118,7 +118,7 @@ class Powerdns(DnsBase):
         )
 
     def create(self):
-        sucess = False
+        was_sucessfull = False
         if self.doc:
             self.set_domain(self.doc['domain'], new=True)
             self.add_domain()
@@ -136,8 +136,8 @@ class Powerdns(DnsBase):
                             self.add_record(key, value, rtype=name.upper())  # TODO add special case for main @ self.domain?
             self._conn.commit()
             self.update_serial()
-            sucess = True
-        return sucess
+            was_sucessfull = True
+        return was_sucessfull
 
     def _trans(self, key, value, rtype=None):
         key = rtype['key_trans'](key, self.domain) if 'key_trans' in rtype else key
@@ -145,7 +145,7 @@ class Powerdns(DnsBase):
         return (key, value)
 
     def update(self):
-        sucess = False
+        was_sucessfull = False
         if self.doc:
             self.set_domain(self.doc['domain'])
         if self.diff:
@@ -179,5 +179,5 @@ class Powerdns(DnsBase):
                         self.add_record(key, value, rtype=name.upper())
             self._conn.commit()
             self.update_serial()
-            sucess = True
-        return sucess
+            was_sucessfull = True
+        return was_sucessfull

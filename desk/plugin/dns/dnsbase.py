@@ -6,7 +6,6 @@ from gevent import monkey; monkey.patch_all()
 import dns.resolver
 
 
-
 class DnsValidator(object):
     def __init__(self, doc, lookup=None):
         self.doc = doc
@@ -20,7 +19,7 @@ class DnsValidator(object):
 
     def _validate(self, record_type, item_key, q_key='domain', answer_attr='address', return_check=False, items=None):
         if not items:
-            items = self.doc[record_type.lower()]
+            items = self.doc[record_type.lower()] if hasattr(self.doc, record_type.lower()) else []
         for item in items:
             if q_key == 'domain':
                 q = self.domain
