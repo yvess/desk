@@ -45,29 +45,6 @@ class Worker(object):
         )
         if worker_result:
             self.provides = worker_result[0]['provides']
-        # service_type = (doc['type'])
-        # try:
-        #     ServiceModule = getattr(globals()[service_type], '{}base'.format(service_type))
-        #     print(ServiceModule)
-        #     ServiceBaseClass = getattr(ServiceModule, '{}Provider'.format(service_type.capitalize()))
-        #     print(ServiceBaseClass)
-        # except AttributeError:
-        #     print("not found")
-        # providers = ServiceBaseClass().get_providers(doc=doc)
-        # print(providers)
-
-    # def _process_order(self, orders):
-    #     # for foreman
-    #     if is_foreman:
-    #         for task in self.db.view(self._cmd("todo")):
-    #             doc = task['value']
-    #             doc = MergedDoc(self.db, self.db.get(doc['_id'])).doc
-    #             self._create_tasks(doc)
-    #     # for workers
-    #     if notification['doc']['state'] != 'done' or notification['doc']['claimed'] != True:
-    #         for task in self.db.view(self._cmd("todo")):
-    #             doc = task['value']
-    #             #self._do_task(doc)
 
     def _process_orders(self, orders):
         for order in orders:
