@@ -6,7 +6,6 @@ import sys
 import os
 import time
 from ConfigParser import SafeConfigParser
-from ConfigParser import ParsingError
 import argparse
 from gevent import monkey; monkey.patch_all()
 import gevent
@@ -33,6 +32,9 @@ class Worker(object):
         self.provides = {}
         self.settings = settings
         self._setup_worker()
+        self.queue_kwargs = {
+            'tasks_open': {'include_docs': True, 'filter': self._cmd("tasks_open")}
+        }
 
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
@@ -45,6 +47,80 @@ class Worker(object):
         )
         if worker_result:
             self.provides = worker_result[0]['provides']
+
+    def _process_tasks(self, tasks):
+        provider_lookup = {}
+        for (servcie_type, services) in self.provides.viewitems():
+            for service in services:
+                provider_lookup[service['name']] = servcie_type
+        for task in tasks:
+            if task['doc']['provider'] in provider_lookup:
+                self._run_tasks(task_id=task['id'], docs=task['doc']['docs'])
+
+    def _run_tasks(self, task_id, docs):
+        successfull_tasks = []
+        for doc_id in docs:
+            doc = self.db.get(doc_id)
+            successfull_tasks.append(self._do_task(doc))
+        task_doc = self.db.get(task_id)
+        if all(successfull_tasks):
+            task_doc['state'] = 'done'
+            self.db.save_doc(task_doc)
+        else:
+            task_doc['state'] = 'failed'
+            self.db.save_doc(task_doc)
+
+    def _do_task(self, doc):
+        if doc['type'] in self.provides:
+            for service_settings in self.provides[doc['type']]:
+                ServiceClass = None
+                doc_type = doc['type']
+                backend = service_settings['backend']
+                backend_class = backend.title()
+                try:
+                    ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
+                except AttributeError:
+                    print("not found")
+                if ServiceClass:
+                    with ServiceClass(self.settings) as service:
+                        updater = Updater(self.db, doc, service)
+                        was_successfull = updater.do_task()
+                        return was_successfull
+        else:
+            raise Exception("I doesn't provide the requested service")
+
+    def _create_queue(self, item_function, run_once=False, **item_kwargs):
+        if run_once == True:
+            def queue_once():
+                c = Consumer(self.db)
+                items = c.fetch(since=0, **item_kwargs)['results']
+                if items:
+                    item_function(items)
+            return queue_once
+        else:
+            def queue():
+                with ChangesStream(self.db, feed="continuous", heartbeat=True, **item_kwargs) as task_items:
+                    item_function(task_items)
+            return queue
+
+    def run(self):
+        queue_tasks_open = self._create_queue(self._process_tasks, run_once=False, **self.queue_kwargs['tasks_open'])
+        gevent.joinall([gevent.spawn(queue_tasks_open)])
+
+    def run_once(self):
+        queue_tasks_open = self._create_queue(self._process_tasks, run_once=True, **self.queue_kwargs['tasks_open'])
+        queue_tasks_open()
+
+
+class Foreman(Worker):
+    def __init__(self, *args, **kwargs):
+        super(Foreman, self).__init__(*args, **kwargs)
+        self.queue_kwargs['orders_open'] = {
+            'include_docs': True, 'filter': self._cmd("orders_open")
+        }
+        self.queue_kwargs['tasks_done'] = {
+            'include_docs': True, 'filter': self._cmd("tasks_done")
+        }
 
     def _process_orders(self, orders):
         for order in orders:
@@ -103,100 +179,23 @@ class Worker(object):
                 self.db.bulk_save(update_docs)
             self.db.save_doc(order_doc)
 
-    def _process_tasks(self, tasks):
-        provider_lookup = {}
-        for (servcie_type, services) in self.provides.viewitems():
-            for service in services:
-                provider_lookup[service['name']] = servcie_type
-        for task in tasks:
-            if task['doc']['provider'] in provider_lookup:
-                self._run_tasks(task_id=task['id'], docs=task['doc']['docs'])
-
-    def _run_tasks(self, task_id, docs):
-        successfull_tasks = []
-        for doc_id in docs:
-            doc = self.db.get(doc_id)
-            successfull_tasks.append(self._do_task(doc))
-        task_doc = self.db.get(task_id)
-        if all(successfull_tasks):
-            task_doc['state'] = 'done'
-            self.db.save_doc(task_doc)
-        else:
-            task_doc['state'] = 'failed'
-            self.db.save_doc(task_doc)
-
-    def _do_task(self, doc):
-        if doc['type'] in self.provides:
-            for service_settings in self.provides[doc['type']]:
-                ServiceClass = None
-                doc_type = doc['type']
-                backend = service_settings['backend']
-                backend_class = backend.title()
-                try:
-                    ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
-                except AttributeError:
-                    print("not found")
-                if ServiceClass:
-                    with ServiceClass(self.settings) as service:
-                        updater = Updater(self.db, doc, service)
-                        was_successfull = updater.do_task()
-                        return was_successfull
-        else:
-            raise Exception("I doesn't provide the requested service")
-
-    def get_queues(self, is_foreman=False):
-        def orders_open():
-            with ChangesStream(self.db, feed="continuous", heartbeat=True,
-                include_docs=True, filter=self._cmd("orders_open")) as orders:
-                self._process_orders(orders)
-
-        def tasks_open():
-            with ChangesStream(self.db, feed="continuous", heartbeat=True,
-                include_docs=True, filter=self._cmd("tasks_open")) as tasks:
-                self._process_tasks(tasks)
-
-        def tasks_done():
-            with ChangesStream(self.db, feed="continuous", heartbeat=True,
-                include_docs=True, filter=self._cmd("tasks_done")) as tasks:
-                self._update_order(tasks)
-
-        if is_foreman:
-            queues = [gevent.spawn(orders_open), gevent.spawn(tasks_open), gevent.spawn(tasks_done)]
-        else:
-            queues = [gevent.spawn(tasks_open)]
-        return queues
-
-    def _check_is_foreman(self):
-        if hasattr(self.settings, 'worker_is_foreman'):
-            return self.settings.worker_is_foreman
-        else:
-            return False
-
     def run(self):
-        is_foreman = self._check_is_foreman()
-        queues = self.get_queues(is_foreman=is_foreman)
-        gevent.joinall(queues)
+        queue_tasks_open = self._create_queue(self._process_tasks, one=False, **self.queue_kwargs['tasks_open'])
+        queue_orders_open = self._create_queue(self._process_orders, one=False, **self.queue_kwargs['orders_open'])
+        queue_tasks_done = self._create_queue(self._update_order, one=False, **self.queue_kwargs['tasks_done'])
+        gevent.joinall([
+            gevent.spawn(queue_orders_open), gevent.spawn(queue_tasks_open), gevent.spawn(queue_tasks_done)
+        ])
 
-    def once(self):
-        c = Consumer(self.db)
-        is_foreman = self._check_is_foreman()
-        if is_foreman:
-            orders = c.fetch(since=0,
-                include_docs=True,
-                filter=self._cmd("orders_open"))['results']
-            if orders:
-                self._process_orders(orders)
-        tasks = c.fetch(since=0,
-            include_docs=True,
-            filter=self._cmd("tasks_open"))['results']
-        if tasks:
-            self._process_tasks(tasks)
-        if is_foreman:
-            tasks_done = c.fetch(since=0,
-                include_docs=True,
-                filter=self._cmd("tasks_done"))['results']
-            self._update_order(tasks_done)
+    def run_once(self):
+        queue_orders_open = self._create_queue(self._process_orders, run_once=True, **self.queue_kwargs['orders_open'])
+        queue_orders_open()
 
+        queue_tasks_open = self._create_queue(self._process_tasks, run_once=True, **self.queue_kwargs['tasks_open'])
+        queue_tasks_open()
+
+        queue_tasks_done = self._create_queue(self._update_order, run_once=True, **self.queue_kwargs['tasks_done'])
+        queue_tasks_done()
 
 def setup_parser():
     """create the command line parser / config file reader """
@@ -240,7 +239,7 @@ def setup_parser():
                        Command line switches overwrite config file settings""",
     )
     parser.set_defaults(**defaults)
-    parser.add_argument("-o", "--once", dest="worker_daemon",
+    parser.add_argument("-o", "--run_once", dest="worker_daemon",
         help="run only once not as daemon", action="store_false", default=True)
     parser.add_argument("-u", "--couchdb_uri", dest="couchdb_uri",
         metavar="URI", help="connection url of the server")
@@ -253,10 +252,14 @@ def setup_parser():
 
     return settings
 
+
 if __name__ == "__main__":
     settings = setup_parser()
-    worker = Worker(settings)
+    if settings.worker_is_foreman:
+        worker = Foreman(settings)
+    else:
+        worker = Worker(settings)
     if settings.worker_daemon:
         worker.run()
     else:
-        worker.once()
+        worker.run_once()

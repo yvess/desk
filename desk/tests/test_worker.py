@@ -15,7 +15,7 @@ from desk.plugin.base import MergedDoc, VersionDoc
 from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.utils import ObjectDict
-from desk.worker import Worker
+from desk.worker import Worker, Foreman
 
 
 class WorkerTestCase(unittest.TestCase):
@@ -29,11 +29,7 @@ class WorkerTestCase(unittest.TestCase):
             "powerdns_db": "/etc/powerdns/dns.db",
             "worker_is_foreman": True,
         }
-        self.conf_foreman = {
-            "worker_is_foreman": True,
-        }
         self.conf.update(self.db_conf)
-        self.conf_foreman.update(self.db_conf)
         s = Server(self.db_conf["couchdb_uri"])
         self.s = s
         s.create_db(self.db_conf['couchdb_db'])
@@ -67,13 +63,11 @@ class WorkerTestCase(unittest.TestCase):
 
     def _run_order(self):
         self._run_worker(is_foreman=True)
-        #self._run_worker(is_foreman=False)
 
-    def _run_worker(self, is_foreman=False):
-        #conf = self.conf_foreman if is_foreman else self.conf
+    def _run_worker(self, is_foreman=True):
         conf = self.conf
-        w = Worker(conf, hostname="localhost")
-        w.once()
+        w = Foreman(conf, hostname="localhost")
+        w.run_once()
 
     def _get_dns_validator(self, doc_id, lookup={'ns1.test.tt': "127.0.0.1", 'ns2.test.tt': "127.0.0.1"}):
         doc = MergedDoc(self.db, self.db.get(doc_id)).doc
@@ -139,6 +133,7 @@ class WorkerTestCase(unittest.TestCase):
         VersionDoc(self.db, dns_doc).create_version()
         order_id = self._create_order_doc()
         self._run_order()
+        #import ipdb; ipdb.set_trace();
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, order_id])
