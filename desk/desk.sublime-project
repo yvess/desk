@@ -7,5 +7,8 @@
             "*.sublime-project"],
             "folder_exclude_patterns": [".codeintel", "htmlcov"]
 		}
-	]
+	],
+    "settings": {
+        "python_interpreter": "~/env/py27/bin/python"
+    }
 }
