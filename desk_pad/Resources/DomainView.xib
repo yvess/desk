@@ -382,7 +382,7 @@
 									<bool key="EncodedWithXMLCoder">YES</bool>
 									<object class="NSButton" id="704010990">
 										<reference key="NSNextResponder" ref="333223872"/>
-										<int key="NSvFlags">268</int>
+										<int key="NSvFlags">265</int>
 										<string key="NSFrame">{{381, 430}, {82, 32}}</string>
 										<reference key="NSSuperview" ref="333223872"/>
 										<reference key="NSWindow"/>
@@ -635,7 +635,7 @@
 									</object>
 									<object class="NSPopUpButton" id="137497214">
 										<reference key="NSNextResponder" ref="333223872"/>
-										<int key="NSvFlags">268</int>
+										<int key="NSvFlags">266</int>
 										<string key="NSFrame">{{105, 434}, {277, 26}}</string>
 										<reference key="NSSuperview" ref="333223872"/>
 										<reference key="NSWindow"/>
@@ -695,8 +695,8 @@
 									</object>
 									<object class="NSPopUpButton" id="357960276">
 										<reference key="NSNextResponder" ref="333223872"/>
-										<int key="NSvFlags">268</int>
-										<string key="NSFrame">{{103, 492}, {357, 26}}</string>
+										<int key="NSvFlags">266</int>
+										<string key="NSFrame">{{103, 492}, {358, 26}}</string>
 										<reference key="NSSuperview" ref="333223872"/>
 										<reference key="NSWindow"/>
 										<reference key="NSNextKeyView" ref="363492523"/>
@@ -2727,7 +2727,6 @@
 							<reference ref="691183149"/>
 							<reference ref="343978826"/>
 							<reference ref="137497214"/>
-							<reference ref="704010990"/>
 							<reference ref="24770318"/>
 							<reference ref="808829957"/>
 							<reference ref="445440532"/>
@@ -2746,6 +2745,7 @@
 							<reference ref="712758515"/>
 							<reference ref="79191433"/>
 							<reference ref="301416972"/>
+							<reference ref="704010990"/>
 						</object>
 						<reference key="parent" ref="790350065"/>
 					</object>
