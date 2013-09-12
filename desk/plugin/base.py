@@ -36,7 +36,10 @@ class VersionDoc(object):
         old_doc = MergedDoc(self.db, old_doc).doc
         self.doc['state'] = 'changed'
         self.doc['prev_rev'] = old_doc['_rev']
-        self.db.put_attachment(old_doc, json.dumps(old_doc), name=old_doc['_rev'], content_type="application/json")
+        self.db.put_attachment(
+            old_doc, json.dumps(old_doc),
+            name=old_doc['_rev'], content_type="application/json"
+        )
         new_doc_merged = self.db.get(self.doc['_id'])
         del self.doc['_rev']
         new_doc_merged.update(self.doc)
