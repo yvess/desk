@@ -7,7 +7,7 @@
 @import "DMTemplate.j"
 @import "DMDomainRecordsOutlineController.j"
 
-@implementation DMEditCellView : CPView
+@implementation DMEditCellView : CPTableCellView
 {
 }
 
@@ -32,95 +32,6 @@
     return nil;
 }
 
-- (void)deleteDomainEntry:(id)sender
-{
-    var outlineView = [[sender superview] superview],
-        outlineController = [outlineView delegate],
-        domainEntry = [[outlineController lookupDomainEntries] objectForKey:sender.domainEntry],
-        domainRecordAItems = [[[outlineController domainRecord] a] items],
-        domainRecordCnameItems = [[[outlineController domainRecord] cname] items],
-        domainRecordMxItems = [[[outlineController domainRecord] mx] items];
-    [domainRecordAItems removeObject:domainEntry];
-    [domainRecordCnameItems removeObject:domainEntry];
-    [domainRecordMxItems removeObject:domainEntry];
-    [outlineController setLookupForDomainEntries];
-    [outlineView reloadData];
-}
-
-- (void)showPopover:(id)sender
-{
-    var outlineView = [[sender superview] superview],
-        outlineController = [outlineView delegate],
-        popover = [outlineController popover];
-    [popover setAnimates:NO];
-    var domainEntry = [[outlineController lookupDomainEntries] objectForKey:sender.domainEntry];
-    if (![popover isShown])
-    {
-        var viewDomainEntry = nil;
-        if ([domainEntry isKindOfClass:DMDomainA])
-        {
-            [[popover contentViewController] setView:[outlineController viewDomainA]];
-        }
-        if ([domainEntry isKindOfClass:DMDomainCname])
-        {
-            [[popover contentViewController] setView:[outlineController viewDomainCname]];
-        }
-        if ([domainEntry isKindOfClass:DMDomainMx])
-        {
-            [[popover contentViewController] setView:[outlineController viewDomainMx]];
-        }
-        var viewDomainEntry = [[popover contentViewController] view];
-        [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
-            if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
-            {
-                var value = @"";
-                switch ([view placeholderString])
-                {
-                case @"host":
-                    value = [domainEntry host];
-                    break;
-                case @"ip":
-                    value = [domainEntry ip];
-                    break;
-                case @"alias":
-                    value = [domainEntry alias];
-                    break;
-                case @"priority":
-                    value = [domainEntry priority];
-                    break;
-                }
-                [view setObjectValue:value];
-            }
-        }];
-        [popover showRelativeToRect:nil ofView:sender preferredEdge:nil];
-    } else  {
-        var viewDomainEntry = [[popover contentViewController] view];
-        [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
-            if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
-            {
-                switch ([view placeholderString])
-                {
-                case @"host":
-                    [domainEntry setHost:[view objectValue]];
-                    break;
-                case @"ip":
-                    [domainEntry setIp:[view objectValue]];
-                    break;
-                case @"alias":
-                    [domainEntry setAlias:[view objectValue]];
-                    break;
-                case @"priority":
-                    [domainEntry setPriority:[view objectValue]];
-                    break;
-                }
-            }
-        }];
-        [popover close];
-        [outlineController setLookupForDomainEntries];
-        [outlineView reloadData];
-    }
-    [outlineView selectRowIndexes:[CPIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
-}
 @end
 
 @implementation DMDomainViewController : COViewController
@@ -237,7 +148,6 @@
     [aDomainOutline setRowHeight:28];
     [aDomainOutline reloadData];
     [self setCurrentDomain:aItem];
-    console.log("setCurrentDomain", aItem);
 }
 
 - (void)observeValueForKeyPath:(CPString) aKeyPath
