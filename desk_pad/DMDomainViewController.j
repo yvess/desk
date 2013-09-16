@@ -7,33 +7,6 @@
 @import "DMTemplate.j"
 @import "DMDomainRecordsOutlineController.j"
 
-@implementation DMEditCellView : CPTableCellView
-{
-}
-
-- (void)setObjectValue:(id)anObject
-{
-    var textfield = [[self subviews] objectAtIndex:0]; // this is the textfield
-    [textfield setObjectValue:anObject];
-    var button_edit = [[self subviews] objectAtIndex:2],
-        button_del = [[self subviews] objectAtIndex:1];
-
-    [button_edit setTarget:self];
-    button_edit.domainEntry = anObject;
-    [button_edit setAction:@selector(showPopover:)];
-
-    [button_del setTarget:self];
-    button_del.domainEntry = anObject;
-    [button_del setAction:@selector(deleteDomainEntry:)];
-}
-
-- (id)delegate
-{
-    return nil;
-}
-
-@end
-
 @implementation DMDomainViewController : COViewController
 {
     @outlet              CPButton addDomainCnameButton;
@@ -41,7 +14,6 @@
     @outlet              CPButton addDomainMxButton;
     @outlet              CPPopUpButton clientsForDomainPopUp;
     @outlet              CPOutlineView aDomainOutline;
-    @outlet              DMEditCellView editButtonCell;
     @outlet              CPPopover popoverDomain;
     @outlet              CPView viewDomainA;
     @outlet              CPView viewDomainCname;
@@ -51,8 +23,6 @@
     @outlet              CPPopover popoverTpl;
     @outlet              CPWebView webviewTpl;
 
-
-    //CPMutableArray        domain;
     CPMutableArray        clients;
     CPMutableArray        domainRecordTemplates @accessors;
     CPMutableDictionary   clientLookup;
@@ -74,37 +44,26 @@
     return self;
 }
 
-
-/*- (void)saveDomain:(id)sender
-{
-    var aDomain = [[aDomainArrayController selectedObjects] lastObject];
-    if (![aDomain coId])
-    {
-        [aDomain setCoId:[[aDomain class] couchId:aDomain]];
-    }
-    var selectedClientId = [[clients objectAtIndex:[clientsForDomainPopUp indexOfSelectedItem]] coId];
-    [aDomain setClientId:selectedClientId];
-    [aDomain save];
-}*/
-
-
 - (void)addDomainA:(id)sender
 {
-    [[[[self currentDomain] a] items] addObject:[[DMDomainA alloc] initWithJSObject:{ "host": "new", "ip": "0.0.0.0" }] ];
+    [[[[self currentDomain] a] items] addObject:[[DMDomainA alloc]
+        initWithJSObject:{ "host": "new", "ip": "0.0.0.0" }] ];
     [[aDomainOutline delegate] setLookupForDomainEntries];
     [aDomainOutline reloadData];
 }
 
 - (void)addDomainCname:(id)sender
 {
-    [[[[self currentDomain] cname] items] addObject:[[DMDomainCname alloc] initWithJSObject:{ "alias": "new", "host": "new" }] ];
+    [[[[self currentDomain] cname] items] addObject:[[DMDomainCname alloc]
+        initWithJSObject:{ "alias": "new", "host": "new" }] ];
     [[aDomainOutline delegate] setLookupForDomainEntries];
     [aDomainOutline reloadData];
 }
 
 - (void)addDomainMx:(id)sender
 {
-    [[[[self currentDomain] mx] items] addObject:[[DMDomainMx alloc] initWithJSObject:{ "host": "new", "priority": "10" }] ];
+    [[[[self currentDomain] mx] items] addObject:[[DMDomainMx alloc]
+        initWithJSObject:{ "host": "new", "priority": "10" }] ];
     [[aDomainOutline delegate] setLookupForDomainEntries];
     [aDomainOutline reloadData];
 }
@@ -141,8 +100,9 @@
         ];
     [tplForDomainPopUp selectItemAtIndex:(templateIndex == -1) ? 0 : templateIndex + 1];
 
-    var domainOutlineController = [[DMDomainRecordsOutlineController alloc] initWithDomain:aItem domainOutline:aDomainOutline
-        editCell:editButtonCell popover:popoverDomain viewDomainA:viewDomainA viewDomainCname:viewDomainCname viewDomainMx:viewDomainMx];
+    var domainOutlineController = [[DMDomainRecordsOutlineController alloc] initWithDomain:aItem
+        domainOutline:aDomainOutline popover:popoverDomain viewDomainA:viewDomainA
+        viewDomainCname:viewDomainCname viewDomainMx:viewDomainMx];
     [aDomainOutline setDataSource:domainOutlineController];
     [aDomainOutline setDelegate:domainOutlineController];
     [aDomainOutline setRowHeight:28];
@@ -195,9 +155,6 @@
 
     [showTplButton setAction:@selector(showTpl:)];
     [showTplButton setTarget:self];
-
-    //[saveDomainButton setTarget:self];
-    //[saveDomainButton setAction:@selector(saveDomain:)]
 }
 
 - (void)saveModel:(id)sender

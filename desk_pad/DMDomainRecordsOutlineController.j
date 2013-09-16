@@ -1,22 +1,21 @@
 @import "DMDomain.j"
 @import <CouchResource/COResource.j>
 @import <CouchResource/COItemsParent.j>
-//import "FixTableColumn.j"
 
 @implementation DMDomainRecordsOutlineController : CPObject
 {
     Domain domainRecord @accessors(readonly);
     CPOutlineView domainOutline @accessors(readonly);
     CPPopover popover @accessors;
-    CPView  editCell @accessors;
     CPMutableDictionary lookupDomainEntries @accessors;
     CPView viewDomainA @accessors;
     CPView viewDomainCname @accessors;
     CPView viewDomainMx @accessors;
 }
 
-- (id)initWithDomain:(DMDomain)aDomain domainOutline:(CPOutlineView)aDomainOutline editCell:(CPView)aEditCell
-      popover:(CPPopover)aPopover viewDomainA:(CPView) aViewDomainA viewDomainCname:(CPView) aViewDomainCname viewDomainMx:(CPView) aViewDomainMx
+- (id)initWithDomain:(DMDomain)aDomain domainOutline:(CPOutlineView)aDomainOutline
+      popover:(CPPopover)aPopover viewDomainA:(CPView)aViewDomainA
+      viewDomainCname:(CPView) aViewDomainCname viewDomainMx:(CPView) aViewDomainMx
 {
     self = [super init];
     if (self)
@@ -27,7 +26,6 @@
         viewDomainA = aViewDomainA;
         viewDomainCname = aViewDomainCname;
         viewDomainMx = aViewDomainMx;
-        [self setEditCell:aEditCell];
         [self setLookupForDomainEntries];
     }
     return self;
@@ -60,13 +58,13 @@
 - (void)showPopover:(id)sender
 {
     [popover setAnimates:NO];
-    console.log(popover);
-    var domainEntry = [[self lookupDomainEntries] objectForKey:sender.domainEntry];
+    var domainEntry = sender.domainEntry;
     if (![popover isShown])
     {
         var viewDomainEntry = nil;
         if ([domainEntry isKindOfClass:DMDomainA])
         {
+            console.log("DMDomainA3", domainEntry);
             [[popover contentViewController] setView:[self viewDomainA]];
         }
         if ([domainEntry isKindOfClass:DMDomainCname])
