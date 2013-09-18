@@ -5,6 +5,7 @@ import argparse
 from couchdbkit.loaders import FileSystemDocsLoader
 from couchdbkit import Server
 
+
 def setup_parser():
     """install the couchdb design docs"""
     parser = argparse.ArgumentParser(
