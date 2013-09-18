@@ -16,8 +16,7 @@ from socketpool.pool import ConnectionPool
 
 
 sys.path.append("../")
-from desk.utils import ObjectDict, CouchdbUploader
-from desk.plugin import dns
+from desk.utils import ObjectDict
 from desk.plugin.base import Updater, MergedDoc
 
 
@@ -33,7 +32,10 @@ class Worker(object):
         self.settings = settings
         self._setup_worker()
         self.queue_kwargs = {
-            'tasks_open': {'include_docs': True, 'filter': self._cmd("tasks_open")}
+            'tasks_open': {
+                'include_docs': True,
+                'filter': self._cmd("tasks_open")
+            }
         }
 
     def _cmd(self, cmd):
@@ -78,7 +80,10 @@ class Worker(object):
                 backend = service_settings['backend']
                 backend_class = backend.title()
                 try:
-                    ServiceClass = getattr(getattr(globals()[doc_type], backend), backend_class)
+                    ServiceClass = getattr(
+                        getattr(globals()[doc_type], backend),
+                        backend_class
+                    )
                 except AttributeError:
                     print("not found")
                 if ServiceClass:
@@ -90,7 +95,7 @@ class Worker(object):
             raise Exception("I doesn't provide the requested service")
 
     def _create_queue(self, item_function, run_once=False, **item_kwargs):
-        if run_once == True:
+        if run_once is True:
             def queue_once():
                 c = Consumer(self.db)
                 items = c.fetch(since=0, **item_kwargs)['results']
@@ -99,16 +104,25 @@ class Worker(object):
             return queue_once
         else:
             def queue():
-                with ChangesStream(self.db, feed="continuous", heartbeat=True, **item_kwargs) as task_items:
+                with ChangesStream(
+                    self.db, feed="continuous",
+                    heartbeat=True, **item_kwargs
+                ) as task_items:
                     item_function(task_items)
             return queue
 
     def run(self):
-        queue_tasks_open = self._create_queue(self._process_tasks, run_once=False, **self.queue_kwargs['tasks_open'])
+        queue_tasks_open = self._create_queue(
+            self._process_tasks, run_once=False,
+            **self.queue_kwargs['tasks_open']
+        )
         gevent.joinall([gevent.spawn(queue_tasks_open)])
 
     def run_once(self):
-        queue_tasks_open = self._create_queue(self._process_tasks, run_once=True, **self.queue_kwargs['tasks_open'])
+        queue_tasks_open = self._create_queue(
+            self._process_tasks, run_once=True,
+            **self.queue_kwargs['tasks_open']
+        )
         queue_tasks_open()
 
 
@@ -128,7 +142,9 @@ class Foreman(Worker):
             editor = order_doc['editor']
             providers = {}
             docs = []
-            for result in self.db.view(self._cmd("new_by_editor"), key=editor, include_docs=True):
+            for result in self.db.view(
+                self._cmd("new_by_editor"), key=editor, include_docs=True
+            ):
                 doc = MergedDoc(self.db, result['doc']).doc
                 get_providers = getattr(globals()[doc['type']], 'get_providers')
                 for provider in (get_providers(doc)):
@@ -164,13 +180,17 @@ class Foreman(Worker):
             order_doc = self.db.get(order_id)
             providers_done = {}
             if 'providers_done' in order_doc:
-                providers_done = providers_done.update(order_doc['providers_done'])
+                providers_done = providers_done.update(
+                    order_doc['providers_done']
+                )
             providers_done[task_doc['provider']] = task_doc['docs']
             if order_doc['providers'] == providers_done:
                 order_doc['state'] = 'done'
                 update_docs_id = []
                 [update_docs_id.extend(v) for v in providers_done.viewvalues()]
-                bulk_docs = self.db.all_docs(keys=update_docs_id, include_docs=True)
+                bulk_docs = self.db.all_docs(
+                    keys=update_docs_id, include_docs=True
+                )
                 update_docs = []
                 for result in bulk_docs:
                     doc = result['doc']
@@ -180,21 +200,41 @@ class Foreman(Worker):
             self.db.save_doc(order_doc)
 
     def run(self):
-        queue_tasks_open = self._create_queue(self._process_tasks, one=False, **self.queue_kwargs['tasks_open'])
-        queue_orders_open = self._create_queue(self._process_orders, one=False, **self.queue_kwargs['orders_open'])
-        queue_tasks_done = self._create_queue(self._update_order, one=False, **self.queue_kwargs['tasks_done'])
+        queue_tasks_open = self._create_queue(
+            self._process_tasks, one=False,
+            **self.queue_kwargs['tasks_open']
+        )
+        queue_orders_open = self._create_queue(
+            self._process_orders, one=False,
+            **self.queue_kwargs['orders_open']
+        )
+        queue_tasks_done = self._create_queue(
+            self._update_order, one=False,
+            **self.queue_kwargs['tasks_done']
+        )
         gevent.joinall([
-            gevent.spawn(queue_orders_open), gevent.spawn(queue_tasks_open), gevent.spawn(queue_tasks_done)
+            gevent.spawn(queue_orders_open),
+            gevent.spawn(queue_tasks_open),
+            gevent.spawn(queue_tasks_done)
         ])
 
     def run_once(self):
-        queue_orders_open = self._create_queue(self._process_orders, run_once=True, **self.queue_kwargs['orders_open'])
+        queue_orders_open = self._create_queue(
+            self._process_orders, run_once=True,
+            **self.queue_kwargs['orders_open']
+        )
         queue_orders_open()
 
-        queue_tasks_open = self._create_queue(self._process_tasks, run_once=True, **self.queue_kwargs['tasks_open'])
+        queue_tasks_open = self._create_queue(
+            self._process_tasks, run_once=True,
+            **self.queue_kwargs['tasks_open']
+        )
         queue_tasks_open()
 
-        queue_tasks_done = self._create_queue(self._update_order, run_once=True, **self.queue_kwargs['tasks_done'])
+        queue_tasks_done = self._create_queue(
+            self._update_order, run_once=True,
+            **self.queue_kwargs['tasks_done']
+        )
         queue_tasks_done()
 
 def setup_parser():
@@ -210,7 +250,8 @@ def setup_parser():
     conf_sections = ['couchdb', 'powerdns', 'worker']
     # first only parse the config file argument
     conf_parser = argparse.ArgumentParser(add_help=False)
-    conf_parser.add_argument("-c", "--config", dest="config",
+    conf_parser.add_argument(
+        "-c", "--config", dest="config",
         default="/etc/desk/worker.conf",
         help="path to the config file, default: /etc/desk/worker.conf",
         metavar="FILE"
@@ -239,14 +280,22 @@ def setup_parser():
                        Command line switches overwrite config file settings""",
     )
     parser.set_defaults(**defaults)
-    parser.add_argument("-o", "--run_once", dest="worker_daemon",
-        help="run only once not as daemon", action="store_false", default=True)
-    parser.add_argument("-u", "--couchdb_uri", dest="couchdb_uri",
-        metavar="URI", help="connection url of the server")
-    parser.add_argument("-d", "--couchdb_db", dest="couchdb_db",
-        metavar="NAME", help="database of the server")
-    parser.add_argument("-f", "--foreman", dest="worker_is_foreman",
-        help="be the foreman and a worker", action="store_true")
+    parser.add_argument(
+        "-o", "--run_once", dest="worker_daemon",
+        help="run only once not as daemon", action="store_false", default=True
+    )
+    parser.add_argument(
+        "-u", "--couchdb_uri", dest="couchdb_uri",
+        metavar="URI", help="connection url of the server"
+    )
+    parser.add_argument(
+        "-d", "--couchdb_db", dest="couchdb_db",
+        metavar="NAME", help="database of the server"
+    )
+    parser.add_argument(
+        "-f", "--foreman", dest="worker_is_foreman",
+        help="be the foreman and a worker", action="store_true"
+    )
 
     settings = parser.parse_args(remaining_args)
 
