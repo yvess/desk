@@ -266,12 +266,13 @@ def setup_parser():
         else:
             for section in conf_sections:  # put in here all your sections
                 conf_section = {}
-                for k, v in config.items(section):
-                    section_prop = '{}_{}'.format(section, k)
-                    if section_prop in boolean_types:
-                        conf_section[section_prop] = config.getboolean(section, k)
-                    else:
-                        conf_section[section_prop] = config.get(section, k)
+                if config.has_section(section):
+                    for k, v in config.items(section):
+                        section_prop = '{}_{}'.format(section, k)
+                        if section_prop in boolean_types:
+                            conf_section[section_prop] = config.getboolean(section, k)
+                        else:
+                            conf_section[section_prop] = config.get(section, k)
                 defaults.update(conf_section)
     # parse all other arguments
     parser = argparse.ArgumentParser(
