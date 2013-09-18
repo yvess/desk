@@ -11,6 +11,10 @@ def setup_parser():
         description="install helper for first install of desk"
     )
     parser.add_argument(
+        "host", nargs="?",
+        default="localhost", help="couchdb user"
+    )
+    parser.add_argument(
         "-u", "--user", dest="user",
         default="", help="couchdb user"
     )
@@ -18,17 +22,16 @@ def setup_parser():
         "-p", "--passwd", dest="passwd",
         default="", help="couchdb password"
     )
-    # parser.add_argument(
-    #     "-s", "--server", dest="server",
-    #     default="trac.taywa.net/projects", help="trac server (default: trac.taywa.net)"
-    # )
     args = parser.parse_args()
 
     return (args, parser)
 
 
-def upload_design_doc(user=None, passwd=None):
-    uri = "http://{}:{}@localhost:5984".format(user, passwd) if user else "http://localhost:5984"
+def upload_design_doc(user=None, passwd=None, host="localhost"):
+    if user:
+        uri = "http://{}:{}@{}:5984".format(user, passwd, host)
+    else:
+        uri = "http://{}:5984".format(host)
     server = Server(uri=uri)
     db = server.get_or_create_db("desk_drawer")
     loader = FileSystemDocsLoader('./_design')
@@ -37,7 +40,7 @@ def upload_design_doc(user=None, passwd=None):
 
 def main():
     args, parser = setup_parser()
-    upload_design_doc(user=args.user, passwd=args.passwd)
+    upload_design_doc(user=args.user, passwd=args.passwd, host=args.host)
 
 if __name__ == "__main__":
     main()
