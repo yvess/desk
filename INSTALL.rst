@@ -2,6 +2,11 @@
 Install
 =======
 
+Ubuntu
+======
+
+you need the following packges installed
+`sudo apt-get install build-essential libevent1-dev `
 
 CouchDB
 =======
@@ -37,4 +42,33 @@ Desk
 
 python
 ------
+- create virtual enviroment with virtualenv
+- pip install requirements.txt
+
+etc
+---
+
+create the file
+
+`/etc/desk/worker.conf` on the desk master
+
+    [worker]
+    is_foreman = true
+
+    [couchdb]
+    uri = http://localhost:5984
+    db  = desk_drawer
+
+`/etc/desk/worker.conf` on the desk dns node
+
+    [couchdb]
+    uri = http://localhost:5984
+    db  = desk_drawer
+
+    [powerdns]
+    backend = sqlite
+    db = /usr/local/etc/powerdns/dns.db
+    user = 
+    passwd = 
+    name = ns1.qs
 
