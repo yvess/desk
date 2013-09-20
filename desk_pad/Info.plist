@@ -6,5 +6,9 @@
 	<string>MainMenu.cib</string>
 	<key>CPBundleName</key>
 	<string>desk_pad</string>
+    <key>CPBundleVersion</key>
+    <string>1.0</string>
+    <key>CPHumanReadableCopyright</key>
+    <string>Copyright © 2013, Your Company All rights reserved.</string>
 </dict>
 </plist>
