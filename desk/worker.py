@@ -257,7 +257,8 @@ def setup_parser():
         metavar="FILE"
     )
     args, remaining_args = conf_parser.parse_known_args()
-    # load config files with settings, puts them into a dict format "section_option"
+    # load config files with settings
+    # puts them into a dict format "section_option"
     if args.config:
         config = SafeConfigParser()
         if not config.read([args.config]):
