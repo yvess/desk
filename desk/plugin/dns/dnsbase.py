@@ -56,8 +56,8 @@ class DnsValidator(object):
         record_type = record_type.upper()
         lookup_answer_attr = {'CNAME': 'target', 'A': 'address'}
         answer_attr = lookup_answer_attr[record_type]
-        for ns in self.doc['nameservers'].split(','):
-            domain, ns = self.domain, ns.strip()
+        for ns in self.doc['nameservers']:
+            domain, ns = self.domain, ns
             self._setup_resolver(ns)
             try:
                 self._validate(record_type, item_key, q_key=q_key, items=[item], answer_attr=answer_attr)
@@ -68,8 +68,8 @@ class DnsValidator(object):
         return is_valid
 
     def do_check(self):
-        for ns in self.doc['nameservers'].split(','):
-            domain, ns = self.domain, ns.strip()
+        for ns in self.doc['nameservers']:
+            domain, ns = self.domain, ns
             self._setup_resolver(ns)
             self._validate('A', 'ip', q_key='host')
             self._validate('MX', 'host', answer_attr='exchange')
@@ -147,6 +147,4 @@ class DnsBase(object):
 def get_providers(doc):
     provider_key = 'nameservers'
     nameservers = doc[provider_key]
-    nameservers.replace(" ", "")
-    nameservers = nameservers.split(",")
     return nameservers

@@ -15,5 +15,5 @@ class JsonImporter(object):
                 'a': [],
                 'cname': [],
                 'mx': [],
-                'nameservers': "",
+                'nameservers': [],
             }

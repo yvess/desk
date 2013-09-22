@@ -31,20 +31,16 @@ class IspmanLDIF(LDIFParser, JsonImporter):
                 )
 
             def mx(entry):
-                entry = entry['mXRecord'][0].split(' ')
+                entry = entry['nSRecord'][0].split(' ')
                 self.domains[domain]['mx'].append(
                     {'host': entry[1],
                      'priority': entry[0]}
                 )
 
             def ns(entry):
-                entry = entry['nSRecord'][0]
-                nameservers = self.domains[domain]['nameservers']
-                if not nameservers:
-                    nameservers = entry
-                else:
-                    nameservers = "{}, {}".format(nameservers, entry)
-                self.domains[domain]['nameservers'] = nameservers
+                self.domains[domain]['nameservers'].append(
+                    entry['nSRecord'][0]
+                )
 
             if "cNAMERecord" in dn:
                 cname(entry)

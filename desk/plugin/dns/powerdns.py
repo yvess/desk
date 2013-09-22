@@ -122,7 +122,7 @@ class Powerdns(DnsBase):
         if self.doc:
             self.set_domain(self.doc['domain'], new=True)
             self.add_domain()
-            for nameserver in [n.strip() for n in self.doc['nameservers'].split(",")]:
+            for nameserver in self.doc['nameservers']:
                 self.add_record(self.domain, nameserver, rtype="NS")
             for rtype in self.structure:
                 name, key_id, value_id = rtype['name'], rtype['key_id'], rtype['value_id']
