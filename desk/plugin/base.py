@@ -153,5 +153,6 @@ class FilesForCouch(object):
 
     def create_files(self):
         for filename, content in self.data:
-            with open('{}{}'.format(self.directory, filename), 'w') as outfile:
+            with open('{}/{}.json'.format(self.directory, filename), 'w') as outfile:
+                content["nameservers"] = ", ".join(content["nameservers"])
                 json.dump(content, outfile)
