@@ -4,6 +4,7 @@ from StringIO import StringIO
 from copy import copy
 import json
 import json_diff
+import simplejson as json
 
 
 class OptionsClassDiff(object):
@@ -143,3 +144,14 @@ class Updater(object):
         if self.task:
             was_successfull = self.task()
         return was_successfull
+
+
+class FilesForCouch(object):
+    def __init__(self, data, directory=None):
+        self.data = data
+        self.directory = directory
+
+    def create_files(self):
+        for filename, content in self.data:
+            with open('{}{}'.format(self.directory, filename), 'w') as outfile:
+                json.dump(content, outfile)
