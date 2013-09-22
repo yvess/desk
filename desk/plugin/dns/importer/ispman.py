@@ -31,7 +31,7 @@ class IspmanLDIF(LDIFParser, JsonImporter):
                 )
 
             def mx(entry):
-                entry = entry['nSRecord'][0].split(' ')
+                entry = entry['mXRecord'][0].split(' ')
                 self.domains[domain]['mx'].append(
                     {'host': entry[1],
                      'priority': entry[0]}
@@ -53,5 +53,5 @@ class IspmanLDIF(LDIFParser, JsonImporter):
 
 
 #parser = IspmanLDIF(open("ispmanDomain.ldif", 'rb'), sys.stdout)
-#parser = IspmanLDIF(open("ou_DNS.ldif", 'rb'), sys.stdout)
-#parser.parse()
+#ldif = ispman.IspmanLDIF(open("/Users/yserrano/Desktop/ou_DNS.ldif", 'rb'), sys.stdout)
+#ldif.parse()
