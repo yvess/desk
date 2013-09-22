@@ -94,8 +94,8 @@ class Updater(object):
                 item['name'], item['key_id'], item['value_id']
             )
             # an existing entry changed
-            if ('_update' in diff and '_update' in diff['_update'][name]
-               and name in diff['_update']):
+            if ('_update' in diff and name in diff['_update']
+               and '_update' in diff['_update'][name]):
                 item_diff = diff['_update'][name]['_update']
                 item_diff_merged = []
                 for i in item_diff:
