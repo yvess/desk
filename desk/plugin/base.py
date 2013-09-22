@@ -155,4 +155,4 @@ class FilesForCouch(object):
         for filename, content in self.data:
             with open('{}/{}.json'.format(self.directory, filename), 'w') as outfile:
                 content["nameservers"] = ", ".join(content["nameservers"])
-                json.dump(content, outfile)
+                json.dump(content, outfile, indent=4)
