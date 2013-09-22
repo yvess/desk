@@ -18,6 +18,7 @@ from socketpool.pool import ConnectionPool
 sys.path.append("../")
 from desk.utils import ObjectDict
 from desk.plugin.base import Updater, MergedDoc
+from desk.plugin import dns
 
 
 class Worker(object):
