@@ -15,7 +15,7 @@ from desk.plugin.base import MergedDoc, VersionDoc
 from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.utils import ObjectDict
-from desk.worker import Worker, Foreman
+from desk.cmd.run import Worker, Foreman
 
 
 class WorkerTestCase(unittest.TestCase):

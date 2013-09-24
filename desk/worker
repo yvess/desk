@@ -21,15 +21,50 @@ def setup_parser():
     }
     boolean_types = ['worker_daemon', 'worker_is_foreman']
     conf_sections = ['couchdb', 'powerdns', 'worker']
-    # first only parse the config file argument
-    conf_parser = argparse.ArgumentParser(add_help=False)
-    conf_parser.add_argument(
+    main_parser = argparse.ArgumentParser()
+    subparsers = main_parser.add_subparsers(
+        dest='subparser_name',
+        title="subcommands",
+        description="available subcommands",
+        help="all commands"
+    )
+
+    # run parser
+    run_parser = subparsers.add_parser(
+        'run',
+        help="""Worker is the agent for the desk plattform.
+                       Command line switches overwrite config file settings""",
+    )
+    run_parser.add_argument(
         "-c", "--config", dest="config",
         default="/etc/desk/worker.conf",
         help="path to the config file, default: /etc/desk/worker.conf",
         metavar="FILE"
     )
-    args, remaining_args = conf_parser.parse_known_args()
+    run_parser.add_argument(
+        "-o", "--run_once", dest="worker_daemon",
+        help="run only once not as daemon", action="store_false", default=True
+    )
+    run_parser.add_argument(
+        "-u", "--couchdb_uri", dest="couchdb_uri",
+        metavar="URI", help="connection url of the server"
+    )
+    run_parser.add_argument(
+        "-d", "--couchdb_db", dest="couchdb_db",
+        metavar="NAME", help="database of the server"
+    )
+    run_parser.add_argument(
+        "-f", "--foreman", dest="worker_is_foreman",
+        help="be the foreman and a worker", action="store_true"
+    )
+
+    # run parser
+    install_parser = subparsers.add_parser(
+        'install',
+        help="""Install couchdb database""",
+    )
+
+    args = main_parser.parse_args()
     # load config files with settings
     # puts them into a dict format "section_option"
     if args.config:
@@ -48,31 +83,8 @@ def setup_parser():
                         else:
                             conf_section[section_prop] = config.get(section, k)
                 defaults.update(conf_section)
-    # parse all other arguments
-    parser = argparse.ArgumentParser(
-        parents=[conf_parser],
-        description="""Worker is the agent for the desk plattform.
-                       Command line switches overwrite config file settings""",
-    )
-    parser.set_defaults(**defaults)
-    parser.add_argument(
-        "-o", "--run_once", dest="worker_daemon",
-        help="run only once not as daemon", action="store_false", default=True
-    )
-    parser.add_argument(
-        "-u", "--couchdb_uri", dest="couchdb_uri",
-        metavar="URI", help="connection url of the server"
-    )
-    parser.add_argument(
-        "-d", "--couchdb_db", dest="couchdb_db",
-        metavar="NAME", help="database of the server"
-    )
-    parser.add_argument(
-        "-f", "--foreman", dest="worker_is_foreman",
-        help="be the foreman and a worker", action="store_true"
-    )
-
-    settings = parser.parse_args(remaining_args)
+    run_parser.set_defaults(**defaults)
+    settings = main_parser.parse_args()
 
     return settings
 
