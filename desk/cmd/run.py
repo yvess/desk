@@ -16,18 +16,19 @@ sys.path.append("../")
 from desk.utils import ObjectDict
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
+from . import SettingsCommand
 
 
 class Worker(object):
     def __init__(self, settings, hostname=os.uname()[1]):
         if isinstance(settings, dict):
             settings = ObjectDict(**settings)
+        self.hostname = hostname
+        self.settings = settings
         self.pool = ConnectionPool(factory=Connection, backend="gevent")
         self.server = Server(uri=settings.couchdb_uri, pool=self.pool)
         self.db = self.server[settings.couchdb_db]
-        self.hostname = hostname
         self.provides = {}
-        self.settings = settings
         self._setup_worker()
         self.queue_kwargs = {
             'tasks_open': {
@@ -234,3 +235,18 @@ class Foreman(Worker):
             **self.queue_kwargs['tasks_done']
         )
         queue_tasks_done()
+
+
+class RunCommand(SettingsCommand):
+    def __init__(self, settings, *args, **kwargs):
+        super(RunCommand, self).__init__(settings, *args, **kwargs)
+        if self.settings.worker_is_foreman:
+            self.worker = Foreman(self.settings)
+        else:
+            self.worker = Worker(self.settings)
+
+    def run(self):
+        if self.settings.worker_daemon:
+            self.worker.run()
+        else:
+            self.worker.run_once()

@@ -8,6 +8,8 @@ import argparse
 
 sys.path.append("../")
 from desk.cmd.run import Worker, Foreman
+from desk.cmd.install import InstallCommand
+from desk.cmd.run import RunCommand
 
 
 def setup_parser():
@@ -19,11 +21,21 @@ def setup_parser():
         "worker_daemon": True,
         "worker_is_foreman": False,
     }
+    config = {
+        'args': ["-c", "--config"],
+        'kwargs': {
+            'dest': "config",
+            'default': "/etc/desk/worker.conf",
+            'help': "path to the config file, default: /etc/desk/worker.conf",
+            'metavar': "FILE"
+        }
+    }
     boolean_types = ['worker_daemon', 'worker_is_foreman']
     conf_sections = ['couchdb', 'powerdns', 'worker']
+
     main_parser = argparse.ArgumentParser()
     subparsers = main_parser.add_subparsers(
-        dest='subparser_name',
+        dest='command',
         title="subcommands",
         description="available subcommands",
         help="all commands"
@@ -35,12 +47,7 @@ def setup_parser():
         help="""Worker is the agent for the desk plattform.
                        Command line switches overwrite config file settings""",
     )
-    run_parser.add_argument(
-        "-c", "--config", dest="config",
-        default="/etc/desk/worker.conf",
-        help="path to the config file, default: /etc/desk/worker.conf",
-        metavar="FILE"
-    )
+    run_parser.add_argument(*config['args'], **config['kwargs'])
     run_parser.add_argument(
         "-o", "--run_once", dest="worker_daemon",
         help="run only once not as daemon", action="store_false", default=True
@@ -58,16 +65,18 @@ def setup_parser():
         help="be the foreman and a worker", action="store_true"
     )
 
-    # run parser
+    # install parser
     install_parser = subparsers.add_parser(
         'install',
-        help="""Install couchdb database""",
+        help="""install the couchdb design docs""",
     )
+    install_parser.add_argument(*config['args'], **config['kwargs'])
 
     args = main_parser.parse_args()
+
     # load config files with settings
     # puts them into a dict format "section_option"
-    if args.config:
+    if hasattr(args, 'config') and args.config:
         config = SafeConfigParser()
         if not config.read([args.config]):
             print("Can't open file '{}'".format(args.config))
@@ -83,7 +92,9 @@ def setup_parser():
                         else:
                             conf_section[section_prop] = config.get(section, k)
                 defaults.update(conf_section)
+
     run_parser.set_defaults(**defaults)
+    install_parser.set_defaults(**defaults)
     settings = main_parser.parse_args()
 
     return settings
@@ -91,11 +102,9 @@ def setup_parser():
 
 if __name__ == "__main__":
     settings = setup_parser()
-    if settings.worker_is_foreman:
-        worker = Foreman(settings)
-    else:
-        worker = Worker(settings)
-    if settings.worker_daemon:
+    if settings.command == 'run':
+        worker = RunCommand(settings)
         worker.run()
-    else:
-        worker.run_once()
+    elif settings.command == 'install':
+        install = InstallCommand(settings)
+        install.upload_design_doc()
