@@ -4,9 +4,3 @@ from desk.utils import ObjectDict
 import os
 
 
-class SettingsCommand(object):
-    def set_settings(self, settings, hostname=os.uname()[1]):
-        if isinstance(settings, dict):
-            settings = ObjectDict(**settings)
-        self.hostname = hostname
-        self.settings = settings
