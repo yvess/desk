@@ -8,7 +8,7 @@ from ConfigParser import SafeConfigParser
 import argparse
 
 sys.path.append("../")
-from desk.cmd import InstallCommand, RunCommand
+from desk.cmd import InstallCommand, WorkerCommand
 
 DEFAULTS = {
     "couchdb_uri": "http://localhost:5984",
@@ -46,8 +46,8 @@ class SetupWorkerParser(object):
         self.update_parser()
 
     def setup_commands(self):
-        self.run_cmd = RunCommand()
-        self.run_parser = self.run_cmd.setup_parser(
+        self.worker_cmd = WorkerCommand()
+        self.worker_parser = self.worker_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
         )
 
@@ -81,15 +81,15 @@ class SetupWorkerParser(object):
             self.merged_defaults = merged_defaults
 
     def update_parser(self):
-        self.run_parser.set_defaults(**self.merged_defaults)
+        self.worker_parser.set_defaults(**self.merged_defaults)
         self.install_parser.set_defaults(**self.merged_defaults)
         self.settings = self.main_parser.parse_args()
 
 if __name__ == "__main__":
     worker = SetupWorkerParser()
     if worker.settings.command == 'run':
-        worker.run_cmd.set_settings(worker.settings)
-        worker.run_cmd.run()
+        worker.worker_cmd.set_settings(worker.settings)
+        worker.worker_cmd.run()
     elif worker.settings.command == 'install':
         worker.install_cmd.set_settings(worker.settings)
         cmd = worker.install_cmd

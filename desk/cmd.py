@@ -16,9 +16,9 @@ class SettingsCommand(object):
         self.settings = settings
 
 
-class RunCommand(SettingsCommand):
+class WorkerCommand(SettingsCommand):
     def set_settings(self, settings, *args, **kwargs):
-        super(RunCommand, self).set_settings(settings, *args, **kwargs)
+        super(WorkerCommand, self).set_settings(settings, *args, **kwargs)
         if self.settings.worker_is_foreman:
             self.worker = Foreman(self.settings)
         else:
