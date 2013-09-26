@@ -1,10 +1,26 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division, unicode_literals
 from ldif import LDIFParser
-from ..importer import JsonImporter
 
 
-class IspmanLDIF(LDIFParser, JsonImporter):
+class JsonImporter(object):
+    def add_domain(self, domain):
+        if domain not in self.domains:
+            self.domains[domain] = {
+                '_id': 'domain-{}'.format(domain),
+                'state': 'new',
+                'type': 'domain',
+                'editor': 'import',
+                'domain': domain,
+                'client_id': "",
+                'a': [],
+                'cname': [],
+                'mx': [],
+                'nameservers': [],
+            }
+
+
+class IspmanDnsLDIF(LDIFParser, JsonImporter):
     def __init__(self, input, output):
         LDIFParser.__init__(self, input)
         self.domains = {}
@@ -50,8 +66,3 @@ class IspmanLDIF(LDIFParser, JsonImporter):
                 mx(entry)
             elif "nSRecord" in dn:
                 ns(entry)
-
-
-#parser = IspmanLDIF(open("ispmanDomain.ldif", 'rb'), sys.stdout)
-#ldif = ispman.IspmanLDIF(open("/Users/yserrano/Desktop/ou_DNS.ldif", 'rb'), sys.stdout)
-#ldif.parse()

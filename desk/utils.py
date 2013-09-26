@@ -16,6 +16,10 @@ class CouchdbUploader(object):
         self.db = couchdb_db
         self.path = path
         self.auth = auth
+        if couchdb_uri.count('@') == 1:
+            self.auth = tuple(couchdb_uri.split("@")[0].split('//')[1].split(":"))
+            print("auth", self.auth)
+
 
     def put(self, data, doc_id, only_status=True):
         if data[0] == "@":

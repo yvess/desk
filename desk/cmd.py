@@ -25,29 +25,30 @@ class WorkerCommand(SettingsCommand):
             self.worker = Worker(self.settings)
 
     def setup_parser(self, subparsers, config):
-        run_parser = subparsers.add_parser(
+        worker_parser = subparsers.add_parser(
             'run',
-            help="""Worker is the agent for the desk plattform.
-                           Command line switches overwrite config file settings""",
+            help="""run the worker and/or foreman agent""",
+            description="Command line switches overwrite config file settings."
         )
-        run_parser.add_argument(*config['args'], **config['kwargs'])
-        run_parser.add_argument(
+        worker_parser.add_argument(*config['args'], **config['kwargs'])
+        worker_parser.add_argument(
             "-o", "--run_once", dest="worker_daemon",
-            help="run only once not as daemon", action="store_false", default=True
+            help="run only once not as daemon",
+            action="store_false", default=True
         )
-        run_parser.add_argument(
+        worker_parser.add_argument(
             "-u", "--couchdb_uri", dest="couchdb_uri",
             metavar="URI", help="connection url of the server"
         )
-        run_parser.add_argument(
+        worker_parser.add_argument(
             "-d", "--couchdb_db", dest="couchdb_db",
             metavar="NAME", help="database of the server"
         )
-        run_parser.add_argument(
+        worker_parser.add_argument(
             "-f", "--foreman", dest="worker_is_foreman",
             help="be the foreman and a worker", action="store_true"
         )
-        return run_parser
+        return worker_parser
 
     def run(self):
         if self.settings.worker_daemon:
@@ -57,9 +58,6 @@ class WorkerCommand(SettingsCommand):
 
 
 class InstallCommand(SettingsCommand):
-    def set_settings(self, *args, **kwargs):
-        super(InstallCommand, self).set_settings(*args, **kwargs)
-
     def setup_parser(self, subparsers, config_parser):
         install_parser = subparsers.add_parser(
             'install',
