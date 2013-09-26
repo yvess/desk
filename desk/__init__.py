@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, unicode_literals, division  # python3
 
-import sys
 import os
 import time
 import gevent
@@ -9,13 +8,9 @@ from couchdbkit import Server, Consumer
 from couchdbkit.changes import ChangesStream
 from restkit.conn import Connection
 from socketpool.pool import ConnectionPool
-
-
-sys.path.append("../")
 from desk.utils import ObjectDict
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
-from . import SettingsCommand
 
 
 class Worker(object):

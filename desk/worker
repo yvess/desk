@@ -8,9 +8,7 @@ from ConfigParser import SafeConfigParser
 import argparse
 
 sys.path.append("../")
-from desk.cmd.run import Worker, Foreman
-from desk.cmd.install import InstallCommand
-from desk.cmd.run import RunCommand
+from desk.cmd import InstallCommand, RunCommand
 
 DEFAULTS = {
     "couchdb_uri": "http://localhost:5984",
