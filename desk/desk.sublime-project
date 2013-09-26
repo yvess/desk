@@ -9,6 +9,10 @@
 		}
 	],
     "settings": {
-        "python_interpreter": "~/env/py27/bin/python"
+        "python_interpreter": "~/env/py27/bin/python",
+        "extra_paths":
+        [
+            "../"
+        ]
     }
 }
