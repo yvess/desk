@@ -2,6 +2,7 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, unicode_literals, division  # python3
 
+from gevent import monkey; monkey.patch_all()
 import sys
 from ConfigParser import SafeConfigParser
 import argparse
@@ -11,100 +12,87 @@ from desk.cmd.run import Worker, Foreman
 from desk.cmd.install import InstallCommand
 from desk.cmd.run import RunCommand
 
-
-def setup_parser():
-    """create the command line parser / config file reader """
-
-    defaults = {
-        "couchdb_uri": "http://localhost:5984",
-        "couchdb_db": "desk_drawer",
-        "worker_daemon": True,
-        "worker_is_foreman": False,
+DEFAULTS = {
+    "couchdb_uri": "http://localhost:5984",
+    "couchdb_db": "desk_drawer",
+    "worker_daemon": True,
+    "worker_is_foreman": False,
+}
+CONFIG_PARSER = {
+    'args': ["-c", "--config"],
+    'kwargs': {
+        'dest': "config",
+        'default': "/etc/desk/worker.conf",
+        'help': "path to the config file, default: /etc/desk/worker.conf",
+        'metavar': "FILE"
     }
-    config = {
-        'args': ["-c", "--config"],
-        'kwargs': {
-            'dest': "config",
-            'default': "/etc/desk/worker.conf",
-            'help': "path to the config file, default: /etc/desk/worker.conf",
-            'metavar': "FILE"
-        }
-    }
-    boolean_types = ['worker_daemon', 'worker_is_foreman']
-    conf_sections = ['couchdb', 'powerdns', 'worker']
+}
+BOOLEAN_TYPES = ['worker_daemon', 'worker_is_foreman']
+CONF_SECTIONS = ['couchdb', 'powerdns', 'worker']
 
-    main_parser = argparse.ArgumentParser()
-    subparsers = main_parser.add_subparsers(
-        dest='command',
-        title="subcommands",
-        description="available subcommands",
-        help="all commands"
-    )
 
-    # run parser
-    run_parser = subparsers.add_parser(
-        'run',
-        help="""Worker is the agent for the desk plattform.
-                       Command line switches overwrite config file settings""",
-    )
-    run_parser.add_argument(*config['args'], **config['kwargs'])
-    run_parser.add_argument(
-        "-o", "--run_once", dest="worker_daemon",
-        help="run only once not as daemon", action="store_false", default=True
-    )
-    run_parser.add_argument(
-        "-u", "--couchdb_uri", dest="couchdb_uri",
-        metavar="URI", help="connection url of the server"
-    )
-    run_parser.add_argument(
-        "-d", "--couchdb_db", dest="couchdb_db",
-        metavar="NAME", help="database of the server"
-    )
-    run_parser.add_argument(
-        "-f", "--foreman", dest="worker_is_foreman",
-        help="be the foreman and a worker", action="store_true"
-    )
+class SetupWorkerParser(object):
+    def __init__(self):
+        """create the command line parser / config file reader """
 
-    # install parser
-    install_parser = subparsers.add_parser(
-        'install',
-        help="""install the couchdb design docs""",
-    )
-    install_parser.add_argument(*config['args'], **config['kwargs'])
+        self.main_parser = argparse.ArgumentParser()
+        self.subparsers = self.main_parser.add_subparsers(
+            dest='command',
+            title="subcommands",
+            description="available subcommands",
+            help="all commands"
+        )
 
-    args = main_parser.parse_args()
+        self.setup_commands()
+        self.merge_configfile()
+        self.update_parser()
 
-    # load config files with settings
-    # puts them into a dict format "section_option"
-    if hasattr(args, 'config') and args.config:
-        config = SafeConfigParser()
-        if not config.read([args.config]):
-            print("Can't open file '{}'".format(args.config))
-            sys.exit(0)
-        else:
-            for section in conf_sections:  # put in here all your sections
-                conf_section = {}
-                if config.has_section(section):
-                    for k, v in config.items(section):
-                        section_prop = '{}_{}'.format(section, k)
-                        if section_prop in boolean_types:
-                            conf_section[section_prop] = config.getboolean(section, k)
-                        else:
-                            conf_section[section_prop] = config.get(section, k)
-                defaults.update(conf_section)
+    def setup_commands(self):
+        self.run_cmd = RunCommand()
+        self.run_parser = self.run_cmd.setup_parser(
+            self.subparsers, CONFIG_PARSER
+        )
 
-    run_parser.set_defaults(**defaults)
-    install_parser.set_defaults(**defaults)
-    settings = main_parser.parse_args()
+        self.install_cmd = InstallCommand()
+        self.install_parser = self.install_cmd.setup_parser(
+            self.subparsers, CONFIG_PARSER
+        )
 
-    return settings
+    def merge_configfile(self):
+        args = self.main_parser.parse_args()
 
+        # load config files with settings
+        # puts them into a dict format "section_option"
+        merged_defaults = DEFAULTS.copy()
+        if hasattr(args, 'config') and args.config:
+            config = SafeConfigParser()
+            if not config.read([args.config]):
+                print("Can't open file '{}'".format(args.config))
+                sys.exit(0)
+            else:
+                for section in CONF_SECTIONS:
+                    conf_section = {}
+                    if config.has_section(section):
+                        for k, v in config.items(section):
+                            section_prop = '{}_{}'.format(section, k)
+                            if section_prop in BOOLEAN_TYPES:
+                                conf_section[section_prop] = config.getboolean(section, k)
+                            else:
+                                conf_section[section_prop] = config.get(section, k)
+                    merged_defaults.update(conf_section)
+            self.merged_defaults = merged_defaults
+
+    def update_parser(self):
+        self.run_parser.set_defaults(**self.merged_defaults)
+        self.install_parser.set_defaults(**self.merged_defaults)
+        self.settings = self.main_parser.parse_args()
 
 if __name__ == "__main__":
-    settings = setup_parser()
-    if settings.command == 'run':
-        worker = RunCommand(settings)
-        worker.run()
-    elif settings.command == 'install':
-        install = InstallCommand(settings)
-        install.upload_design_doc()
+    worker = SetupWorkerParser()
+    if worker.settings.command == 'run':
+        worker.run_cmd.set_settings(worker.settings)
+        worker.run_cmd.run()
+    elif worker.settings.command == 'install':
+        worker.install_cmd.set_settings(worker.settings)
+        cmd = worker.install_cmd
+        worker.install_cmd.run()

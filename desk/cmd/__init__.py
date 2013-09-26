@@ -5,7 +5,7 @@ import os
 
 
 class SettingsCommand(object):
-    def __init__(self, settings, hostname=os.uname()[1]):
+    def set_settings(self, settings, hostname=os.uname()[1]):
         if isinstance(settings, dict):
             settings = ObjectDict(**settings)
         self.hostname = hostname
