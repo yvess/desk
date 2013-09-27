@@ -5,8 +5,6 @@ import os
 import sys
 import shutil
 import tempfile
-from couchdbkit.loaders import FileSystemDocsLoader
-from couchdbkit import Server
 from desk.cmd import SettingsCommand
 from desk.utils import CouchdbUploader
 from desk.plugin.dns.importer import IspmanDnsLDIF

@@ -15,7 +15,7 @@ from desk.plugin.base import MergedDoc, VersionDoc
 from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.utils import ObjectDict
-from desk.cmd.run import Worker, Foreman
+from desk import Worker, Foreman
 
 
 class WorkerTestCase(unittest.TestCase):
@@ -34,29 +34,41 @@ class WorkerTestCase(unittest.TestCase):
         self.s = s
         s.create_db(self.db_conf['couchdb_db'])
         self.db = self.s.get_db(self.db_conf["couchdb_db"])
-        self.co = CouchdbUploader(path=os.path.dirname(__file__), auth=('admin-test', 'admin-test'), **self.db_conf)
+        self.co = CouchdbUploader(
+            path=os.path.dirname(__file__),
+            auth=('admin-test', 'admin-test'), **self.db_conf
+        )
         status_code = self.co.put(
             data="@fixtures/couchdb-design.json",
             doc_id="_design/{couchdb_db}"
         )
         if not status_code == 201:
             s.delete_db(self.db_conf["couchdb_db"])
-            #raise Exception("Error with couchdb test database, http code:{}".format(status_code))
 
         worker_id = "worker-localhost"
         d = {
-           "_id": worker_id, "type": "worker", "hostname": "localhost",
-           "provides": {
-               "dns": [{"backend": "powerdns", "name": "ns1.test.tt"}]
-           }
+            "_id": worker_id, "type": "worker", "hostname": "localhost",
+            "provides": {
+                "dns": [{"backend": "powerdns", "name": "ns1.test.tt"}]
+            }
         }
-        self.assertTrue(self.co.put(data=json.dumps(d), doc_id=worker_id) == 201)
-        self.assertTrue(self.co.put(data="@fixtures/couchdb-template-dns.json", doc_id="template-email") == 201)
-        self.assertTrue(self.co.put(data="@fixtures/couchdb-map-ips.json", doc_id="map-ips") == 201)
+        self.assertTrue(
+            self.co.put(data=json.dumps(d), doc_id=worker_id) == 201
+        )
+        self.assertTrue(
+            self.co.put(data="@fixtures/couchdb-template-dns.json",
+                        doc_id="template-email") == 201
+        )
+        self.assertTrue(
+            self.co.put(data="@fixtures/couchdb-map-ips.json",
+                        doc_id="map-ips") == 201
+        )
 
     def tearDown(self):
-        has_domain1, has_domain2 = Powerdns(ObjectDict(**self.conf)).check_domain("test.tt"),\
-                                   Powerdns(ObjectDict(**self.conf)).check_domain("test2.tt")
+        has_domain1, has_domain2 = (
+            Powerdns(ObjectDict(**self.conf)).check_domain("test.tt"),
+            Powerdns(ObjectDict(**self.conf)).check_domain("test2.tt")
+        )
         self._remove_domain("test.tt") if has_domain1 else None
         self._remove_domain("test2.tt") if has_domain2 else None
         self.s.delete_db(self.db_conf["couchdb_db"])
@@ -69,28 +81,36 @@ class WorkerTestCase(unittest.TestCase):
         w = Foreman(conf, hostname="localhost")
         w.run_once()
 
-    def _get_dns_validator(self, doc_id, lookup={'ns1.test.tt': "127.0.0.1", 'ns2.test.tt': "127.0.0.1"}):
+    def _get_dns_validator(self, doc_id, lookup={
+                           'ns1.test.tt': "127.0.0.1",
+                           'ns2.test.tt': "127.0.0.1"
+                           }):
         doc = MergedDoc(self.db, self.db.get(doc_id)).doc
         validator = DnsValidator(doc, lookup=lookup)
         return validator
 
     def _create_order_doc(self):
         current_time = time.localtime()
-        order_id = "order-{}-{}".format(int(time.mktime(current_time)), self.s.next_uuid())
+        order_id = "order-{}-{}".format(int(time.mktime(current_time)),
+                                        self.s.next_uuid())
 
         order_doc = {
             "_id": order_id,
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
             "type": "order", "sender": "pad", "state": "new"
         }
-        self.assertTrue(self.co.put(data=json.dumps(order_doc), doc_id=order_id) == 201)
-        self.assertTrue(self.co.update(handler='add-editor', doc_id=order_id) == 201)
+        self.assertTrue(self.co.put(data=json.dumps(order_doc),
+                        doc_id=order_id) == 201)
+        self.assertTrue(self.co.update(handler='add-editor',
+                        doc_id=order_id) == 201)
         return order_id
 
     def _add_domain_test_tt(self, run=True):
         dns_id = "dns-test.tt"
-        self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test.tt.json", doc_id=dns_id) == 201)
-        self.assertTrue(self.co.update(handler='add-editor', doc_id=dns_id) == 201)
+        self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test.tt.json",
+                        doc_id=dns_id) == 201)
+        self.assertTrue(self.co.update(handler='add-editor',
+                        doc_id=dns_id) == 201)
         order_id = None
         if run:
             order_id = self._create_order_doc()
@@ -99,8 +119,10 @@ class WorkerTestCase(unittest.TestCase):
 
     def _add_domain_test2_tt(self, run=True):
         dns_id = "dns-test2.tt"
-        self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test2.tt.json", doc_id=dns_id) == 201)
-        self.assertTrue(self.co.update(handler='add-editor', doc_id=dns_id) == 201)
+        self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test2.tt.json",
+                        doc_id=dns_id) == 201)
+        self.assertTrue(self.co.update(handler='add-editor',
+                        doc_id=dns_id) == 201)
         order_id = None
         if run:
             order_id = self._create_order_doc()
@@ -148,7 +170,11 @@ class WorkerTestCase(unittest.TestCase):
         order_id = self._create_order_doc()
         self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
-        self.assertFalse(self._get_dns_validator('dns-test.tt').check_one_record('A', 'ip', q_key='host', item=changed_a))
+        self.assertFalse(
+            self._get_dns_validator('dns-test.tt').check_one_record(
+                'A', 'ip', q_key='host', item=changed_a
+            )
+        )
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, order_id])
 
@@ -173,7 +199,11 @@ class WorkerTestCase(unittest.TestCase):
         order2_id = self._create_order_doc()
         self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
-        self.assertFalse(self._get_dns_validator('dns-test.tt').check_one_record('A', 'ip', q_key='host', item=removed_a))
+        self.assertFalse(
+            self._get_dns_validator('dns-test.tt').check_one_record(
+                'A', 'ip', q_key='host', item=removed_a
+            )
+        )
         self._remove_domain('test.tt', docs=[dns_id, order1_id, order2_id])
 
     def test_two_domains(self):

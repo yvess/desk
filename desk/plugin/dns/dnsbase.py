@@ -2,7 +2,6 @@
 from __future__ import absolute_import, print_function, division, unicode_literals
 import abc
 from socket import gethostbyname
-from gevent import monkey; monkey.patch_all()
 import dns.resolver
 
 
@@ -15,15 +14,21 @@ class DnsValidator(object):
         self.valid = []
 
     def _setup_resolver(self, ns):
-        self.resolver.nameservers = [gethostbyname(ns) if not self.lookup else self.lookup[ns]]
+        self.resolver.nameservers = [
+            gethostbyname(ns) if not self.lookup else self.lookup[ns]
+        ]
 
-    def _validate(self, record_type, item_key, q_key='domain', answer_attr='address', return_check=False, items=None):
+    def _validate(self, record_type, item_key, q_key='domain',
+                  answer_attr='address', return_check=False, items=None):
         if not items:
-            items = self.doc[record_type.lower()] if hasattr(self.doc, record_type.lower()) else []
+            items = self.doc[
+                record_type.lower()
+            ] if hasattr(self.doc, record_type.lower()) else []
         for item in items:
             if q_key == 'domain':
                 q = self.domain
-            elif q_key in ('host', 'alias') and not item[q_key].endswith("."):  # TODO do in host name calc in one place
+            # TODO do in host name calc in one place
+            elif q_key in ('host', 'alias') and not item[q_key].endswith("."):
                 if item[q_key] == "@":
                     q = self.domain  # special case for empty root domain
                 else:
@@ -32,7 +37,10 @@ class DnsValidator(object):
                 q = item[q_key]
             answers = []
             for answer in self.resolver.query(q, record_type):
-                answer_value = answer if hasattr(answer, '__getitem__') else getattr(answer, answer_attr)
+                if hasattr(answer, '__getitem__'):
+                    answer_value = answer
+                else:
+                    answer_value = getattr(answer, answer_attr)
                 answer_value = unicode(answer_value)
                 is_fqdn = False
                 if answer_value.endswith("."):
@@ -45,14 +53,16 @@ class DnsValidator(object):
                 if record_type == "MX":
                     item_value = "{}.".format(item_value)
                 else:
-                    item_value = "{}.{}.".format(item_value, self.domain)  # TODO do in host name calc in one place
+                    # TODO do in host name calc in one place
+                    item_value = "{}.{}.".format(item_value, self.domain)
             valid = True if item_value in answers else False
             if return_check:
                 return valid
             else:
                 self.valid.append(valid)
 
-    def check_one_record(self, record_type, item_key, q_key='domain', item=None):
+    def check_one_record(self, record_type, item_key,
+                         q_key='domain', item=None):
         record_type = record_type.upper()
         lookup_answer_attr = {'CNAME': 'target', 'A': 'address'}
         answer_attr = lookup_answer_attr[record_type]
@@ -60,7 +70,10 @@ class DnsValidator(object):
             domain, ns = self.domain, ns
             self._setup_resolver(ns)
             try:
-                self._validate(record_type, item_key, q_key=q_key, items=[item], answer_attr=answer_attr)
+                self._validate(
+                    record_type, item_key, q_key=q_key,
+                    items=[item], answer_attr=answer_attr
+                )
             except dns.resolver.NoAnswer:
                 self.valid.append(False)
         is_valid = all(self.valid)
@@ -74,7 +87,9 @@ class DnsValidator(object):
             self._validate('A', 'ip', q_key='host')
             self._validate('MX', 'host', answer_attr='exchange')
             self._validate('MX', 'priority', answer_attr='preference')
-            self._validate('CNAME', 'host', q_key='alias', answer_attr='target')
+            self._validate(
+                'CNAME', 'host', q_key='alias', answer_attr='target'
+            )
         is_valid = all(self.valid)
         self.valid = []
         return is_valid
@@ -87,13 +102,19 @@ class DnsBase(object):
         {
             'name': 'a',
             'key_id': 'host', 'value_id': 'ip',
-            'key_trans': lambda k, domain: ".".join([k, domain]) if k != "@" else domain
+            'key_trans': lambda k, domain: (
+                ".".join([k, domain]) if k != "@" else domain
+            )
         },
         {
             'name': 'cname',
             'key_id': 'alias', 'value_id': 'host',
-            'key_trans': lambda k, domain: k[:-1] if k.endswith(".") else ".".join([k, domain]),
-            'value_trans': lambda v, domain: v[:-1] if v.endswith(".") else ".".join([v, domain])
+            'key_trans': lambda k, domain: (
+                k[:-1] if k.endswith(".") else ".".join([k, domain])
+            ),
+            'value_trans': lambda v, domain: (
+                v[:-1] if v.endswith(".") else ".".join([v, domain])
+            )
         },
         {
             'name': 'mx',

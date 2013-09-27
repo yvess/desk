@@ -63,7 +63,9 @@ class InstallCommand(SettingsCommand):
             'install',
             help="""install the couchdb design docs""",
         )
-        install_parser.add_argument(*config_parser['args'], **config_parser['kwargs'])
+        install_parser.add_argument(
+            *config_parser['args'], **config_parser['kwargs']
+        )
 
         return install_parser
 

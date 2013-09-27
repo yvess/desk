@@ -4,7 +4,6 @@ from StringIO import StringIO
 from copy import copy
 import json
 import json_diff
-import simplejson as json
 
 
 class OptionsClassDiff(object):
@@ -153,6 +152,7 @@ class FilesForCouch(object):
 
     def create(self):
         for filename, content in self.data:
-            with open('{}/{}.json'.format(self.directory, filename), 'w') as outfile:
+            with open('{}/{}.json'.format(
+                      self.directory, filename), 'w') as outfile:
                 content["nameservers"] = ", ".join(content["nameservers"])
                 json.dump(content, outfile, indent=4)

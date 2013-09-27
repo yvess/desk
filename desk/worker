@@ -81,15 +81,15 @@ class SetupWorkerParser(object):
                 sys.exit(0)
             else:
                 for section in CONF_SECTIONS:
-                    conf_section = {}
+                    conf = {}
                     if config.has_section(section):
                         for k, v in config.items(section):
-                            section_prop = '{}_{}'.format(section, k)
-                            if section_prop in BOOLEAN_TYPES:
-                                conf_section[section_prop] = config.getboolean(section, k)
+                            prop = '{}_{}'.format(section, k)
+                            if prop in BOOLEAN_TYPES:
+                                conf[prop] = config.getboolean(section, k)
                             else:
-                                conf_section[section_prop] = config.get(section, k)
-                    merged_defaults.update(conf_section)
+                                conf[prop] = config.get(section, k)
+                    merged_defaults.update(conf)
         self.merged_defaults = merged_defaults
 
     def update_parser(self):
