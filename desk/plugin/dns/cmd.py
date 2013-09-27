@@ -7,7 +7,7 @@ import shutil
 import tempfile
 from desk.cmd import SettingsCommand
 from desk.utils import CouchdbUploader
-from desk.plugin.dns.importer import IspmanDnsLDIF
+from desk.plugin.dns.importer import IspmanDnsLDIF, IspmanClientLDIF
 from desk.plugin.base import FilesForCouch
 
 
@@ -24,19 +24,36 @@ class Ldif2JsonCommand(SettingsCommand):
             "src",
             help="source of the ldif file with the DNS data",
         )
+        ldif2json_parser.add_argument(
+            "-l", "--client-ldif", dest="src_client_ldif",
+            metavar="CLIENT_LDIF",
+            help="merge client data from ldif export"
+        )
 
         return ldif2json_parser
 
     def run(self, dest=None, src=None):
         if not src:
             src = self.settings.src
-        ldif = IspmanDnsLDIF(open(src, 'rb'), sys.stdout)
-        ldif.parse()
-        data = [(k, v) for k, v in ldif.domains.iteritems()]
         if not dest:
             dest = "{}/couch".format(os.path.dirname(self.settings.src))
             os.mkdir(dest)
-        json_files = FilesForCouch(data, dest)
+        if hasattr(self.settings, 'src_client_ldif') and (
+           self.settings.src_client_ldif):
+            client_ldif = IspmanClientLDIF(
+                open(self.settings.src_client_ldif, 'rb'), sys.stdout
+            )
+            client_ldif.parse()
+            data = [(k, v) for k, v in client_ldif.clients.iteritems()]
+            json_files = FilesForCouch(data, dest, prefix="client")
+            json_files.create()
+            dns_ldif = IspmanDnsLDIF(open(src, 'rb'), sys.stdout,
+                                     clients_ldif=client_ldif)
+        else:
+            dns_ldif = IspmanDnsLDIF(open(src, 'rb'), sys.stdout)
+        dns_ldif.parse()
+        data = [(k, v) for k, v in dns_ldif.domains.iteritems()]
+        json_files = FilesForCouch(data, dest, prefix="domain")
         json_files.create()
 
 
@@ -51,6 +68,11 @@ class ImportDnsCommand(SettingsCommand):
                                        **config_parser['kwargs'])
         dns_import_parser.add_argument(
             "src", help="source of the ldif of json dir",
+        )
+        dns_import_parser.add_argument(
+            "-l", "--client-ldif", dest="src_client_ldif",
+            metavar="CLIENT_LDIF",
+            help="merge client data from ldif export"
         )
         return dns_import_parser
 
