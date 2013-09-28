@@ -45,7 +45,7 @@ class Ldif2JsonCommand(SettingsCommand):
             )
             client_ldif.parse()
             data = [(k, v) for k, v in client_ldif.clients.iteritems()]
-            json_files = FilesForCouch(data, dest, prefix="client")
+            json_files = FilesForCouch(data, dest)
             json_files.create()
             dns_ldif = IspmanDnsLDIF(open(src, 'rb'), sys.stdout,
                                      clients_ldif=client_ldif)
@@ -96,7 +96,7 @@ class ImportDnsCommand(SettingsCommand):
         for fname in os.listdir(src):
             co.put(
                 data="@{}".format(fname),
-                doc_id="domain-{}".format(fname[:-5])
+                doc_id=fname[:-5]
             )
 
         if temp_dir:

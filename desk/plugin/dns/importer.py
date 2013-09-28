@@ -7,7 +7,7 @@ class IspmanDnsLDIF(LDIFParser):
     def __init__(self, input, output, clients_ldif=None):
         LDIFParser.__init__(self, input)
         self.domains = {}
-        self.clients = clients_ldif.domains if clients_ldif else None
+        self.domains_lookup = clients_ldif.domains_lookup if clients_ldif else None
 
     def handle(self, dn, entry):
         if dn.startswith('relativeDomainName='):
@@ -59,22 +59,22 @@ class IspmanDnsLDIF(LDIFParser):
                 'type': 'domain',
                 'editor': 'import',
                 'domain': domain,
-                'client_id': "",
                 'a': [],
                 'cname': [],
                 'mx': [],
                 'nameservers': [],
             }
-            print(self.domains)
-            if self.clients:
-                self.domains[domain]['client_id'] = self.domains[domain]['_id']
+            if self.domains_lookup:
+                self.domains[domain]['client_id'] = (
+                    self.domains_lookup[domain]
+                )
 
 
 class IspmanClientLDIF(LDIFParser):
     def __init__(self, input, output):
         LDIFParser.__init__(self, input)
         self.clients = {}
-        self.domains = {}
+        self.domains_lookup = {}
 
     def handle(self, dn, entry):
         if dn.startswith('ispmanDomain='):
@@ -98,4 +98,4 @@ class IspmanClientLDIF(LDIFParser):
             }
 
     def add_domain(self, domain, client):
-        self.domains[domain] = self._id_for_client(client)
+        self.domains_lookup[domain] = self._id_for_client(client)
