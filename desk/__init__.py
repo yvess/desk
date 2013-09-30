@@ -13,6 +13,11 @@ from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
 
 
+DOC_TYPES = {
+    'domain': dns
+}
+
+
 class Worker(object):
     def __init__(self, settings, hostname=os.uname()[1]):
         if isinstance(settings, dict):
@@ -74,7 +79,7 @@ class Worker(object):
                 backend_class = backend.title()
                 try:
                     ServiceClass = getattr(
-                        getattr(globals()[doc_type], backend),
+                        getattr(DOC_TYPES[doc_type], backend),
                         backend_class
                     )
                 except AttributeError:
@@ -139,7 +144,7 @@ class Foreman(Worker):
                 self._cmd("new_by_editor"), key=editor, include_docs=True
             ):
                 doc = MergedDoc(self.db, result['doc']).doc
-                get_providers = getattr(globals()[doc['type']], 'get_providers')
+                get_providers = getattr(DOC_TYPES[doc['type']], 'get_providers')
                 for provider in (get_providers(doc)):
                     if provider in providers:
                         providers[provider].append(result['id'])

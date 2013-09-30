@@ -49,7 +49,7 @@ class WorkerTestCase(unittest.TestCase):
         d = {
             "_id": worker_id, "type": "worker", "hostname": "localhost",
             "provides": {
-                "dns": [{"backend": "powerdns", "name": "ns1.test.tt"}]
+                "domain": [{"backend": "powerdns", "name": "ns1.test.tt"}]
             }
         }
         self.assertTrue(
@@ -138,7 +138,7 @@ class WorkerTestCase(unittest.TestCase):
 
     def test_worker_settings(self):
         doc = self.db.get("worker-localhost")
-        self.assertTrue(doc['provides']['dns'][0]["backend"] == "powerdns")
+        self.assertTrue(doc['provides']['domain'][0]["backend"] == "powerdns")
 
     def test_new_domain(self):
         dns_id, order_id = self._add_domain_test_tt()
