@@ -13,7 +13,6 @@
                 <outlet property="addDomainMxButton" destination="189" id="299"/>
                 <outlet property="arrayController" destination="47" id="181"/>
                 <outlet property="clientsForDomainPopUp" destination="26" id="301"/>
-                <outlet property="editButtonCell" destination="106" id="115"/>
                 <outlet property="itemsTable" destination="9" id="182"/>
                 <outlet property="popoverDomain" destination="143" id="302"/>
                 <outlet property="popoverTpl" destination="287" id="289"/>
@@ -162,7 +161,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                             <subviews>
                                 <textField verticalHuggingPriority="750" id="27">
-                                    <rect key="frame" x="35" y="469" width="66" height="17"/>
+                                    <rect key="frame" x="37" y="497" width="66" height="17"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Domain: " id="32">
                                         <font key="font" metaFont="system"/>
@@ -180,7 +179,7 @@
                                     </textFieldCell>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="29">
-                                    <rect key="frame" x="35" y="496" width="66" height="17"/>
+                                    <rect key="frame" x="36" y="466" width="66" height="17"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Client:" id="30">
                                         <font key="font" metaFont="system"/>
@@ -189,7 +188,7 @@
                                     </textFieldCell>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="28" userLabel="Domain">
-                                    <rect key="frame" x="106" y="466" width="352" height="22"/>
+                                    <rect key="frame" x="106" y="494" width="352" height="22"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="31">
                                         <font key="font" metaFont="system"/>
@@ -356,11 +355,11 @@
                                     </buttonCell>
                                 </button>
                                 <popUpButton verticalHuggingPriority="750" id="26">
-                                    <rect key="frame" x="103" y="492" width="358" height="26"/>
+                                    <rect key="frame" x="104" y="462" width="358" height="26"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                     <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="33">
                                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="system"/>
+                                        <font key="font" metaFont="menu"/>
                                         <menu key="menu" title="OtherViews" id="34"/>
                                     </popUpButtonCell>
                                 </popUpButton>
@@ -378,19 +377,19 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                     <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="200">
                                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="system"/>
+                                        <font key="font" metaFont="menu"/>
                                         <menu key="menu" title="OtherViews" id="201"/>
                                     </popUpButtonCell>
                                 </popUpButton>
                                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="23">
-                                    <rect key="frame" x="104" y="61" width="352" height="222"/>
+                                    <rect key="frame" x="106" y="50" width="352" height="233"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <clipView key="contentView" id="FBs-5d-edR">
-                                        <rect key="frame" x="1" y="17" width="350" height="204"/>
+                                        <rect key="frame" x="1" y="17" width="350" height="215"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" multipleSelection="NO" emptySelection="NO" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" headerView="39" viewBased="YES" indentationPerLevel="16" autoresizesOutlineColumn="YES" outlineTableColumn="41" id="37">
-                                                <rect key="frame" x="0.0" y="0.0" width="350" height="204"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="350" height="215"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                                 <size key="intercellSpacing" width="3" height="2"/>
                                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -472,7 +471,7 @@
                                         <rect key="frame" x="1" y="369" width="411" height="15"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                     </scroller>
-                                    <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="37" id="40">
+                                    <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" id="40">
                                         <rect key="frame" x="224" y="17" width="15" height="102"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                     </scroller>
@@ -482,7 +481,7 @@
                                     </tableHeaderView>
                                 </scrollView>
                                 <button verticalHuggingPriority="750" id="171">
-                                    <rect key="frame" x="104" y="18" width="63" height="25"/>
+                                    <rect key="frame" x="107" y="18" width="63" height="25"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <buttonCell key="cell" type="roundTextured" title="Add A" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="172">
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -490,7 +489,7 @@
                                     </buttonCell>
                                 </button>
                                 <button verticalHuggingPriority="750" id="173">
-                                    <rect key="frame" x="175" y="18" width="100" height="25"/>
+                                    <rect key="frame" x="178" y="18" width="100" height="25"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <buttonCell key="cell" type="roundTextured" title="Add CNAME" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="174">
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -498,7 +497,7 @@
                                     </buttonCell>
                                 </button>
                                 <button verticalHuggingPriority="750" id="189">
-                                    <rect key="frame" x="283" y="18" width="73" height="25"/>
+                                    <rect key="frame" x="286" y="18" width="73" height="25"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <buttonCell key="cell" type="roundTextured" title="Add MX" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="190">
                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -547,39 +546,10 @@
         <webView id="293" userLabel="Webview Tpl" customClass="CPWebView">
             <rect key="frame" x="0.0" y="0.0" width="500" height="360"/>
             <autoresizingMask key="autoresizingMask"/>
-            <webPreferences key="preferences" defaultFontSize="12" defaultFixedFontSize="12"/>
+            <webPreferences key="preferences" defaultFontSize="12" defaultFixedFontSize="12">
+                <nil key="identifier"/>
+            </webPreferences>
         </webView>
-        <customView id="106" userLabel="EditButtonCell" customClass="DMEditCellView">
-            <rect key="frame" x="0.0" y="0.0" width="445" height="30"/>
-            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-            <subviews>
-                <button verticalHuggingPriority="750" id="108">
-                    <rect key="frame" x="322" y="-3" width="64" height="32"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
-                    <buttonCell key="cell" type="push" title="edit" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="109">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                </button>
-                <button verticalHuggingPriority="750" id="116">
-                    <rect key="frame" x="386" y="-3" width="60" height="32"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
-                    <buttonCell key="cell" type="push" title="del" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="117">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                </button>
-                <textField verticalHuggingPriority="750" id="107">
-                    <rect key="frame" x="11" y="7" width="299" height="17"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="entry" id="110">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-            </subviews>
-        </customView>
         <customView id="124" userLabel="ViewDomainA">
             <rect key="frame" x="0.0" y="0.0" width="307" height="143"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

@@ -131,6 +131,8 @@
     [super viewDidLoad];
     [clients enumerateObjectsUsingBlock:function(item) {
         [clientsForDomainPopUp addItemWithTitle:[item name]];
+        var menuItem = [clientsForDomainPopUp itemWithTitle:[item name]];
+        [menuItem setRepresentedObject: item];
     }];
     [tplForDomainPopUp addItemWithTitle:@" "];
     [self setDomainRecordTemplates:[DMTemplate all]];
@@ -164,7 +166,7 @@
     {
         [item setCoId:[[item class] couchId:item]];
     }
-    var selectedClientId = [[clients objectAtIndex:[clientsForDomainPopUp indexOfSelectedItem]] coId];
+    var selectedClientId = [[[clientsForDomainPopUp selectedItem] representedObject] coId];
     [item setClientId:selectedClientId];
 
     var selectedTemplateId = [[[tplForDomainPopUp selectedItem] representedObject] coId];
