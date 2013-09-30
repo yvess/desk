@@ -44,5 +44,5 @@
          "host":"www"
       }
    ],
-   "type":"dns"
+   "type":"domain"
 }
