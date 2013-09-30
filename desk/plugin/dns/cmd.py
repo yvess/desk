@@ -1,17 +1,19 @@
 # coding: utf-8
-from __future__ import absolute_import, print_function, unicode_literals, division  # python3
+# python3
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import os
 import sys
 import shutil
 import tempfile
 from desk.cmd import SettingsCommand
-from desk.utils import CouchdbUploader
+from desk.utils import CouchdbUploader, create_order_doc, auth_from_uri
 from desk.plugin.dns.importer import IspmanDnsLDIF, IspmanClientLDIF
 from desk.plugin.base import FilesForCouch
 
 
 class Ldif2JsonCommand(SettingsCommand):
+
     def setup_parser(self, subparsers):
         ldif2json_parser = subparsers.add_parser(
             'dns-ldif',
@@ -33,6 +35,7 @@ class Ldif2JsonCommand(SettingsCommand):
         return ldif2json_parser
 
     def run(self, dest=None, src=None):
+        auth = auth_from_uri(self.settings.couchdb_uri)
         if not src:
             src = self.settings.src
         if not dest:
@@ -41,16 +44,21 @@ class Ldif2JsonCommand(SettingsCommand):
         if hasattr(self.settings, 'src_client_ldif') and (
            self.settings.src_client_ldif):
             client_ldif = IspmanClientLDIF(
-                open(self.settings.src_client_ldif, 'rb'), sys.stdout
+                open(self.settings.src_client_ldif, 'r'),
+                sys.stdout, editor=auth[0]
             )
             client_ldif.parse()
             data = [(k, v) for k, v in client_ldif.clients.iteritems()]
             json_files = FilesForCouch(data, dest)
             json_files.create()
-            dns_ldif = IspmanDnsLDIF(open(src, 'rb'), sys.stdout,
-                                     clients_ldif=client_ldif)
+            dns_ldif = IspmanDnsLDIF(
+                open(src, 'r'), sys.stdout,
+                clients_ldif=client_ldif, editor=auth[0]
+            )
         else:
-            dns_ldif = IspmanDnsLDIF(open(src, 'rb'), sys.stdout)
+            dns_ldif = IspmanDnsLDIF(
+                open(src, 'r'), sys.stdout, editor=auth[0]
+            )
         dns_ldif.parse()
         data = [(k, v) for k, v in dns_ldif.domains.iteritems()]
         json_files = FilesForCouch(data, dest, prefix="domain")
@@ -58,6 +66,7 @@ class Ldif2JsonCommand(SettingsCommand):
 
 
 class ImportDnsCommand(SettingsCommand):
+
     def setup_parser(self, subparsers, config_parser):
         dns_import_parser = subparsers.add_parser(
             'dns-import',
@@ -101,3 +110,4 @@ class ImportDnsCommand(SettingsCommand):
 
         if temp_dir:
             shutil.rmtree(temp_dir)
+        create_order_doc(co)

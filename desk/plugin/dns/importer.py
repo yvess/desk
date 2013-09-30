@@ -3,11 +3,16 @@ from __future__ import absolute_import, print_function, division, unicode_litera
 from ldif import LDIFParser
 import hashlib
 
+
 class IspmanDnsLDIF(LDIFParser):
-    def __init__(self, input, output, clients_ldif=None):
+
+    def __init__(self, input, output, clients_ldif=None, editor=None):
         LDIFParser.__init__(self, input)
         self.domains = {}
-        self.domains_lookup = clients_ldif.domains_lookup if clients_ldif else None
+        self.domains_lookup = (
+            clients_ldif.domains_lookup if clients_ldif else None
+        )
+        self.editor = editor
 
     def handle(self, dn, entry):
         if dn.startswith('relativeDomainName='):
@@ -57,7 +62,6 @@ class IspmanDnsLDIF(LDIFParser):
                 '_id': 'domain-{}'.format(domain),
                 'state': 'new',
                 'type': 'domain',
-                'editor': 'import',
                 'domain': domain,
                 'a': [],
                 'cname': [],
@@ -68,13 +72,17 @@ class IspmanDnsLDIF(LDIFParser):
                 self.domains[domain]['client_id'] = (
                     self.domains_lookup[domain]
                 )
+            if self.editor:
+                self.domains[domain]['editor'] = self.editor
 
 
 class IspmanClientLDIF(LDIFParser):
-    def __init__(self, input, output):
+
+    def __init__(self, input, output, editor=None):
         LDIFParser.__init__(self, input)
         self.clients = {}
         self.domains_lookup = {}
+        self.editor = editor
 
     def handle(self, dn, entry):
         if dn.startswith('ispmanDomain='):
@@ -93,9 +101,11 @@ class IspmanClientLDIF(LDIFParser):
             self.clients[_id] = {
                 '_id': _id,
                 'type': 'client',
-                'editor': 'import',
+                'editor': 'importer',
                 'name': client,
             }
+            if self.editor:
+                self.clients['editor'] = self.editor
 
     def add_domain(self, domain, client):
         self.domains_lookup[domain] = self._id_for_client(client)

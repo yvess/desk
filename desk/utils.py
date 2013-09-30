@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division  # unicode_literals
-import sys
-sys.path.append("../")
+import time
+import json
 import requests
 
 
@@ -17,9 +17,7 @@ class CouchdbUploader(object):
         self.path = path
         self.auth = auth
         if couchdb_uri.count('@') == 1:
-            self.auth = tuple(
-                couchdb_uri.split("@")[0].split('//')[1].split(":")
-            )
+            self.auth = auth_from_uri(couchdb_uri)
 
     def put(self, data, doc_id, only_status=True):
         if data[0] == "@":
@@ -56,3 +54,21 @@ class CouchdbUploader(object):
             auth=self.auth
         )
         return r.status_code if only_status else r
+
+
+def auth_from_uri(uri):
+    return tuple(uri.split("@")[0].split('//')[1].split(":"))
+
+
+def create_order_doc(uploader):
+    current_time = time.localtime()
+    order_id = "order-{}".format(int(time.mktime(current_time)))
+
+    order_doc = {
+        "_id": order_id,
+        "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
+        "type": "order", "sender": "pad", "state": "new"
+    }
+    uploader.put(data=json.dumps(order_doc), doc_id=order_id)
+    uploader.update(handler='add-editor', doc_id=order_id)
+    return order_id
