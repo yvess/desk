@@ -179,7 +179,7 @@
     return [self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
 }
 
--(id)outlineView:(id)outlineView dataViewForTableColumn:(id)tableColumn item:(id)item
+-(id)outlineView:(id)outlineView viewForTableColumn:(id)tableColumn item:(id)item
 {
     var view = nil;
     if ([item isKindOfClass:COItemsParent])
