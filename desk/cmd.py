@@ -5,7 +5,7 @@ import os
 from couchdbkit.loaders import FileSystemDocsLoader
 from couchdbkit import Server
 from desk.utils import ObjectDict
-from . import Worker, Foreman
+from desk import Worker, Foreman
 
 
 class SettingsCommand(object):

@@ -6,8 +6,6 @@ from gevent import monkey; monkey.patch_all()
 import sys
 from ConfigParser import SafeConfigParser
 import argparse
-
-sys.path.append("../")
 from desk.cmd import InstallCommand, WorkerCommand
 from desk.plugin.dns.cmd import Ldif2JsonCommand, ImportDnsCommand
 

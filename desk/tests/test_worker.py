@@ -3,7 +3,6 @@ from __future__ import absolute_import, print_function, division  # unicode_lite
 
 import os
 import sys
-sys.path.append("../")
 import unittest
 from couchdbkit import Server
 from desk.utils import CouchdbUploader
