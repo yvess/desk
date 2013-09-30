@@ -111,7 +111,11 @@
     {
         if (cappuccinoValues[i])
         {
-            json[couchKeys[i]] = cappuccinoValues[i];
+            if (couchKeys[i] == "nameservers") {
+                json[couchKeys[i]] = cappuccinoValues[i].split(", ");
+            } else {
+                json[couchKeys[i]] = cappuccinoValues[i];
+            }
         }
     }
     json['type'] = [[self class] underscoreName];
