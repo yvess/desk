@@ -2,6 +2,7 @@
 from __future__ import absolute_import, print_function, division, unicode_literals
 from StringIO import StringIO
 from copy import copy
+from couchdbkit.exceptions import ResourceNotFound
 import json
 import json_diff
 
@@ -62,8 +63,11 @@ class Updater(object):
             self.prev_doc = None
         service.set_docs(self.merged_doc, self.prev_doc)
         if hasattr(service, 'map_doc_id'):
-            lookup_map_doc = db.get(service.map_doc_id)
-            service.set_lookup_map(lookup_map_doc)
+            try:
+                lookup_map_doc = db.get(service.map_doc_id)
+                service.set_lookup_map(lookup_map_doc)
+            except ResourceNotFound:
+                pass
         self.service = service
         if 'prev_rev' in doc and doc['state'] == 'changed':
             diff = self._create_diff()
