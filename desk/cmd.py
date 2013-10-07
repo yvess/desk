@@ -57,10 +57,10 @@ class WorkerCommand(SettingsCommand):
             self.worker.run_once()
 
 
-class InstallCommand(SettingsCommand):
+class InstallDbCommand(SettingsCommand):
     def setup_parser(self, subparsers, config_parser):
         install_parser = subparsers.add_parser(
-            'install',
+            'install-db',
             help="""install the couchdb design docs""",
         )
         install_parser.add_argument(
@@ -74,3 +74,35 @@ class InstallCommand(SettingsCommand):
         db = server.get_or_create_db(self.settings.couchdb_db)
         loader = FileSystemDocsLoader('./_design')
         loader.sync(db, verbose=True)
+
+
+class InstallWorkerCommand(SettingsCommand):
+    def setup_parser(self, subparsers, config_parser):
+        install_parser = subparsers.add_parser(
+            'install-worker',
+            help="""install the couchdb design docs""",
+        )
+        install_parser.add_argument(
+            *config_parser['args'], **config_parser['kwargs']
+        )
+
+        return install_parser
+
+    def run(self):
+        server = Server(self.settings.couchdb_uri)
+        db = server.get_db(self.settings.couchdb_db)
+        provides = {}
+        if hasattr(self.settings, 'worker_dns'):
+            provides['domain'], worker_dns = [], self.settings.worker_dns
+            dns_servers = map(
+                lambda x: x.strip().split(':'), worker_dns.split(',')
+            )
+            for backend, name in dns_servers:
+                provides['domain'].append({'backend': backend, 'name': name})
+
+        worker_id = "worker-{}".format(self.hostname)
+        d = {
+            "_id": worker_id, "type": "worker", "hostname": self.hostname,
+            "provides": provides
+        }
+        db.save_doc(d)

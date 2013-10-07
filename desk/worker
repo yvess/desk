@@ -6,7 +6,7 @@ from gevent import monkey; monkey.patch_all()
 import sys
 from ConfigParser import SafeConfigParser
 import argparse
-from desk.cmd import InstallCommand, WorkerCommand
+from desk.cmd import InstallDbCommand, InstallWorkerCommand, WorkerCommand
 from desk.plugin.dns.cmd import Ldif2JsonCommand, ImportDnsCommand
 
 
@@ -51,8 +51,13 @@ class SetupWorkerParser(object):
             self.subparsers, CONFIG_PARSER
         )
 
-        self.install_cmd = InstallCommand()
-        self.install_parser = self.install_cmd.setup_parser(
+        self.install_db_cmd = InstallDbCommand()
+        self.install_db_parser = self.install_db_cmd.setup_parser(
+            self.subparsers, CONFIG_PARSER
+        )
+
+        self.install_worker_cmd = InstallWorkerCommand()
+        self.install_worker_parser = self.install_worker_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
         )
 
@@ -92,7 +97,8 @@ class SetupWorkerParser(object):
 
     def update_parser(self):
         self.worker_parser.set_defaults(**self.merged_defaults)
-        self.install_parser.set_defaults(**self.merged_defaults)
+        self.install_db_parser.set_defaults(**self.merged_defaults)
+        self.install_worker_parser.set_defaults(**self.merged_defaults)
         self.dns_ldif2json_parser.set_defaults(**self.merged_defaults)
         self.dns_import_parser.set_defaults(**self.merged_defaults)
         self.settings = self.main_parser.parse_args()
@@ -102,9 +108,12 @@ if __name__ == "__main__":
     if worker.settings.command == 'run':
         worker.worker_cmd.set_settings(worker.settings)
         worker.worker_cmd.run()
-    elif worker.settings.command == 'install':
-        worker.install_cmd.set_settings(worker.settings)
-        worker.install_cmd.run()
+    elif worker.settings.command == 'install-db':
+        worker.install_db_cmd.set_settings(worker.settings)
+        worker.install_db_cmd.run()
+    elif worker.settings.command == 'install-worker':
+        worker.install_worker_cmd.set_settings(worker.settings)
+        worker.install_worker_cmd.run()
     elif worker.settings.command == 'dns-ldif':
         worker.dns_ldif2json_cmd.set_settings(worker.settings)
         worker.dns_ldif2json_cmd.run()
