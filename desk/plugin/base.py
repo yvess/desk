@@ -56,9 +56,8 @@ class Updater(object):
             self.task = choose_task[doc['state']]
         self.merged_doc = MergedDoc(db, doc).doc
         if 'prev_rev' in doc:
-            self.prev_doc = json.loads(
-                db.fetch_attachment(doc['_id'], doc['prev_rev'])
-            )
+            doc = db.fetch_attachment(doc['_id'], doc['prev_rev'])
+            self.prev_doc = json.loads(doc)
         else:
             self.prev_doc = None
         service.set_docs(self.merged_doc, self.prev_doc)
@@ -156,6 +155,6 @@ class FilesForCouch(object):
             with open('{}/{}{}.json'.format(
                       self.directory, self.prefix, filename), 'w') as outfile:
                 # TODO replace with native list
-                if 'nameservers' in content:
-                    content["nameservers"] = ", ".join(content["nameservers"])
+                #if 'nameservers' in content:
+                #    content["nameservers"] = ", ".join(content["nameservers"])
                 json.dump(content, outfile, indent=4)

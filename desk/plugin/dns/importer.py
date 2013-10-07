@@ -43,9 +43,11 @@ class IspmanDnsLDIF(LDIFParser):
                 )
 
             def ns(entry):
-                self.domains[domain]['nameservers'].append(
-                    entry['nSRecord'][0]
-                )
+                nameserver = entry['nSRecord'][0]
+                # TODO other solution?
+                if nameserver.endswith("."):
+                    nameserver = nameserver[:-1]
+                self.domains[domain]['nameservers'].append(nameserver)
 
             if "cNAMERecord" in dn:
                 cname(entry)
