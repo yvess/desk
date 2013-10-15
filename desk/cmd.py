@@ -80,7 +80,7 @@ class InstallWorkerCommand(SettingsCommand):
     def setup_parser(self, subparsers, config_parser):
         install_parser = subparsers.add_parser(
             'install-worker',
-            help="""install the couchdb design docs""",
+            help="""install worker settings into the couchdb database""",
         )
         install_parser.add_argument(
             *config_parser['args'], **config_parser['kwargs']
