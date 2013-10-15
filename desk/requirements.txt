@@ -5,3 +5,5 @@ requests==0.13.5
 dnspython==1.11.1
 gevent==0.13.8
 python-ldap==2.4.13
+Cython==0.19.2
+-e git://github.com/surfly/gevent.git@244141266b2b511e0abfa74ecc2f527621c247ef#egg=gevent-1.0rc3
