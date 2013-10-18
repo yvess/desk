@@ -30,10 +30,11 @@ CONF_SECTIONS = ['couchdb', 'powerdns', 'worker']
 
 
 class SetupWorkerParser(object):
-    def __init__(self):
+    def __init__(self, pass_args=None):
         """create the command line parser / config file reader """
 
         self.main_parser = argparse.ArgumentParser()
+        self.pass_args = pass_args
         self.subparsers = self.main_parser.add_subparsers(
             dest='command',
             title="subcommands",
@@ -72,7 +73,10 @@ class SetupWorkerParser(object):
         )
 
     def merge_configfile(self):
-        args = self.main_parser.parse_args()
+        if self.pass_args:
+            args = self.main_parser.parse_args(self.pass_args)
+        else:
+            args = self.main_parser.parse_args()
 
         # load config files with settings
         # puts them into a dict format "section_option"
@@ -101,7 +105,10 @@ class SetupWorkerParser(object):
         self.install_worker_parser.set_defaults(**self.merged_defaults)
         self.dns_ldif2json_parser.set_defaults(**self.merged_defaults)
         self.dns_import_parser.set_defaults(**self.merged_defaults)
-        self.settings = self.main_parser.parse_args()
+        if self.pass_args:
+            self.settings = self.main_parser.parse_args(self.pass_args)
+        else:
+            self.settings = self.main_parser.parse_args()
 
 if __name__ == "__main__":
     worker = SetupWorkerParser()
