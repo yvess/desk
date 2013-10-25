@@ -4,6 +4,7 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 import os
 import time
 import gevent
+import logging
 from couchdbkit import Server, Consumer
 from couchdbkit.changes import ChangesStream
 from restkit.conn import Connection
@@ -65,9 +66,11 @@ class Worker(object):
         if all(successfull_tasks):
             task_doc['state'] = 'done'
             self.db.save_doc(task_doc)
+            logging.info("task done doc_id: %s" % task_doc['_id'])
         else:
             task_doc['state'] = 'failed'
             self.db.save_doc(task_doc)
+            logging.info("task failed doc_id: %s" % task_doc['_id'])
 
     def _do_task(self, doc):
         if doc['type'] in self.provides:
@@ -139,26 +142,36 @@ class Foreman(Worker):
             editor = order_doc['editor']
             providers = {}
             docs = []
+            already_processed_orders = []
             for result in self.db.view(
                 self._cmd("new_by_editor"), key=editor, include_docs=True
             ):
-                doc = MergedDoc(self.db, result['doc']).doc
-                get_providers = getattr(DOC_TYPES[doc['type']], 'get_providers')
-                for provider in (get_providers(doc)):
-                    if provider in providers:
-                        providers[provider].append(result['id'])
-                    else:
-                        providers[provider] = [result['id']]
-                    providers[provider].sort()
-                docs.append(result['id'])
+                if result['doc']['_id'] not in already_processed_orders:
+                    doc = MergedDoc(self.db, result['doc']).doc
+                    get_providers = getattr(
+                        DOC_TYPES[doc['type']], 'get_providers'
+                    )
+                    for provider in (get_providers(doc)):
+                        if provider in providers:
+                            providers[provider].append(result['doc']['_id'])
+                        else:
+                            providers[provider] = [result['doc']['_id']]
+                        providers[provider].sort()
+                    docs.append(result['doc']['_id'])
             #order_doc['docs'] = docs
             order_doc['providers'] = providers
+            already_processed_orders.append(order_doc['_id'])
+            if order_doc['state'] != 'new_created_tasks' and self._create_tasks(providers=providers, order_id=order_doc["_id"]):
+                order_doc['state'] = 'new_created_tasks'
             self.db.save_doc(order_doc)
-            self._create_tasks(providers=providers, order_id=order_doc["_id"])
 
     def _create_tasks(self, providers=None, order_id=None):
+        logging.info("** creating tasks")
         current_time = time.mktime(time.localtime())
+        created = False
         for provider in providers:
+            created = True
+            logging.info("** creating tasks for %s" % provider)
             task_id = "task-{}-{}".format(provider, self.server.next_uuid())  # int(time.mktime(current_time))
             doc = {
                 "_id": task_id,
@@ -169,19 +182,21 @@ class Foreman(Worker):
                 "provider": provider
             }
             self.db.save_doc(doc)
+        return created
 
     def _update_order(self, tasks):
         for task in tasks:
             task_doc = task['doc']
             order_id = task_doc['order_id']
             order_doc = self.db.get(order_id)
-            providers_done = {}
-            if 'providers_done' in order_doc:
-                providers_done = providers_done.update(
-                    order_doc['providers_done']
-                )
-            providers_done[task_doc['provider']] = task_doc['docs']
-            if order_doc['providers'] == providers_done:
+            if not 'providers_done' in order_doc:
+                order_doc['providers_done'] = []
+            providers = order_doc['providers']
+            providers_done = order_doc['providers_done']
+            providers_done.append([task_doc['provider']])
+
+            if all([p in providers for p in providers_done]):
+            #if order['providers'] == providers_done:
                 order_doc['state'] = 'done'
                 update_docs_id = []
                 [update_docs_id.extend(v) for v in providers_done.viewvalues()]
@@ -195,6 +210,9 @@ class Foreman(Worker):
                     update_docs.append(doc)
                 self.db.bulk_save(update_docs)
             self.db.save_doc(order_doc)
+            task_doc['state'] = 'done_checked'
+            self.db.save_doc(order_doc)
+            self.db.save_doc(task_doc)
 
     def run(self):
         queue_tasks_open = self._create_queue(
