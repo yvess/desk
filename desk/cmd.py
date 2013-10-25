@@ -2,6 +2,7 @@
 from __future__ import absolute_import, print_function, unicode_literals, division  # python3
 
 import os
+import logging
 from couchdbkit.loaders import FileSystemDocsLoader
 from couchdbkit import Server
 from desk.utils import ObjectDict
@@ -14,6 +15,10 @@ class SettingsCommand(object):
             settings = ObjectDict(**settings)
         self.hostname = hostname
         self.settings = settings
+        if hasattr(settings, 'loglevel') and settings.loglevel:
+            loglevel = getattr(logging, settings.loglevel.upper(), 30)
+            logger = logging.getLogger()
+            logger.setLevel(loglevel)
 
 
 class WorkerCommand(SettingsCommand):
@@ -24,13 +29,14 @@ class WorkerCommand(SettingsCommand):
         else:
             self.worker = Worker(self.settings)
 
-    def setup_parser(self, subparsers, config):
+    def setup_parser(self, subparsers, config, verbose):
         worker_parser = subparsers.add_parser(
             'run',
             help="""run the worker and/or foreman agent""",
             description="Command line switches overwrite config file settings."
         )
         worker_parser.add_argument(*config['args'], **config['kwargs'])
+        worker_parser.add_argument(*verbose['args'], **verbose['kwargs'])
         worker_parser.add_argument(
             "-o", "--run_once", dest="worker_daemon",
             help="run only once not as daemon",

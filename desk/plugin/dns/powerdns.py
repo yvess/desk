@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function, division, unicode_litera
 import sqlite3
 import time
 import os
+import logging
 from copy import copy
 from desk.plugin.dns import DnsBase
 
@@ -67,7 +68,7 @@ class Powerdns(DnsBase):
             rtype="SOA"
         )
         # TODO sudoers
-        os.system("sudo pdns_control purge {}$".format(self.domain))
+        os.system("sudo /usr/bin/pdns_control purge {}$".format(self.domain))
 
     def add_domain(self, domain=None):
         if domain:

@@ -16,6 +16,7 @@ DEFAULTS = {
     "worker_daemon": True,
     "worker_is_foreman": False,
 }
+
 CONFIG_PARSER = {
     'args': ["-c", "--config"],
     'kwargs': {
@@ -25,6 +26,18 @@ CONFIG_PARSER = {
         'metavar': "FILE"
     }
 }
+
+VERBOSE_PARSER = {
+    'args': ["-v", "--verbose"],
+    'kwargs': {
+        'dest': "loglevel",
+        'action': "store_const",
+        'default': "warning",
+        'const': "info",
+        'help': "set the loglevel",
+    }
+}
+
 BOOLEAN_TYPES = ['worker_daemon', 'worker_is_foreman']
 CONF_SECTIONS = ['couchdb', 'powerdns', 'worker']
 
@@ -49,7 +62,7 @@ class SetupWorkerParser(object):
     def setup_commands(self):
         self.worker_cmd = WorkerCommand()
         self.worker_parser = self.worker_cmd.setup_parser(
-            self.subparsers, CONFIG_PARSER
+            self.subparsers, CONFIG_PARSER, VERBOSE_PARSER
         )
 
         self.install_db_cmd = InstallDbCommand()
