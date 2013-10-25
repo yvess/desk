@@ -57,8 +57,8 @@ class Updater(object):
             self.task = choose_task[doc['state']]
         self.merged_doc = MergedDoc(db, doc).doc
         if 'prev_rev' in doc:
-            doc = db.fetch_attachment(doc['_id'], doc['prev_rev'])
-            self.prev_doc = json.loads(doc)
+            prev_doc = db.fetch_attachment(doc['_id'], doc['prev_rev'])
+            self.prev_doc = json.loads(prev_doc)
         else:
             self.prev_doc = None
         service.set_docs(self.merged_doc, self.prev_doc)
