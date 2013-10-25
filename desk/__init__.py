@@ -166,12 +166,11 @@ class Foreman(Worker):
             self.db.save_doc(order_doc)
 
     def _create_tasks(self, providers=None, order_id=None):
-        logging.info("** creating tasks")
+        logging.info("** creating tasks for %s" % providers)
         current_time = time.mktime(time.localtime())
         created = False
         for provider in providers:
             created = True
-            logging.info("** creating tasks for %s" % provider)
             task_id = "task-{}-{}".format(provider, self.server.next_uuid())  # int(time.mktime(current_time))
             doc = {
                 "_id": task_id,
@@ -182,6 +181,7 @@ class Foreman(Worker):
                 "provider": provider
             }
             self.db.save_doc(doc)
+            logging.info("** created task %s" % provider)
         return created
 
     def _update_order(self, tasks):
@@ -191,15 +191,14 @@ class Foreman(Worker):
             order_doc = self.db.get(order_id)
             if not 'providers_done' in order_doc:
                 order_doc['providers_done'] = []
-            providers = order_doc['providers']
+            providers = order_doc['providers'].keys()
             providers_done = order_doc['providers_done']
-            providers_done.append([task_doc['provider']])
-
+            providers_done.append(task_doc['provider'])
             if all([p in providers for p in providers_done]):
             #if order['providers'] == providers_done:
                 order_doc['state'] = 'done'
                 update_docs_id = []
-                [update_docs_id.extend(v) for v in providers_done.viewvalues()]
+                [update_docs_id.extend(v) for v in order_doc['providers'].viewvalues()]
                 bulk_docs = self.db.all_docs(
                     keys=update_docs_id, include_docs=True
                 )
