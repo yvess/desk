@@ -153,17 +153,17 @@ class Foreman(Worker):
                     get_providers = getattr(
                         DOC_TYPES[doc['type']], 'get_providers'
                     )
-                    for provider in (get_providers(doc)):
+                    for provider in get_providers(doc):
                         if provider in providers:
                             providers[provider].append(result['doc']['_id'])
                         else:
                             providers[provider] = [result['doc']['_id']]
                         providers[provider].sort()
                     docs.append(result['doc']['_id'])
-                    order_doc['providers'] = providers
-                    if self._create_tasks(providers=providers, order_id=order_doc["_id"]):
-                        order_doc['state'] = 'new_created_tasks'
-                    already_processed_orders.append(order_doc['_id'])
+            order_doc['providers'] = providers
+            if self._create_tasks(providers=providers, order_id=order_doc["_id"]):
+                order_doc['state'] = 'new_created_tasks'
+            already_processed_orders.append(order_doc['_id'])
             self.db.save_doc(order_doc)
 
     def _create_tasks(self, providers=None, order_id=None):

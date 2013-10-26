@@ -96,7 +96,7 @@ class WorkerTestCase(unittest.TestCase):
         order_doc = {
             "_id": order_id,
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
-            "type": "order", "sender": "pad", "state": "new"
+            "type": "order", "sender": "pad", "state": "new_pre"
         }
         self.assertTrue(self.co.put(data=json.dumps(order_doc),
                         doc_id=order_id) == 201)
@@ -104,26 +104,26 @@ class WorkerTestCase(unittest.TestCase):
                         doc_id=order_id) == 201)
         return order_id
 
-    def _add_domain_test_tt(self, run=True):
+    def _add_domain_test_tt(self, run=True, add_order=True):
         dns_id = "dns-test.tt"
         self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test.tt.json",
                         doc_id=dns_id) == 201)
         self.assertTrue(self.co.update(handler='add-editor',
                         doc_id=dns_id) == 201)
         order_id = None
-        if run:
+        if run and add_order:
             order_id = self._create_order_doc()
             self._run_order()
         return (dns_id, order_id)
 
-    def _add_domain_test2_tt(self, run=True):
+    def _add_domain_test2_tt(self, run=True, add_order=True):
         dns_id = "dns-test2.tt"
         self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test2.tt.json",
                         doc_id=dns_id) == 201)
         self.assertTrue(self.co.update(handler='add-editor',
                         doc_id=dns_id) == 201)
         order_id = None
-        if run:
+        if run and add_order:
             order_id = self._create_order_doc()
             self._run_order()
         return (dns_id, order_id)
@@ -206,8 +206,8 @@ class WorkerTestCase(unittest.TestCase):
         self._remove_domain('test.tt', docs=[dns_id, order1_id, order2_id])
 
     def test_two_domains(self):
-        dns1_id, order_id = self._add_domain_test_tt(run=False)
-        dns2_id, order_id = self._add_domain_test2_tt(run=False)
+        dns1_id, order_id = self._add_domain_test_tt(run=False, add_order=False)
+        dns2_id, order_id = self._add_domain_test2_tt(run=False, add_order=False)
         order1_id = self._create_order_doc()
         self._run_order()
         self.assertTrue(self.db.get(dns1_id)['state'] == 'live')
