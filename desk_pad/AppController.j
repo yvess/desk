@@ -70,7 +70,7 @@
     [order setDate:[CPString stringWithFormat:@"%@", Date.now()]];
     [order setCoId:[DMOrder couchId:order]];
     [order setSender:@"pad"];
-    [order setState:@"new"];
+    [order setState:@"new_pre"];
     [order save];
 }
 

@@ -49,6 +49,7 @@ class Worker(object):
             self.provides = worker_result[0]['provides']
 
     def _process_tasks(self, tasks):
+        logging.info("ready for processing tasks")
         provider_lookup = {}
         for (servcie_type, services) in self.provides.viewitems():
             for service in services:
@@ -61,6 +62,7 @@ class Worker(object):
         successfull_tasks = []
         for doc_id in docs:
             doc = self.db.get(doc_id)
+            logging.info("do task %s" % task_id)
             successfull_tasks.append(self._do_task(doc))
         task_doc = self.db.get(task_id)
         if all(successfull_tasks):
@@ -137,11 +139,11 @@ class Foreman(Worker):
         }
 
     def _process_orders(self, orders):
+        logging.info("ready for processing orders")
         for order in orders:
-            order_doc = order['doc']
-            editor = order_doc['editor']
-            providers = {}
-            docs = []
+            logging.info("got order %s" % order['doc']['_id'])
+            order_doc, editor = order['doc'], order['doc']['editor']
+            providers, docs = {}, []
             already_processed_orders = []
             for result in self.db.view(
                 self._cmd("new_by_editor"), key=editor, include_docs=True
@@ -158,20 +160,19 @@ class Foreman(Worker):
                             providers[provider] = [result['doc']['_id']]
                         providers[provider].sort()
                     docs.append(result['doc']['_id'])
-            #order_doc['docs'] = docs
-            order_doc['providers'] = providers
-            already_processed_orders.append(order_doc['_id'])
-            if order_doc['state'] != 'new_created_tasks' and self._create_tasks(providers=providers, order_id=order_doc["_id"]):
-                order_doc['state'] = 'new_created_tasks'
+                    order_doc['providers'] = providers
+                    if self._create_tasks(providers=providers, order_id=order_doc["_id"]):
+                        order_doc['state'] = 'new_created_tasks'
+                    already_processed_orders.append(order_doc['_id'])
             self.db.save_doc(order_doc)
 
     def _create_tasks(self, providers=None, order_id=None):
-        logging.info("** creating tasks for %s" % providers)
         current_time = time.mktime(time.localtime())
         created = False
         for provider in providers:
             created = True
             task_id = "task-{}-{}".format(provider, self.server.next_uuid())  # int(time.mktime(current_time))
+            logging.info("create task %s" % task_id)
             doc = {
                 "_id": task_id,
                 "type": "task",
@@ -181,33 +182,32 @@ class Foreman(Worker):
                 "provider": provider
             }
             self.db.save_doc(doc)
-            logging.info("** created task %s" % provider)
         return created
 
     def _update_order(self, tasks):
         for task in tasks:
+            logging.info("updating order for task %s" % task['doc']['_id'])
             task_doc = task['doc']
-            order_id = task_doc['order_id']
-            order_doc = self.db.get(order_id)
+            order_doc = self.db.get(task_doc['order_id'])
             if not 'providers_done' in order_doc:
                 order_doc['providers_done'] = []
             providers = order_doc['providers'].keys()
             providers_done = order_doc['providers_done']
             providers_done.append(task_doc['provider'])
-            if all([p in providers for p in providers_done]):
-            #if order['providers'] == providers_done:
+            if (all([p in providers for p in providers_done]) and
+               not order_doc['state'] == 'done'):
                 order_doc['state'] = 'done'
-                update_docs_id = []
+                update_docs, update_docs_id = [], []
                 [update_docs_id.extend(v) for v in order_doc['providers'].viewvalues()]
+                update_docs_id = list(set(update_docs_id))
                 bulk_docs = self.db.all_docs(
                     keys=update_docs_id, include_docs=True
                 )
-                update_docs = []
                 for result in bulk_docs:
                     doc = result['doc']
                     doc['state'] = 'live'
                     update_docs.append(doc)
-                self.db.bulk_save(update_docs)
+                self.db.save_docs(update_docs)
             self.db.save_doc(order_doc)
             task_doc['state'] = 'done_checked'
             self.db.save_doc(order_doc)
