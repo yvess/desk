@@ -159,7 +159,7 @@
 
     if (!!window.EventSource)
     {
-        var source = new EventSource("/order/changes?since=now");
+        var source = new EventSource("/orders/done/?since=0");
         source.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
           doNotification(data)
