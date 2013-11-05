@@ -25,7 +25,7 @@ class WorkerTestCase(unittest.TestCase):
         }
         self.conf = {
             "powerdns_backend": "sqlite",
-            "powerdns_db": "/etc/powerdns/dns.db",
+            "powerdns_db": "/opt/local/etc/powerdns/dns.db",
             "worker_is_foreman": True,
         }
         self.conf.update(self.db_conf)
