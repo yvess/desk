@@ -12,7 +12,6 @@
 @import <AppKit/CPPopUpButton.j>
 @import <AppKit/CPButtonBar.j>
 @import <GrowlCappuccino/GrowlCappuccino.j>
-
 @import <CouchResource/COCategories.j>
 @import <CouchResource/COViewController.j>
 @import "DMClient.j"
@@ -40,6 +39,9 @@
     @outlet              CPButton workTimesSwitchButton;
     @outlet              CPButton domainSwitchButton;
     @outlet              CPButton orderButton;
+
+    DMClientViewController clientViewController;
+    DMDomainViewController domainViewController;
 
 }
 
@@ -107,11 +109,11 @@
 
     [theWindow setFullPlatformWindow:YES];
 
-    var clientViewController = [[DMClientViewController alloc]
+    var clientVC = [[DMClientViewController alloc]
                                 //[COViewController alloc]
                                 initWithCibName:@"ClientView"
                                 bundle:nil //],
-                                modelClass:[DMClient class]], //,
+                                modelClass:[DMClient class]]; //,
         // projectViewController = [[DMProjectViewController alloc]
         //                         initWithCibName:@"ProjectView"
         //                         bundle:nil
@@ -122,22 +124,24 @@
         //                         initWithCibName:@"WorkTimeView"
         //                         bundle:nil
         //                         modelClass:[DMWorkTime class]],
-        domainViewController = [[DMDomainViewController alloc]
+    var domainVC = [[DMDomainViewController alloc]
                                 initWithCibName:@"DomainView"
                                 bundle:nil
                                 modelClass:[DMDomain class]
-                                clients:[clientViewController items]
-                                clientLookup:[clientViewController itemLookup]];
+                                clients:[clientVC items]
+                                clientLookup:[clientVC itemLookup]];
 
-    [[mainTabView tabViewItemAtIndex:0] setView:[clientViewController view]];
+    self.domainViewController = domainVC;
+    self.clientViewController = clientVC;
+
+    [[mainTabView tabViewItemAtIndex:0] setView:[clientVC view]];
     // [[mainTabView tabViewItemAtIndex:1] setView:[projectViewController view]];
     // [[mainTabView tabViewItemAtIndex:2] setView:[workTimeViewController view]];
-    [[mainTabView tabViewItemAtIndex:3] setView:[domainViewController view]];
+    [[mainTabView tabViewItemAtIndex:3] setView:[domainVC view]];
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
-
     // This is called when the application is done loading.
     [clientsSwitchButton setAction:@selector(switchTabFromButton:)];
     // [projectsSwitchButton setAction:@selector(switchTabFromButton:)];
@@ -149,17 +153,20 @@
     [mainTabView selectTabViewItemAtIndex:0];
     [self switchTabFromButton:@"Clients"];
 
-    var growl = [TNGrowlCenter defaultCenter];
+    var growlCenter = [TNGrowlCenter defaultCenter];
 
-    [growl setView:mainTabView];
+    [growlCenter setView:mainTabView];
     var doNotification = function(data) {
-        var message = [CPString stringWithFormat:@"id:\n%@ \n\nsender:%@", data.id, data.doc.sender];
-        [growl pushNotificationWithTitle:@"order done" message:message];
+        console.log("doNotification");
+        var message = [CPString stringWithFormat:@"id: %@\nsender:%@", data.id, data.doc.sender];
+        [growlCenter pushNotificationWithTitle:@"order done" message:message];
     }
+    domainViewController.growlCenter = growlCenter;
+    clientViewController.growlCenter = growlCenter;
 
     if (!!window.EventSource)
     {
-        var source = new EventSource("/orders/done/?since=0");
+        var source = new EventSource("/orders/done/?since=now");
         source.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
           doNotification(data)

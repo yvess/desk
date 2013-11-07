@@ -209,7 +209,6 @@ class Foreman(Worker):
                     doc['state'] = 'live'
                     update_docs.append(doc)
                 self.db.save_docs(update_docs)
-            self.db.save_doc(order_doc)
             task_doc['state'] = 'done_checked'
             self.db.save_doc(order_doc)
             self.db.save_doc(task_doc)

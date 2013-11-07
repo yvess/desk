@@ -26,7 +26,7 @@
     CPMutableArray        clients;
     CPMutableArray        domainRecordTemplates @accessors;
     CPMutableDictionary   clientLookup;
-    DMDomain                 currentDomain @accessors;
+    DMDomain              currentDomain @accessors;
 }
 
 - (id)initWithCibName:(CPString) aCibNameOrNil
@@ -162,10 +162,6 @@
 - (void)saveModel:(id)sender
 {
     var item = [self lastSelectedObject];
-    if (![item coId])
-    {
-        [item setCoId:[[item class] couchId:item]];
-    }
     var selectedClientId = [[[clientsForDomainPopUp selectedItem] representedObject] coId];
     [item setClientId:selectedClientId];
 
@@ -173,7 +169,8 @@
     [item setTemplateId:selectedTemplateId];
     [item setState:@"new"];
 
-    [item save];
+    // [item save];
+    [super saveModel:sender];
 }
 
 @end
