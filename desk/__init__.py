@@ -63,7 +63,8 @@ class Worker(object):
         for doc_id in docs:
             doc = self.db.get(doc_id)
             logging.info("do task %s" % task_id)
-            successfull_tasks.append(self._do_task(doc))
+            was_successfull = self._do_task(doc)
+            successfull_tasks.append(was_successfull)
         task_doc = self.db.get(task_id)
         if all(successfull_tasks):
             task_doc['state'] = 'done'

@@ -7,6 +7,7 @@ import logging
 from copy import copy
 from desk.plugin.dns import DnsBase
 
+SOA_FORMAT = "{primary} {hostmaster} {serial} {refresh} {retry} {expire} {default_ttl}"
 
 class Powerdns(DnsBase):
     SETTING_KEYS = ['backend', 'db', 'user', 'name']
@@ -48,23 +49,33 @@ class Powerdns(DnsBase):
                 'SELECT id FROM domains WHERE name="{}"'.format(domain)
             ).fetchone()[0]
 
-    def update_serial(self, domain=None):
+    def _calc_serial(self, previous=""):
+        serial_date = time.strftime("%Y%m%d", time.localtime())
+        if not previous or not previous.startswith(serial_date):
+            return "{}{}".format(serial_date, "00")
+        serial_number = int(previous[8:10])
+        serial_number += 1
+        return "{}{:02d}".format(serial_date, serial_number)
+
+    def add_soa(self, domain=None):
+        serial = self._calc_serial(previous=None)
+        self.add_record(
+            self.domain,
+            SOA_FORMAT.format(serial=serial, **self.doc),
+            #"localhost dnsmaster@test.tt {}".format(serial),
+            rtype="SOA"
+        )
+
+    def update_soa(self, domain=None):
         if domain:
             self.set_domain(domain)
         current_serial = self._db(
             '''SELECT content FROM records WHERE name="{}"
                AND type="SOA"'''.format(self.domain)
         ).fetchone()[0].split(" ")[-1]
-        serial_datetime, serial_counter = (
-            current_serial[:-4], int(current_serial[-4:])
-        )
-        current_datetime = time.strftime("%Y%m%d%H%M", time.localtime())
-        if serial_datetime == current_datetime:
-            serial_counter += 1
-        serial = "{}{:04d}".format(current_datetime, serial_counter)
+
         self.update_record(
-            self.domain,
-            "localhost dnsmaster@test.tt {}".format(serial),
+            self.domain, self._calc_serial(current_serial),
             rtype="SOA"
         )
         # TODO sudoers
@@ -76,13 +87,7 @@ class Powerdns(DnsBase):
         self._db("""INSERT INTO domains (name, type)
                     VALUES ('{}', 'NATIVE')""".format(self.domain))
         self.domain_id = self._cursor.lastrowid
-        serial = time.strftime("%Y%m%d%H%M0001", time.localtime())
-        # TODO: where to put SOA?
-        self.add_record(
-            self.domain,
-            "localhost dnsmaster@test.tt {}".format(serial),
-            rtype="SOA"
-        )
+        self.add_soa(domain)
 
     def del_domain(self, domain=None):
         if domain:
@@ -170,7 +175,7 @@ class Powerdns(DnsBase):
                             # TODO add special case for main @ self.domain?
                             self.add_record(key, value, rtype=name.upper())
             self._conn.commit()
-            self.update_serial()
+            self.add_soa()
             was_sucessfull = True
         return was_sucessfull
 
@@ -230,6 +235,6 @@ class Powerdns(DnsBase):
                         self.del_record(key_old, value_old, rtype=name.upper())
                         self.add_record(key, value, rtype=name.upper())
             self._conn.commit()
-            self.update_serial()
+            self.soa_update_serial()
             was_sucessfull = True
         return was_sucessfull
