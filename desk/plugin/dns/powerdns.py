@@ -9,6 +9,7 @@ from desk.plugin.dns import DnsBase
 
 SOA_FORMAT = "{primary} {hostmaster} {serial} {refresh} {retry} {expire} {default_ttl}"
 
+
 class Powerdns(DnsBase):
     SETTING_KEYS = ['backend', 'db', 'user', 'name']
 
@@ -235,6 +236,6 @@ class Powerdns(DnsBase):
                         self.del_record(key_old, value_old, rtype=name.upper())
                         self.add_record(key, value, rtype=name.upper())
             self._conn.commit()
-            self.soa_update_serial()
+            self.update_soa()
             was_sucessfull = True
         return was_sucessfull

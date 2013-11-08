@@ -167,9 +167,12 @@
 
     var selectedTemplateId = [[[tplForDomainPopUp selectedItem] representedObject] coId];
     [item setTemplateId:selectedTemplateId];
-    [item setState:@"new"];
-
-    // [item save];
+    if ([item coRev])
+    {
+        [item setState:@"changed"];
+    } else {
+        [item setState:@"new"];
+    }
     [super saveModel:sender];
 }
 
