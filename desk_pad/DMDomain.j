@@ -139,4 +139,15 @@
     self = [self init];
     return self;
 }
+
++ (id)resourceDidLoad:(CPString)aResponse
+{
+    var resource = [super resourceDidLoad: aResponse];
+    if (resource)
+    {
+        [self addCouchVersion];
+    }
+    return resource;
+}
+
 @end

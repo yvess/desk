@@ -44,13 +44,12 @@
 
 - (void)deleteDomainEntry:(id)sender
 {
-    var domainEntry = [[self lookupDomainEntries] objectForKey:sender.domainEntry],
-        domainRecordAItems = [[[self domainRecord] a] items],
+    var domainRecordAItems = [[[self domainRecord] a] items],
         domainRecordCnameItems = [[[self domainRecord] cname] items],
         domainRecordMxItems = [[[self domainRecord] mx] items];
-    [domainRecordAItems removeObject:domainEntry];
-    [domainRecordCnameItems removeObject:domainEntry];
-    [domainRecordMxItems removeObject:domainEntry];
+    [domainRecordAItems removeObject:sender.domainEntry];
+    [domainRecordCnameItems removeObject:sender.domainEntry];
+    [domainRecordMxItems removeObject:sender.domainEntry];
     [self setLookupForDomainEntries];
     [domainOutline reloadData];
 }
