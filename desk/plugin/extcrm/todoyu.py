@@ -6,8 +6,7 @@ import pymysql
 
 class Todoyu(ExtCrmBase):
     def __init__(self, settings):
-        self.person_map = {}
-        self.company_map = {}
+        self.address_map = {}
         self.settings = settings
         self._fill_maps()
 
@@ -23,32 +22,22 @@ class Todoyu(ExtCrmBase):
         )
         company = 'company.id', 'company.title'
 
-        SQL_PERSON = """
+        SQL = """
         SELECT
-        {person}, {address}
-        FROM ext_contact_person AS person
-        CROSS JOIN (ext_contact_mm_person_address as p2a, ext_contact_address as address)
-            ON (person.id=p2a.id_person AND address.id=p2a.id_address)
-        LEFT JOIN (static_country as country)
-            ON (address.id_country=country.id)
-        WHERE person.deleted=0
-        ORDER BY person.firstname, person.lastname;""".format(
-            person=", ".join(person),
-            address=", ".join(address)
-        )
-
-        SQL_COMPANY = """
-        SELECT
-        {company}, {person}, {address}
-        FROM ext_contact_person AS person
-        CROSS JOIN (ext_contact_mm_company_person as c2p, ext_contact_company as company)
+        {address}, {person}, {company}
+        FROM ext_contact_address as address
+        LEFT JOIN (ext_contact_mm_company_address as c2a, ext_contact_company as company)
+            ON (address.id=c2a.id_address AND company.id=c2a.id_company)
+        LEFT JOIN (ext_contact_mm_company_person as c2p, ext_contact_person as person)
             ON (person.id=c2p.id_person AND company.id=c2p.id_company)
-        LEFT JOIN (ext_contact_mm_company_address as c2a, ext_contact_address as address)
-            ON (company.id=c2a.id_company AND address.id=c2a.id_address)
         LEFT JOIN (static_country as country)
             ON (address.id_country=country.id)
-        WHERE company.deleted=0
-        ORDER BY person.firstname, person.lastname;""".format(
+        WHERE 1
+        AND (address.deleted=0)
+        AND (company.deleted=0 OR company.deleted IS NULL) 
+        AND (person.deleted=0 OR person.deleted IS NULL)
+        ORDER BY company.title, person.firstname, person.lastname;
+        """.format(
             company=", ".join(company),
             person=", ".join(person),
             address=", ".join(address)
@@ -61,25 +50,23 @@ class Todoyu(ExtCrmBase):
         )
         cur = conn.cursor()
 
-        for SQL, fields, mapping in (
-                (SQL_PERSON, person + address, self.person_map),
-                (SQL_COMPANY, company + person + address, self.company_map)
-        ):
-            cur.execute(SQL)
-            for r in cur.fetchall():
-                fields = [f.replace('.', '_') for f in fields]
-                data = dict(zip(fields, r))
-                if (data['person_id'] not in mapping) or (
+        cur.execute(SQL)
+        for r in cur.fetchall():
+            fields = [f.replace('.', '_') for f in (address + person + company)]
+            data = dict(zip(fields, r))
+            pk_keys = (data['person_id'], 'p'), (data['company_id'], 'c')
+            pk = "-".join(["%s%s" % (key, pk) for pk, key in pk_keys if pk])
+            if pk:
+                if (pk not in self.address_map) or (
                    data['address_id_addresstype'] == 3):  # 3=billing address
-                    mapping[data['person_id']] = data
+                    self.address_map[pk] = data
                 elif data['address_id_addresstype'] == 2:  # 2=normal address
                     pass
                 else:
-                    print("double company", data, mapping[data['person_id']])
+                    print("double company", data, self.address_map[data[pk]])
 
         cur.close()
         conn.close()
 
-    def get_address(self, pk=None, kind='person'):
-        mapping = getattr(self, '%s_map' % kind)
-        return mapping[pk]
+    def get_address(self, pk=None):
+        return self.address_map[pk]

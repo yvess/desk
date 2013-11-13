@@ -35,9 +35,7 @@ class CreateInvoicesCommand(SettingsCommand):
             self._cmd("client_billable"), include_docs=True
         ):
             params = {}
-            kind, pk = result['doc']['crmId'].split(':')
-            pk = int(pk)
-            params.update(todoyu.get_address(pk, kind))
+            params.update(todoyu.get_address(result['doc']['crmId']))
             invoice_template_dir = self.settings.invoice_template_dir
             template_name = '%s/%s' % (invoice_template_dir, 'invoice.html')
             invoice_html = StringIO()
