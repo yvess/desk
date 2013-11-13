@@ -8,6 +8,7 @@ from ConfigParser import SafeConfigParser
 import argparse
 from desk.cmd import InstallDbCommand, InstallWorkerCommand, WorkerCommand
 from desk.plugin.dns.cmd import Ldif2JsonCommand, ImportDnsCommand
+from desk.plugin.invoice.cmd import CreateInvoicesCommand
 
 
 DEFAULTS = {
@@ -39,7 +40,7 @@ VERBOSE_PARSER = {
 }
 
 BOOLEAN_TYPES = ['worker_daemon', 'worker_is_foreman']
-CONF_SECTIONS = ['couchdb', 'powerdns', 'worker']
+CONF_SECTIONS = ['couchdb', 'powerdns', 'worker', 'todoyu', 'invoice']
 
 
 class SetupWorkerParser(object):
@@ -85,6 +86,11 @@ class SetupWorkerParser(object):
             self.subparsers, CONFIG_PARSER
         )
 
+        self.invoices_create_cmd = CreateInvoicesCommand()
+        self.invoices_create_parser = self.invoices_create_cmd.setup_parser(
+            self.subparsers, CONFIG_PARSER
+        )
+
     def merge_configfile(self):
         if self.pass_args:
             args = self.main_parser.parse_args(self.pass_args)
@@ -118,6 +124,7 @@ class SetupWorkerParser(object):
         self.install_worker_parser.set_defaults(**self.merged_defaults)
         self.dns_ldif2json_parser.set_defaults(**self.merged_defaults)
         self.dns_import_parser.set_defaults(**self.merged_defaults)
+        self.invoices_create_parser.set_defaults(**self.merged_defaults)
         if self.pass_args:
             self.settings = self.main_parser.parse_args(self.pass_args)
         else:
@@ -140,3 +147,6 @@ if __name__ == "__main__":
     elif worker.settings.command == 'dns-import':
         worker.dns_import_cmd.set_settings(worker.settings)
         worker.dns_import_cmd.run()
+    elif worker.settings.command == 'invoices-create':
+        worker.invoices_create_cmd.set_settings(worker.settings)
+        worker.invoices_create_cmd.run()

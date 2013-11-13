@@ -8,7 +8,14 @@
 
     /* custom ivars */
     CPString name     @accessors();
-    CPString city     @accessors();
+    CPString crmId    @accessors();
+    BOOL isBillable @accessors();
+}
+
++ (id)couchId:(id)aItem
+{
+    var cType = [[self class] underscoreName];
+    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
 }
 
 - (CPString)nameIdentifierString
