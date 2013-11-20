@@ -7,5 +7,11 @@
         {"host":"mx1.test.tt","priority":"10"},
         {"host":"mx2.test.tt","priority":"20"}
     ],
-    "name":"email test.tt"
+    "name":"email test.tt",
+    "soa_primary": "ns1.test.tt",
+    "soa_hostmaster": "dsnmaster@taywa.ch",
+    "soa_refresh": 3600,
+    "soa_retry": 3600,
+    "soa_expire": 3600,
+    "soa_default_ttl": 3600
 }

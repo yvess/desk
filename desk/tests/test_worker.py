@@ -9,7 +9,7 @@ from desk.utils import CouchdbUploader
 import time
 import json
 from copy import copy
-#from dns.resolver import NXDOMAIN
+from dns.resolver import NXDOMAIN
 from desk.plugin.base import MergedDoc, VersionDoc
 from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
@@ -26,6 +26,8 @@ class WorkerTestCase(unittest.TestCase):
         self.conf = {
             "powerdns_backend": "sqlite",
             "powerdns_db": "/opt/local/etc/powerdns/dns.db",
+            "powerdns_name": "ns1.test.tt",
+            "powerdns_primary": "ns1.test.tt",
             "worker_is_foreman": True,
         }
         self.conf.update(self.db_conf)
@@ -169,12 +171,12 @@ class WorkerTestCase(unittest.TestCase):
         order_id = self._create_order_doc()
         self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
-        self.assertFalse(
-        #with self.assertRaises(NXDOMAIN):
+        #self.assertFalse(
+        with self.assertRaises(NXDOMAIN):
             self._get_dns_validator('dns-test.tt').check_one_record(
                 'A', 'ip', q_key='host', item=changed_a
             )
-        )
+        #)
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, order_id])
 
@@ -199,12 +201,12 @@ class WorkerTestCase(unittest.TestCase):
         order2_id = self._create_order_doc()
         self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'live')
-        self.assertFalse(
-        #with self.assertRaises(NXDOMAIN):
+        #self.assertFalse(
+        with self.assertRaises(NXDOMAIN):
             self._get_dns_validator('dns-test.tt').check_one_record(
                 'A', 'ip', q_key='host', item=removed_a
             )
-        )
+        #)
         self._remove_domain('test.tt', docs=[dns_id, order1_id, order2_id])
 
     def test_two_domains(self):

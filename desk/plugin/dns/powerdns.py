@@ -7,7 +7,7 @@ import logging
 from copy import copy
 from desk.plugin.dns import DnsBase
 
-SOA_FORMAT = "{primary} {hostmaster} {serial} {refresh} {retry} {expire} {default_ttl}"
+SOA_FORMAT = "{soa_primary} {soa_hostmaster} {serial} {soa_refresh} {soa_retry} {soa_expire} {soa_default_ttl}"
 
 
 class Powerdns(DnsBase):

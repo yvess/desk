@@ -13,7 +13,6 @@ from desk.plugin.base import FilesForCouch
 
 
 class Ldif2JsonCommand(SettingsCommand):
-
     def setup_parser(self, subparsers):
         ldif2json_parser = subparsers.add_parser(
             'dns-ldif',
@@ -66,7 +65,6 @@ class Ldif2JsonCommand(SettingsCommand):
 
 
 class ImportDnsCommand(SettingsCommand):
-
     def setup_parser(self, subparsers, config_parser):
         dns_import_parser = subparsers.add_parser(
             'dns-import',
