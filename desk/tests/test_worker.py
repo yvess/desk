@@ -143,7 +143,7 @@ class WorkerTestCase(unittest.TestCase):
 
     def test_new_domain(self):
         dns_id, order_id = self._add_domain_test_tt()
-        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self.db.get(dns_id)['state'] == 'active')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, order_id])
 
@@ -157,7 +157,7 @@ class WorkerTestCase(unittest.TestCase):
         order_id = self._create_order_doc()
         self._run_order()
         #import ipdb; ipdb.set_trace();
-        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self.db.get(dns_id)['state'] == 'active')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, order_id])
 
@@ -170,7 +170,7 @@ class WorkerTestCase(unittest.TestCase):
         VersionDoc(self.db, dns_doc).create_version()
         order_id = self._create_order_doc()
         self._run_order()
-        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self.db.get(dns_id)['state'] == 'active')
         #self.assertFalse(
         with self.assertRaises(NXDOMAIN):
             self._get_dns_validator('dns-test.tt').check_one_record(
@@ -188,7 +188,7 @@ class WorkerTestCase(unittest.TestCase):
         VersionDoc(self.db, dns_doc).create_version()
         order_id = self._create_order_doc()
         self._run_order()
-        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self.db.get(dns_id)['state'] == 'active')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
         self._remove_domain('test.tt', docs=[dns_id, order_id])
 
@@ -200,7 +200,7 @@ class WorkerTestCase(unittest.TestCase):
         vd.create_version()
         order2_id = self._create_order_doc()
         self._run_order()
-        self.assertTrue(self.db.get(dns_id)['state'] == 'live')
+        self.assertTrue(self.db.get(dns_id)['state'] == 'active')
         #self.assertFalse(
         with self.assertRaises(NXDOMAIN):
             self._get_dns_validator('dns-test.tt').check_one_record(
@@ -214,9 +214,9 @@ class WorkerTestCase(unittest.TestCase):
         dns2_id, order_id = self._add_domain_test2_tt(run=False, add_order=False)
         order1_id = self._create_order_doc()
         self._run_order()
-        self.assertTrue(self.db.get(dns1_id)['state'] == 'live')
+        self.assertTrue(self.db.get(dns1_id)['state'] == 'active')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
-        self.assertTrue(self.db.get(dns2_id)['state'] == 'live')
+        self.assertTrue(self.db.get(dns2_id)['state'] == 'active')
         self.assertTrue(self._get_dns_validator('dns-test2.tt').do_check())
         self._remove_domain('test.tt', docs=[dns1_id, order1_id])
         self._remove_domain('test2.tt', docs=[dns2_id])

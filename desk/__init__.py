@@ -206,7 +206,7 @@ class Foreman(Worker):
                 )
                 for result in bulk_docs:
                     doc = result['doc']
-                    doc['state'] = 'live'
+                    doc['state'] = 'active'
                     update_docs.append(doc)
                 self.db.save_docs(update_docs)
             task_doc['state'] = 'done_checked'

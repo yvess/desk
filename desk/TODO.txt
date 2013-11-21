@@ -15,5 +15,5 @@ Worker
 - check affected rows from sql
 - undo queue feature
 
-states new, changed, live
+states new, changed, active
 
