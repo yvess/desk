@@ -2,9 +2,10 @@
 from __future__ import absolute_import, print_function, division  # unicode_literals
 import time
 from datetime import date
+import os
+import shutil
 import json
 import requests
-
 
 class ObjectDict(object):
     def __init__(self, **entries):
@@ -56,6 +57,45 @@ class CouchdbUploader(object):
         )
         return r.status_code if only_status else r
 
+
+class FilesForCouch(object):
+    def __init__(self, data, directory, prefix=""):
+        self.data = data
+        self.directory = directory
+        self.prefix = "{}-".format(prefix) if prefix else ""
+
+    def create(self):
+        for filename, content in self.data:
+            with open('{}/{}{}.json'.format(
+                      self.directory, self.prefix, filename), 'w') as outfile:
+                json.dump(content, outfile, indent=4)
+
+
+class CreateJsonFiles(object):
+    def __init__(self, path, docs, couchdb_uri=None, couchdb_db=None):
+        self.path, self.docs, self.couchdb_uri = path, docs, couchdb_uri
+        self.create_files()
+        if couchdb_uri and couchdb_db:
+            self.upload()
+
+    def create_files(self):
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path)
+        os.mkdir(self.path)
+        json_files = FilesForCouch(self.docs, self.path)
+        json_files.create()
+
+    def upload(self):
+        co = CouchdbUploader(
+            path=self.path, couchdb_uri=self.couchdb_uri,
+            couchdb_db=self.couchdb_db
+        )
+
+        for fname in os.listdir(self.path):
+            co.put(
+                data="@{}".format(fname),
+                doc_id=fname[:-5]
+            )
 
 def auth_from_uri(uri):
     return tuple(uri.split("@")[0].split('//')[1].split(":"))

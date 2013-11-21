@@ -7,9 +7,8 @@ import shutil
 import ezodf
 from couchdbkit import Server
 from desk.cmd import SettingsCommand
-from desk.plugin.base import FilesForCouch
 from desk.plugin.extcrm.todoyu import Todoyu
-from desk.utils import CouchdbUploader, create_order_doc, auth_from_uri
+from desk.utils import CouchdbUploader, FilesForCouch
 
 
 class ImportServiceCommand(SettingsCommand):

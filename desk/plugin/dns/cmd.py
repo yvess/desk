@@ -9,7 +9,7 @@ import tempfile
 from desk.cmd import SettingsCommand
 from desk.utils import CouchdbUploader, create_order_doc, auth_from_uri
 from desk.plugin.dns.importer import IspmanDnsLDIF, IspmanClientLDIF
-from desk.plugin.base import FilesForCouch
+from desk.utils import FilesForCouch
 
 
 class Ldif2JsonCommand(SettingsCommand):

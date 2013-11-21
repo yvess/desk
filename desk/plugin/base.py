@@ -147,19 +147,3 @@ class Updater(object):
         if self.task:
             was_successfull = self.task()
         return was_successfull
-
-
-class FilesForCouch(object):
-    def __init__(self, data, directory, prefix=""):
-        self.data = data
-        self.directory = directory
-        self.prefix = "{}-".format(prefix) if prefix else ""
-
-    def create(self):
-        for filename, content in self.data:
-            with open('{}/{}{}.json'.format(
-                      self.directory, self.prefix, filename), 'w') as outfile:
-                # TODO replace with native list
-                #if 'nameservers' in content:
-                #    content["nameservers"] = ", ".join(content["nameservers"])
-                json.dump(content, outfile, indent=4)
