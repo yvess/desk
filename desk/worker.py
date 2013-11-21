@@ -6,6 +6,7 @@ from gevent import monkey; monkey.patch_all()
 import sys
 from ConfigParser import SafeConfigParser
 import argparse
+import codecs
 from desk.cmd import InstallDbCommand, InstallWorkerCommand, WorkerCommand
 from desk.plugin.dns.cmd import Ldif2JsonCommand, ImportDnsCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
@@ -109,7 +110,8 @@ class SetupWorkerParser(object):
         merged_defaults = DEFAULTS.copy()
         if hasattr(args, 'config') and args.config:
             config = SafeConfigParser()
-            if not config.read([args.config]):
+            config.readfp(codecs.open(args.config, "r", "utf8"))
+            if not config:
                 print("Can't open file '{}'".format(args.config))
                 sys.exit(0)
             else:
