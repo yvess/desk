@@ -31,18 +31,19 @@ class CreateInvoicesCommand(SettingsCommand):
         invoices_create_parser.add_argument(
             "-y", "--year", dest="year",
             default=date.today().year, type=int,
-            help="start number for invoices"
+            help="year to bill"
+        )
+
+        invoices_create_parser.add_argument(
+            "-m", "--max", dest="max",
+            default=0, type=int,
+            help="maximal number of invoices to create"
         )
 
         return invoices_create_parser
 
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
-
-    def _create_template_vars(self):
-        d = {}
-        d['today'] = date.today()
-        return d
 
     def _get_services(self, client_id):
         services = {}
@@ -152,10 +153,15 @@ class CreateInvoicesCommand(SettingsCommand):
             self._cmd("client_is_billable"), include_docs=True
         )
         all_total = 0.0
+        docs = []
+        # if self.settings.max != 0:
+        #     query_results = query_results[:self.settings.max]
+        counter = 0
         for result in query_results:
             self.invoice = {
                 'start_date': date(self.settings.year, 1, 1),
                 'end_date': date(self.settings.year, 12, 31),
+                'date': date.today(),
                 'nr': self.invoice_nr,
                 'ref_nr': "%s%s" % (
                     self.invoice_nr,
@@ -165,17 +171,16 @@ class CreateInvoicesCommand(SettingsCommand):
                 'tax': 0.0,
                 'total': 0.0
             }
-            params = {}
-            params.update(self._create_template_vars())
-            params.update(todoyu.get_address(result['doc']['extcrm_id']))
-            params['services'] = self._get_services(result['doc']['_id'])
-            params.update(invoice=self.invoice)
+            self.invoice['services'] = self._get_services(result['doc']['_id'])
+            self.invoice['address'] = todoyu.get_address(result['doc']['extcrm_id'])
+
             t = jinja_env.get_template('invoice_tpl.html')
-            main_domain = params['services']['web']['items'][0]
+            main_domain = self.invoice['services']['web']['items'][0]
             if isinstance(main_domain, dict) and 'name' in main_domain:
                 main_domain = main_domain['name']
+            self.invoice['main_domain'] = main_domain
             invoice_name = "{date}_CHF{total:.2f}_Nr{nr}_hosting-{domain}_ta".format(
-                date=params['today'].strftime("%Y-%m-%d"),
+                date=self.invoice['date'].strftime("%Y-%m-%d"),
                 total=self.invoice['total'],
                 nr=self.invoice['nr'],
                 domain=main_domain
@@ -184,11 +189,15 @@ class CreateInvoicesCommand(SettingsCommand):
                 '%s/html/%s.html' % (output_dir, invoice_name),
                 'w+', encoding="utf-8"
             ) as invoice_html:
-                invoice_html.write(t.render(**params))
+                invoice_html.write(t.render(**self.invoice))
                 invoice_html.seek(0)
                 html = HTML(invoice_html, base_url="%s/html" % invoice_template_dir)
                 html.write_pdf('%s/pdf/%s.pdf' % (output_dir, invoice_name))
                 self.invoice_nr += 1
+                counter += 1
+
             all_total += self.invoice['total']
             print(".", end="")
+            if self.settings.max != 0 and counter >= self.settings.max:
+                break
         print("\n", "total", all_total)
