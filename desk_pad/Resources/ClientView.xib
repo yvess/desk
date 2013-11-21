@@ -197,7 +197,7 @@
                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     </textFieldCell>
                                     <connections>
-                                        <binding destination="90" name="value" keyPath="selection.crmId" id="C7O-uI-RtF"/>
+                                        <binding destination="90" name="value" keyPath="selection.extcrmId" id="cub-n5-BzY"/>
                                     </connections>
                                 </textField>
                                 <button verticalHuggingPriority="750" id="68">

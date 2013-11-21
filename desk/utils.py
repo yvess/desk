@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division  # unicode_literals
 import time
+from datetime import date
 import json
 import requests
 
@@ -72,3 +73,7 @@ def create_order_doc(uploader):
     uploader.put(data=json.dumps(order_doc), doc_id=order_id)
     uploader.update(handler='add-editor', doc_id=order_id)
     return order_id
+
+
+def parse_date(date_string):
+    return date(*[int(item) for item in date_string.split("-")])

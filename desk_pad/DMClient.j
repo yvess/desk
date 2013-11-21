@@ -8,7 +8,7 @@
 
     /* custom ivars */
     CPString name     @accessors();
-    CPString crmId    @accessors();
+    CPString extcrmId    @accessors();
     BOOL isBillable @accessors();
 }
 
