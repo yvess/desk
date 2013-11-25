@@ -7,6 +7,7 @@ import shutil
 import json
 import requests
 
+
 class ObjectDict(object):
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -97,6 +98,7 @@ class CreateJsonFiles(object):
                 doc_id=fname[:-5]
             )
 
+
 def auth_from_uri(uri):
     return tuple(uri.split("@")[0].split('//')[1].split(":"))
 
@@ -117,3 +119,13 @@ def create_order_doc(uploader):
 
 def parse_date(date_string):
     return date(*[int(item) for item in date_string.split("-")])
+
+
+def calc_esr_checksum(ref_number):
+    ref_number = str(int(ref_number))  # removed leading zeros
+    quasigroup_esr = (0, 9, 4, 6, 8, 2, 7, 1, 3, 5)
+    sum = 0
+
+    for n in ref_number:
+        sum = quasigroup_esr[(sum + int(n)) % 10]
+    return (10 - sum) % 10
