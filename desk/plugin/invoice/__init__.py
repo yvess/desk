@@ -37,8 +37,8 @@ class Invoice(object):
 
     def setup_invoice(self):
         self.doc = {
-            'start_date': date(self.settings.year, 1, 1),
-            'end_date': date(self.settings.year, 12, 31),
+            'start_date': self.invoice_cycle.doc['start_date'],
+            'end_date': self.invoice_cycle.doc['end_date'],
             'date': date.today(),
             'nr': self.invoice_nr,
             'ref_nr': "%s%s" % (
@@ -51,18 +51,22 @@ class Invoice(object):
         }
         self.doc['services'] = self.get_services()
         self.doc['address'] = self.crm.get_address(self.extcrm_id)
-
-    def render_pdf(self):
-        tpl = self.jinja_env.get_template('invoice_tpl.html')
         main_domain = self.doc['services']['web']['items'][0]
         if isinstance(main_domain, dict) and 'name' in main_domain:
             main_domain = main_domain['name']
         self.doc['main_domain'] = main_domain
+        if 'last_invoice_end_date' in self.doc:
+            self.doc['last_invoice_end_date'] = (
+                parse_date(self.doc['last_invoice_end_date'])
+            )
+
+    def render_pdf(self):
+        tpl = self.jinja_env.get_template('invoice_tpl.html')
         self.invoice_fname = "{date}_CHF{total:.2f}_Nr{nr}_hosting-{domain}_ta".format(
             date=self.doc['date'].strftime("%Y-%m-%d"),
             total=self.doc['total'],
             nr=self.doc['nr'],
-            domain=main_domain
+            domain=self.doc['main_domain']
         )
         with codecs.open(
             '%s/html/%s.html' % (self.output_dir, self.invoice_fname),
@@ -119,11 +123,11 @@ class Invoice(object):
                 title_attr = "service_{}_addon_{}_title".format(
                     service['service_type'], addon['name']
                 )
-                if hasattr(self.settings, title_attr):
+                if hasattr(self.settings, title_attr) and not 'title' in addon:
                     title = getattr(self.settings, title_attr)
                     addon['title'] = title
                 if 'start_date' not in addon:
-                    addon['start_date'] = self.doc['start_date']
+                    addon['start_date'] = service['start_date']
                 else:
                     addon['start_date'] = parse_date(addon['start_date'])
                 addon.update(
@@ -137,7 +141,8 @@ class Invoice(object):
     def add_amount(self, price, start_date):
         end_date = self.doc['end_date']
         item = {}
-        if start_date < self.doc['start_date']:
+        if 'last_invoice_end_date' in self.doc and \
+           start_date < self.doc['start_date']:
             start_date = self.doc['start_date']
         months = (
             (end_date.year - start_date.year) * 12 +
@@ -159,6 +164,10 @@ class InvoiceCycle(object):
         self.start_nr = invoice_nr
         self.current_nr = self.start_nr
         self.invoices = []
+        self.doc = {
+            'start_date': date(2013, 1, 1),
+            'end_date': date(2013, 12, 31),
+        }
 
     def add_invoice(self, invoice):
         self.invoices.append(invoice)

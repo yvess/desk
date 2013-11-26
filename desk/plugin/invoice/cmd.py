@@ -24,6 +24,11 @@ class CreateInvoicesCommand(SettingsCommand):
             help="start number for invoices"
         )
         invoices_create_parser.add_argument(
+            "-d", "--invoice_main_domain", dest="invoice_one_domain",
+            default=None,
+            help="creates only invoice with main domain"
+        )
+        invoices_create_parser.add_argument(
             "-y", "--year", dest="year",
             default=date.today().year, type=int,
             help="year to bill"
@@ -56,11 +61,14 @@ class CreateInvoicesCommand(SettingsCommand):
                 client_doc=result['doc'],
                 invoice_cycle=invoice_cycle
             )
-            invoice.render_pdf()
-            invoice_cycle.add_invoice(invoice)
-            counter += 1
-
-            print(".", end="")
+            if invoice.doc['services']['web']['start_date'] < \
+               invoice_cycle.doc['end_date']:
+               if invoice.doc['main_domain'] == self.settings.invoice_one_domain \
+                or not self.settings.invoice_one_domain:
+                invoice.render_pdf()
+                invoice_cycle.add_invoice(invoice)
+                counter += 1
+                print(".", end="")
             if self.settings.max != 0 and counter >= self.settings.max:
                 break
         print("\n", "total", invoice_cycle.get_total())

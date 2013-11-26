@@ -118,6 +118,7 @@ class ImportServiceCommand(SettingsCommand):
                         client_id = clients_extcrm_ids[client['todoyu']]
                     service_doc['service_type'] = service_type
                     service_doc['start_date'] = client['start_date']
+                    service_doc['last_invoice_end_date'] = client['last_invoice_end_date']
                     service_doc['client_id'] = client_id
                     if isinstance(client[service_type], dict):
                         service_doc.update(client[service_type])
