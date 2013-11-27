@@ -7,7 +7,8 @@ import sys
 from ConfigParser import SafeConfigParser
 import argparse
 import codecs
-from desk.cmd import InstallDbCommand, InstallWorkerCommand, WorkerCommand
+from desk.cmd import InstallDbCommand, InstallWorkerCommand
+from desk.cmd import WorkerCommand, UploadJsonCommand
 from desk.plugin.dns.cmd import Ldif2JsonCommand, ImportDnsCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand
@@ -79,6 +80,11 @@ class SetupWorkerParser(object):
             self.subparsers, CONFIG_PARSER
         )
 
+        self.upload_json_cmd = UploadJsonCommand()
+        self.upload_json_parser = self.upload_json_cmd.setup_parser(
+            self.subparsers, CONFIG_PARSER
+        )
+
         self.dns_ldif2json_cmd = Ldif2JsonCommand()
         self.dns_ldif2json_parser = self.dns_ldif2json_cmd.setup_parser(
             self.subparsers
@@ -131,6 +137,7 @@ class SetupWorkerParser(object):
         self.worker_parser.set_defaults(**self.merged_defaults)
         self.install_db_parser.set_defaults(**self.merged_defaults)
         self.install_worker_parser.set_defaults(**self.merged_defaults)
+        self.upload_json_parser.set_defaults(**self.merged_defaults)
         self.dns_ldif2json_parser.set_defaults(**self.merged_defaults)
         self.dns_import_parser.set_defaults(**self.merged_defaults)
         self.invoices_create_parser.set_defaults(**self.merged_defaults)
@@ -151,6 +158,9 @@ if __name__ == "__main__":
     elif worker.settings.command == 'install-worker':
         worker.install_worker_cmd.set_settings(worker.settings)
         worker.install_worker_cmd.run()
+    elif worker.settings.command == 'upload-json':
+        worker.upload_json_cmd.set_settings(worker.settings)
+        worker.upload_json_cmd.run()
     elif worker.settings.command == 'dns-ldif':
         worker.dns_ldif2json_cmd.set_settings(worker.settings)
         worker.dns_ldif2json_cmd.run()

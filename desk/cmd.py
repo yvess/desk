@@ -7,6 +7,7 @@ from couchdbkit.loaders import FileSystemDocsLoader
 from couchdbkit import Server
 from desk.utils import ObjectDict
 from desk import Worker, Foreman
+from desk.utils import CouchdbUploader
 
 
 class SettingsCommand(object):
@@ -80,6 +81,34 @@ class InstallDbCommand(SettingsCommand):
         db = server.get_or_create_db(self.settings.couchdb_db)
         loader = FileSystemDocsLoader('./_design')
         loader.sync(db, verbose=True)
+
+
+class UploadJsonCommand(SettingsCommand):
+    def setup_parser(self, subparsers, config_parser):
+        upload_parser = subparsers.add_parser(
+            'upload-json',
+            help="""upload multiple docs to couchdb""",
+        )
+        upload_parser.add_argument(
+            *config_parser['args'], **config_parser['kwargs']
+        )
+        upload_parser.add_argument(
+            "path", help="path of dir with json files",
+        )
+
+        return upload_parser
+
+    def run(self):
+        couch_up = CouchdbUploader(
+            path=self.settings.path, couchdb_uri=self.settings.couchdb_uri,
+            couchdb_db=self.settings.couchdb_db
+        )
+
+        for fname in os.listdir(self.settings.path):
+            couch_up.put(
+                data="@{}".format(fname),
+                doc_id=fname[:-5]
+            )
 
 
 class InstallWorkerCommand(SettingsCommand):
