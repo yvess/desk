@@ -29,12 +29,18 @@ class ImportServiceCommand(SettingsCommand):
             help="number of cols to read",
         )
 
+        service_import_parser.add_argument(
+            "-o", "--only-files", dest="only_files",
+            action="store_true", default=False,
+            help="only create files, don't upload to couchdb",
+        )
+
         return service_import_parser
 
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
-    def _init_spreadsheet(self):
+    def init_spreadsheet(self):
         spreadsheet = ezodf.opendoc(self.settings.src)
         sheet = spreadsheet.sheets[0]
         self.rows = sheet.rows()
@@ -43,7 +49,7 @@ class ImportServiceCommand(SettingsCommand):
             for c in self.rows.next()[:self.nr_cols]
         ]
 
-    def _process_sheet(self):
+    def process_sheet(self):
         services = []
         i = 0
         for row in self.rows:
@@ -66,11 +72,11 @@ class ImportServiceCommand(SettingsCommand):
                 break
         return services
 
-    def _init_couch(self):
+    def init_couch(self):
         self.server = Server(self.settings.couchdb_uri)
         self.db = self.server.get_db(self.settings.couchdb_db)
 
-    def _get_or_create_client(self, client):
+    def get_or_create_client(self, client):
         query_results = self.db.view(
             self._cmd("client_extcrm_id"), key=client['todoyu'],
             include_docs=False
@@ -95,10 +101,10 @@ class ImportServiceCommand(SettingsCommand):
 
     def run(self):
         self.nr_cols = self.settings.nr_cols
-        self._init_couch()
-        self._init_spreadsheet()
+        self.init_couch()
+        self.init_spreadsheet()
         clients_extcrm_ids = {}
-        client_services = self._process_sheet()
+        client_services = self.process_sheet()
         service_tpl = {
             'type': 'service', 'state': 'active'
         }
@@ -112,7 +118,7 @@ class ImportServiceCommand(SettingsCommand):
                     service_doc['_id'] = "service-%s" % self.server.next_uuid()
                     service_doc['extcrm_id'] = client['todoyu']
                     if client['todoyu'] not in clients_extcrm_ids:
-                        client_id = self._get_or_create_client(client)
+                        client_id = self.get_or_create_client(client)
                         clients_extcrm_ids[client['todoyu']] = client_id
                     else:
                         client_id = clients_extcrm_ids[client['todoyu']]
@@ -139,13 +145,14 @@ class ImportServiceCommand(SettingsCommand):
         json_files = FilesForCouch(self.docs, self.dest)
         json_files.create()
 
-        co = CouchdbUploader(
-            path=self.dest, couchdb_uri=self.settings.couchdb_uri,
-            couchdb_db=self.settings.couchdb_db
-        )
-
-        for fname in os.listdir(self.dest):
-            co.put(
-                data="@{}".format(fname),
-                doc_id=fname[:-5]
+        if not self.settings.only_files:
+            couch_up = CouchdbUploader(
+                path=self.dest, couchdb_uri=self.settings.couchdb_uri,
+                couchdb_db=self.settings.couchdb_db
             )
+
+            for fname in os.listdir(self.dest):
+                couch_up.put(
+                    data="@{}".format(fname),
+                    doc_id=fname[:-5]
+                )

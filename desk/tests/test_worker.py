@@ -35,11 +35,11 @@ class WorkerTestCase(unittest.TestCase):
         self.s = s
         s.create_db(self.db_conf['couchdb_db'])
         self.db = self.s.get_db(self.db_conf["couchdb_db"])
-        self.co = CouchdbUploader(
+        self.couch_up = CouchdbUploader(
             path=os.path.dirname(__file__),
             auth=('admin-test', 'admin-test'), **self.db_conf
         )
-        status_code = self.co.put(
+        status_code = self.couch_up.put(
             data="@fixtures/couchdb-design.json",
             doc_id="_design/{couchdb_db}"
         )
@@ -54,14 +54,14 @@ class WorkerTestCase(unittest.TestCase):
             }
         }
         self.assertTrue(
-            self.co.put(data=json.dumps(d), doc_id=worker_id) == 201
+            self.couch_up.put(data=json.dumps(d), doc_id=worker_id) == 201
         )
         self.assertTrue(
-            self.co.put(data="@fixtures/couchdb-template-dns.json",
+            self.couch_up.put(data="@fixtures/couchdb-template-dns.json",
                         doc_id="template-email") == 201
         )
         self.assertTrue(
-            self.co.put(data="@fixtures/couchdb-map-ips.json",
+            self.couch_up.put(data="@fixtures/couchdb-map-ips.json",
                         doc_id="map-ips") == 201
         )
 
@@ -100,17 +100,17 @@ class WorkerTestCase(unittest.TestCase):
             "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
             "type": "order", "sender": "pad", "state": "new_pre"
         }
-        self.assertTrue(self.co.put(data=json.dumps(order_doc),
+        self.assertTrue(self.couch_up.put(data=json.dumps(order_doc),
                         doc_id=order_id) == 201)
-        self.assertTrue(self.co.update(handler='add-editor',
+        self.assertTrue(self.couch_up.update(handler='add-editor',
                         doc_id=order_id) == 201)
         return order_id
 
     def _add_domain_test_tt(self, run=True, add_order=True):
         dns_id = "dns-test.tt"
-        self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test.tt.json",
+        self.assertTrue(self.couch_up.put(data="@fixtures/couchdb-dns-test.tt.json",
                         doc_id=dns_id) == 201)
-        self.assertTrue(self.co.update(handler='add-editor',
+        self.assertTrue(self.couch_up.update(handler='add-editor',
                         doc_id=dns_id) == 201)
         order_id = None
         if run and add_order:
@@ -120,9 +120,9 @@ class WorkerTestCase(unittest.TestCase):
 
     def _add_domain_test2_tt(self, run=True, add_order=True):
         dns_id = "dns-test2.tt"
-        self.assertTrue(self.co.put(data="@fixtures/couchdb-dns-test2.tt.json",
+        self.assertTrue(self.couch_up.put(data="@fixtures/couchdb-dns-test2.tt.json",
                         doc_id=dns_id) == 201)
-        self.assertTrue(self.co.update(handler='add-editor',
+        self.assertTrue(self.couch_up.update(handler='add-editor',
                         doc_id=dns_id) == 201)
         order_id = None
         if run and add_order:

@@ -87,13 +87,13 @@ class CreateJsonFiles(object):
         json_files.create()
 
     def upload(self):
-        co = CouchdbUploader(
+        couch_up = CouchdbUploader(
             path=self.path, couchdb_uri=self.couchdb_uri,
             couchdb_db=self.couchdb_db
         )
 
         for fname in os.listdir(self.path):
-            co.put(
+            couch_up.put(
                 data="@{}".format(fname),
                 doc_id=fname[:-5]
             )

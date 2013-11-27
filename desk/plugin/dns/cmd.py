@@ -96,12 +96,12 @@ class ImportDnsCommand(SettingsCommand):
             ldif2json.run(dest=dest, src=src)
             src = dest
 
-        co = CouchdbUploader(
+        couch_up = CouchdbUploader(
             path=src, couchdb_uri=self.settings.couchdb_uri,
             couchdb_db=self.settings.couchdb_db
         )
         for fname in os.listdir(src):
-            co.put(
+            couch_up.put(
                 data="@{}".format(fname),
                 doc_id=fname[:-5]
             )
