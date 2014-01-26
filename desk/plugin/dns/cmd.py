@@ -108,4 +108,4 @@ class ImportDnsCommand(SettingsCommand):
 
         if temp_dir:
             shutil.rmtree(temp_dir)
-        create_order_doc(co)
+        create_order_doc(couch_up)
