@@ -80,14 +80,29 @@
     return [aLabel uppercaseString];
 }
 
+- (CPString)nameservers
+{
+    if ([self.nameservers className] == @"CPString")
+    {
+        return self.nameservers;
+    } else {
+        return [[self.nameservers items] componentsJoinedByString:@", "];
+    }
+}
+
 - (JSObject)attributes
 {
     var a_items = [[self a] items],
         cname_items = [[self cname] items],
         mx_items = [[self mx] items],
+        nameservers_array = [[self nameservers] componentsSeparatedByString:@","],
         a_array = [],
         cname_array = [],
         mx_array = [];
+        nameservers_array = nameservers_array.map(
+            function(item) { return item.trim(); }
+        );
+        nameservers_array.sort();
 
     [a_items enumerateObjectsUsingBlock:function(item) {
         a_array.push([item JSONFromObject]);
@@ -104,18 +119,14 @@
     var json = {},
         couchKeys = ["_id", "_rev", "_attachments", "prev_rev", "state","domain", "nameservers", "hostmaster", "refresh",
                      "retry", "expire", "ttl", "client_id", "template_id", "a", "cname", "mx"],
-        cappuccinoValues = [coId, coRev, coAttachments, prevRev, state, domain, nameservers, hostmaster, refresh,
+        cappuccinoValues = [coId, coRev, coAttachments, prevRev, state, domain, nameservers_array, hostmaster, refresh,
                             retry, expire, ttl, clientId, templateId, a_array, cname_array, mx_array];
 
     for (var i = 0; i < couchKeys.length; i++)
     {
         if (cappuccinoValues[i])
         {
-            if (couchKeys[i] == "nameservers") {
-                json[couchKeys[i]] = cappuccinoValues[i].split(", ");
-            } else {
-                json[couchKeys[i]] = cappuccinoValues[i];
-            }
+            json[couchKeys[i]] = cappuccinoValues[i];
         }
     }
     json['type'] = [[self class] underscoreName];
