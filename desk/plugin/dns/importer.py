@@ -1,18 +1,21 @@
 # coding: utf-8
-from __future__ import absolute_import, print_function, division, unicode_literals
+from __future__ import absolute_import, print_function
+from __future__ import division, unicode_literals
 from ldif import LDIFParser
 import hashlib
 
 
 class IspmanDnsLDIF(LDIFParser):
 
-    def __init__(self, input, output, clients_ldif=None, editor=None):
+    def __init__(self, input, output, clients_ldif=None,
+                 editor=None, templates=None):
         LDIFParser.__init__(self, input)
         self.domains = {}
         self.domains_lookup = (
             clients_ldif.domains_lookup if clients_ldif else None
         )
         self.editor = editor
+        print(templates)
 
     def handle(self, dn, entry):
         if dn.startswith('relativeDomainName='):

@@ -30,6 +30,11 @@ class Ldif2JsonCommand(SettingsCommand):
             metavar="CLIENT_LDIF",
             help="merge client data from ldif export"
         )
+        ldif2json_parser.add_argument(
+            "-t", "--templates", dest="templates", nargs='*', default=None,
+            help="""doc ids of templates to check,
+            only looks at mx and namserver entries"""
+        )
 
         return ldif2json_parser
 
@@ -52,7 +57,8 @@ class Ldif2JsonCommand(SettingsCommand):
             json_files.create()
             dns_ldif = IspmanDnsLDIF(
                 open(src, 'r'), sys.stdout,
-                clients_ldif=client_ldif, editor=auth[0]
+                clients_ldif=client_ldif, editor=auth[0],
+                templates=self.settings.templates
             )
         else:
             dns_ldif = IspmanDnsLDIF(
@@ -80,6 +86,11 @@ class ImportDnsCommand(SettingsCommand):
             "-l", "--client-ldif", dest="src_client_ldif",
             metavar="CLIENT_LDIF",
             help="merge client data from ldif export"
+        )
+        dns_import_parser.add_argument(
+            "-t", "--templates", dest="templates", default=None,
+            help="""doc ids of templates to check (comma separeted)
+            only mx and namserver are used, first matched template is used"""
         )
         return dns_import_parser
 
