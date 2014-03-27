@@ -3,19 +3,17 @@ from __future__ import absolute_import, print_function
 from __future__ import division, unicode_literals
 from ldif import LDIFParser
 import hashlib
+from desk.cmd import DocsProcessor
 
 
 class IspmanDnsLDIF(LDIFParser):
-
-    def __init__(self, input, output, clients_ldif=None,
-                 editor=None, templates=None):
+    def __init__(self, input, output, clients_ldif=None, editor=None):
         LDIFParser.__init__(self, input)
         self.domains = {}
         self.domains_lookup = (
             clients_ldif.domains_lookup if clients_ldif else None
         )
         self.editor = editor
-        print(templates)
 
     def handle(self, dn, entry):
         if dn.startswith('relativeDomainName='):
@@ -82,7 +80,6 @@ class IspmanDnsLDIF(LDIFParser):
 
 
 class IspmanClientLDIF(LDIFParser):
-
     def __init__(self, input, output, editor=None):
         LDIFParser.__init__(self, input)
         self.clients = {}
@@ -114,3 +111,9 @@ class IspmanClientLDIF(LDIFParser):
 
     def add_domain(self, domain, client):
         self.domains_lookup[domain] = self._id_for_client(client)
+
+
+class DnsDocsProcessor(DocsProcessor):
+    def process_doc(self, doc):
+        doc[1]['a'] = None
+        print(doc)

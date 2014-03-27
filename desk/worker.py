@@ -87,7 +87,7 @@ class SetupWorkerParser(object):
 
         self.dns_ldif2json_cmd = Ldif2JsonCommand()
         self.dns_ldif2json_parser = self.dns_ldif2json_cmd.setup_parser(
-            self.subparsers
+            self.subparsers, CONFIG_PARSER
         )
 
         self.dns_import_cmd = ImportDnsCommand()

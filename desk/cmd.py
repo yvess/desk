@@ -141,3 +141,29 @@ class InstallWorkerCommand(SettingsCommand):
             "provides": provides
         }
         db.save_doc(d)
+
+
+class DocsProcessor(SettingsCommand):
+    def __init__(self, settings, docs):
+        self.set_settings(settings)
+        template_ids, map_id = (self.settings.template_ids.split(','),
+                                self.settings.map_id)
+        self.server = Server(uri=self.settings.couchdb_uri)
+        self.db = self.server.get_db(self.settings.couchdb_db)
+        self.template_docs = (self.get_templates(template_ids)
+                              if template_ids else None)
+        self.map_doc = self.get_map(map_id) if map_id else None
+        for doc in docs:
+            self.process_doc(doc)
+
+    def get_templates(self, template_ids):
+        docs = []
+        for doc_id in template_ids:
+            docs.append(self.db.get(doc_id))
+        return docs
+
+    def get_map(self, map_id):
+        return self.db.get(map_id)
+
+    def process_doc(self, doc):
+        pass

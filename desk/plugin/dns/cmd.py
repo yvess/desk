@@ -10,10 +10,11 @@ from desk.cmd import SettingsCommand
 from desk.utils import CouchdbUploader, create_order_doc, auth_from_uri
 from desk.plugin.dns.importer import IspmanDnsLDIF, IspmanClientLDIF
 from desk.utils import FilesForCouch
+from desk.plugin.dns.importer import DnsDocsProcessor
 
 
 class Ldif2JsonCommand(SettingsCommand):
-    def setup_parser(self, subparsers):
+    def setup_parser(self, subparsers, config_parser):
         ldif2json_parser = subparsers.add_parser(
             'dns-ldif',
             help="""generate json files from ispman ldif export""",
@@ -21,6 +22,8 @@ class Ldif2JsonCommand(SettingsCommand):
                     A folder `couch` is generated at the location of the ldif
                     file. The dns json files are in this folder."""
         )
+        ldif2json_parser.add_argument(*config_parser['args'],
+                                      **config_parser['kwargs'])
         ldif2json_parser.add_argument(
             "src",
             help="source of the ldif file with the DNS data",
@@ -31,9 +34,13 @@ class Ldif2JsonCommand(SettingsCommand):
             help="merge client data from ldif export"
         )
         ldif2json_parser.add_argument(
-            "-t", "--templates", dest="templates", nargs='*', default=None,
-            help="""doc ids of templates to check,
-            only looks at mx and namserver entries"""
+            "-t", "--templates", dest="template_ids", default=None,
+            help="""doc ids of templates to check (comma separeted)
+            only mx and namserver are used, first matched template is used"""
+        )
+        ldif2json_parser.add_argument(
+            "-m", "--map", dest="map_id", default=None,
+            help="""doc id of map to check for ip variables"""
         )
 
         return ldif2json_parser
@@ -44,7 +51,10 @@ class Ldif2JsonCommand(SettingsCommand):
             src = self.settings.src
         if not dest:
             dest = "{}/couch".format(os.path.dirname(self.settings.src))
-            os.mkdir(dest)
+            try:
+                os.mkdir(dest)
+            except OSError:
+                pass
         if hasattr(self.settings, 'src_client_ldif') and (
            self.settings.src_client_ldif):
             client_ldif = IspmanClientLDIF(
@@ -57,8 +67,7 @@ class Ldif2JsonCommand(SettingsCommand):
             json_files.create()
             dns_ldif = IspmanDnsLDIF(
                 open(src, 'r'), sys.stdout,
-                clients_ldif=client_ldif, editor=auth[0],
-                templates=self.settings.templates
+                clients_ldif=client_ldif, editor=auth[0]
             )
         else:
             dns_ldif = IspmanDnsLDIF(
@@ -66,6 +75,7 @@ class Ldif2JsonCommand(SettingsCommand):
             )
         dns_ldif.parse()
         data = [(k, v) for k, v in dns_ldif.domains.iteritems()]
+        DnsDocsProcessor(self.settings, data)
         json_files = FilesForCouch(data, dest, prefix="domain")
         json_files.create()
 
@@ -88,9 +98,13 @@ class ImportDnsCommand(SettingsCommand):
             help="merge client data from ldif export"
         )
         dns_import_parser.add_argument(
-            "-t", "--templates", dest="templates", default=None,
+            "-t", "--templates", dest="template_ids", default=None,
             help="""doc ids of templates to check (comma separeted)
             only mx and namserver are used, first matched template is used"""
+        )
+        dns_import_parser.add_argument(
+            "-m", "--map", dest="map_id", default=None,
+            help="""doc id of map to check for ip variables"""
         )
         return dns_import_parser
 
