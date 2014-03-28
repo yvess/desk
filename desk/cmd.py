@@ -153,13 +153,18 @@ class DocsProcessor(SettingsCommand):
         self.template_docs = (self.get_templates(template_ids)
                               if template_ids else None)
         self.map_doc = self.get_map(map_id) if map_id else None
-        for doc in docs:
-            self.process_doc(doc)
+        self.docs = docs
 
     def get_templates(self, template_ids):
         docs = []
         for doc_id in template_ids:
-            docs.append(self.db.get(doc_id))
+            template_doc = self.db.get(doc_id)
+            for attr in ['_id', '_rev', 'type', 'template_type', 'name']:
+                del template_doc[attr]
+            has_postprocess_tpl = hasattr(self, 'postprocess_tpl')
+            if has_postprocess_tpl and callable(self.postprocess_tpl):
+                self.postprocess_tpl(template_doc)
+            docs.append(template_doc)
         return docs
 
     def get_map(self, map_id):
@@ -167,3 +172,7 @@ class DocsProcessor(SettingsCommand):
 
     def process_doc(self, doc):
         pass
+
+    def process(self):
+        for doc in self.docs:
+            self.process_doc(doc)

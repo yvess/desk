@@ -116,4 +116,6 @@ class IspmanClientLDIF(LDIFParser):
 class DnsDocsProcessor(DocsProcessor):
     def process_doc(self, doc):
         doc[1]['a'] = None
-        print(doc)
+
+    def postprocess_tpl(doc):
+        [doc.pop(key) for key in doc.keys() if key.startswith('soa_')]
