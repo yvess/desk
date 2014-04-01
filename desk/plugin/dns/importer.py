@@ -119,3 +119,4 @@ class DnsDocsProcessor(DocsProcessor):
 
     def postprocess_tpl(doc):
         [doc.pop(key) for key in doc.keys() if key.startswith('soa_')]
+        return doc

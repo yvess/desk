@@ -163,7 +163,7 @@ class DocsProcessor(SettingsCommand):
                 del template_doc[attr]
             has_postprocess_tpl = hasattr(self, 'postprocess_tpl')
             if has_postprocess_tpl and callable(self.postprocess_tpl):
-                self.postprocess_tpl(template_doc)
+                template_doc = self.postprocess_tpl(template_doc)
             docs.append(template_doc)
         return docs
 
