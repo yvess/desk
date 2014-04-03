@@ -170,8 +170,25 @@ class DocsProcessor(SettingsCommand):
     def get_map(self, map_id):
         return self.db.get(map_id)
 
+    def is_child_of(self, parent, child):
+        def is_child_of_inner(parent, child):
+            for key, value in child.iteritems():
+                if key in parent and parent[key] == value:
+                    yield True
+                else:
+                    yield False
+        return all(is_child_of_inner(parent, child))
+
+    def replace_with_template(self, doc, template):
+        for key in template.keys():
+            del doc['key']
+        doc.update(template)
+
     def process_doc(self, doc):
-        pass
+        for template in self.template_docs:
+            if self.is_child_of(doc, template):
+                self.replace_with_template(doc, template)
+                break
 
     def process(self):
         for doc in self.docs:
