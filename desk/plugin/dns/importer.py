@@ -49,6 +49,7 @@ class IspmanDnsLDIF(LDIFParser):
                 if nameserver.endswith("."):
                     nameserver = nameserver[:-1]
                 self.domains[domain]['nameservers'].append(nameserver)
+                self.domains[domain]['nameservers'].sort()
 
             if "cNAMERecord" in dn:
                 cname(entry)
@@ -114,9 +115,6 @@ class IspmanClientLDIF(LDIFParser):
 
 
 class DnsDocsProcessor(DocsProcessor):
-    def process_doc(self, doc):
-        doc[1]['a'] = None
-
-    def postprocess_tpl(doc):
+    def postprocess_tpl(self, doc):
         [doc.pop(key) for key in doc.keys() if key.startswith('soa_')]
         return doc

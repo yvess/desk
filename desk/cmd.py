@@ -146,8 +146,8 @@ class InstallWorkerCommand(SettingsCommand):
 class DocsProcessor(SettingsCommand):
     def __init__(self, settings, docs):
         self.set_settings(settings)
-        template_ids, map_id = (self.settings.template_ids.split(','),
-                                self.settings.map_id)
+        template_ids, map_id = self.settings.template_ids, self.settings.map_id
+        template_ids = template_ids.split(',') if template_ids else []
         self.server = Server(uri=self.settings.couchdb_uri)
         self.db = self.server.get_db(self.settings.couchdb_db)
         self.template_docs = (self.get_templates(template_ids)
@@ -159,7 +159,7 @@ class DocsProcessor(SettingsCommand):
         docs = []
         for doc_id in template_ids:
             template_doc = self.db.get(doc_id)
-            for attr in ['_id', '_rev', 'type', 'template_type', 'name']:
+            for attr in ['_rev', 'type', 'template_type', 'name']:
                 del template_doc[attr]
             has_postprocess_tpl = hasattr(self, 'postprocess_tpl')
             if has_postprocess_tpl and callable(self.postprocess_tpl):
@@ -173,23 +173,26 @@ class DocsProcessor(SettingsCommand):
     def is_child_of(self, parent, child):
         def is_child_of_inner(parent, child):
             for key, value in child.iteritems():
-                if key in parent and parent[key] == value:
+                if key in parent and (parent[key] == value or key == '_id'):
                     yield True
                 else:
                     yield False
-        return all(is_child_of_inner(parent, child))
+        is_child = all(is_child_of_inner(parent, child))
+        return is_child
 
     def replace_with_template(self, doc, template):
         for key in template.keys():
-            del doc['key']
-        doc.update(template)
+            del doc[key]
+        doc['template_id'] = template['_id']
 
     def process_doc(self, doc):
-        for template in self.template_docs:
-            if self.is_child_of(doc, template):
-                self.replace_with_template(doc, template)
-                break
+        if self.template_docs:
+            for template in self.template_docs:
+                if self.is_child_of(doc, template):
+                    self.replace_with_template(doc, template)
+                    break
+        return doc
 
     def process(self):
         for doc in self.docs:
-            self.process_doc(doc)
+            doc[1] = self.process_doc(doc[1])
