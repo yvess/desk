@@ -115,6 +115,8 @@ class IspmanClientLDIF(LDIFParser):
 
 
 class DnsDocsProcessor(DocsProcessor):
+    allowed_template_type = "ddns"
+
     def postprocess_tpl(self, doc):
         [doc.pop(key) for key in doc.keys() if key.startswith('soa_')]
         return doc

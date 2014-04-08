@@ -144,27 +144,47 @@ class InstallWorkerCommand(SettingsCommand):
 
 
 class DocsProcessor(SettingsCommand):
+    allowed_template_type = None  # need to be overwritten by subclass
+
     def __init__(self, settings, docs):
         self.set_settings(settings)
         template_ids, map_id = self.settings.template_ids, self.settings.map_id
         template_ids = template_ids.split(',') if template_ids else []
         self.server = Server(uri=self.settings.couchdb_uri)
         self.db = self.server.get_db(self.settings.couchdb_db)
-        self.template_docs = (self.get_templates(template_ids)
-                              if template_ids else None)
+        self.template_docs = []
+        if not template_ids:
+            self.template_docs = self.get_all_templates()
+        else:
+            self.template_docs = self.get_templates(template_ids)
+        print(self.template_docs)
         self.map_doc = self.get_map(map_id) if map_id else None
         self.docs = docs
+
+    def clean_template(self, template_doc):
+        for attr in ['_rev', 'type', 'template_type', 'name']:
+            del template_doc[attr]
+        has_postprocess_tpl = hasattr(self, 'postprocess_tpl')
+        if has_postprocess_tpl and callable(self.postprocess_tpl):
+            template_doc = self.postprocess_tpl(template_doc)
+        return template_doc
 
     def get_templates(self, template_ids):
         docs = []
         for doc_id in template_ids:
-            template_doc = self.db.get(doc_id)
-            for attr in ['_rev', 'type', 'template_type', 'name']:
-                del template_doc[attr]
-            has_postprocess_tpl = hasattr(self, 'postprocess_tpl')
-            if has_postprocess_tpl and callable(self.postprocess_tpl):
-                template_doc = self.postprocess_tpl(template_doc)
+            template_doc = self.clean_template(self.db.get(doc_id))
             docs.append(template_doc)
+        return docs
+
+    def get_all_templates(self):
+        docs = []
+        for t in self.db.view("%s/template" % (self.settings.couchdb_db)):
+            template_doc = self.db.get(t['id'])
+            if template_doc['template_type'] == self.allowed_template_type:
+                docs.append(self.clean_template(template_doc))
+        # assumption that templates with more keys will be checked first
+        docs.sort(key=len)
+        docs.reverse()
         return docs
 
     def get_map(self, map_id):
