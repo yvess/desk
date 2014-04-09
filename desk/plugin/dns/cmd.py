@@ -6,6 +6,7 @@ from os import mkdir, listdir, path, unlink
 import sys
 import shutil
 import tempfile
+from socket import gethostbyaddr
 from desk.cmd import SettingsCommand
 from desk.utils import CouchdbUploader, create_order_doc, auth_from_uri
 from desk.plugin.dns.importer import IspmanDnsLDIF, IspmanClientLDIF
@@ -56,6 +57,11 @@ class ImportDnsCommand(SettingsCommand):
             action="store_true",
             help="""create dest at source file dir location"""
         )
+        importdns_parser.add_argument(
+            "-i", "--ips", dest="show_ips", default=False,
+            action="store_true",
+            help="""show all a record ips"""
+        )
 
         return importdns_parser
 
@@ -80,8 +86,15 @@ class ImportDnsCommand(SettingsCommand):
                 open(src, 'r'), sys.stdout, editor=auth[0]
             )
         dns_ldif.parse()
+        if self.settings.show_ips:
+            for ip in dns_ldif.a_record_ips:
+                try:
+                    hostname = gethostbyaddr(ip)[0]
+                except:
+                    hostname = None
+                print("ip:{} ({}), \ndomains:{}\n".format(
+                    ip, hostname, dns_ldif.a_record_hosts[ip]))
         data = [[k, v] for k, v in dns_ldif.domains.iteritems()]
-        print("DnsDocsProcessor", dest, src)
         docs_processor = DnsDocsProcessor(self.settings, data)
         docs_processor.process()
         json_files = FilesForCouch(data, dest, prefix="domain")

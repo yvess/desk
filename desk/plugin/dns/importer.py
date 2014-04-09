@@ -14,6 +14,8 @@ class IspmanDnsLDIF(LDIFParser):
             clients_ldif.domains_lookup if clients_ldif else None
         )
         self.editor = editor
+        self.a_record_ips = set([])
+        self.a_record_hosts = {}
 
     def handle(self, dn, entry):
         if dn.startswith('relativeDomainName='):
@@ -26,20 +28,28 @@ class IspmanDnsLDIF(LDIFParser):
 
             def cname(entry):
                 self.domains[domain]['cname'].append(
-                    {'alias': entry['relativeDomainName'][0],
-                     'host': entry['cNAMERecord'][0]}
+                    {'alias': entry['relativeDomainName'][0].strip(),
+                     'host': entry['cNAMERecord'][0].strip()}
                 )
 
             def a(entry):
+                host = entry['relativeDomainName'][0].strip()
+                ip = entry['aRecord'][0].strip()
                 self.domains[domain]['a'].append(
-                    {'host': entry['relativeDomainName'][0],
-                     'ip': entry['aRecord'][0]}
+                    {'host': host,
+                     'ip': ip}
                 )
+                self.a_record_ips.add(ip)
+                full_host = "%s.%s" % (host, domain)
+                if ip in self.a_record_hosts:
+                    self.a_record_hosts[ip].append(full_host)
+                else:
+                    self.a_record_hosts[ip] = [full_host]
 
             def mx(entry):
                 entry = entry['mXRecord'][0].split(' ')
                 self.domains[domain]['mx'].append(
-                    {'host': entry[1],
+                    {'host': entry[1].strip(),
                      'priority': entry[0]}
                 )
 
@@ -115,8 +125,16 @@ class IspmanClientLDIF(LDIFParser):
 
 
 class DnsDocsProcessor(DocsProcessor):
-    allowed_template_type = "ddns"
+    allowed_template_type = 'dns'
+    map_id = 'map-ips'
 
     def postprocess_tpl(self, doc):
         [doc.pop(key) for key in doc.keys() if key.startswith('soa_')]
+        return doc
+
+    def postprocess_doc(self, doc):
+        if 'a' in doc:
+            for a_record in doc['a']:
+                if a_record['ip'] in self.map_values:
+                    a_record['ip'] = self.map_values[a_record['ip']]
         return doc
