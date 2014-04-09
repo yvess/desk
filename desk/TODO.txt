@@ -11,10 +11,12 @@ Worker
 - use_doc for all plugins
 - permission sqlitedb
 - validate couchdb doc for dns
-- placeholder ip @
+- placeholder $ip 
 - doc strings
 - check affected rows from sql
 - undo queue feature
+- test @ for main domain entry
+- fqn with or without "."?
 
 states new, changed, active
 
