@@ -1,0 +1,21 @@
+db:
+  image: klaemo/couchdb
+  hostname: db1
+  # volumes:
+  #   - projects
+deskmaster:
+  image: yvess/desk_master
+  hostname: deskmaster1
+  volumes_from:
+    - projects
+  links:
+    - db
+# desk_pdns1:
+#   build: .
+#   command: python manage.py runserver 0.0.0.0:8000
+#   volumes:
+#     - projects
+#   ports:
+#     - "8000:8000"
+#   links:
+#     - db
