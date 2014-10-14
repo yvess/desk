@@ -1,11 +1,26 @@
 {
+	"build_systems":
+	[
+		{
+			"name": "Anaconda Python Builder",
+			"selector": "source.python",
+		}
+	],
 	"folders":
 	[
 		{
-			"path": ".",
-            "file_exclude_patterns": ["*.sublime-workspace",
-            "*.sublime-project"],
-            "folder_exclude_patterns": [".codeintel", "htmlcov", "py27"]
+			"file_exclude_patterns":
+			[
+				"*.sublime-workspace",
+				"*.sublime-project"
+			],
+			"folder_exclude_patterns":
+			[
+				".codeintel",
+				"htmlcov",
+				"py27"
+			],
+			"path": "."
 		}
 	]
 }
