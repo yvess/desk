@@ -3,19 +3,29 @@ db:
   hostname: db1
   # volumes:
   #   - projects
-deskmaster:
+  ports:
+    - "15984:5984"
+
+master:
   image: yvess/desk_master
-  hostname: deskmaster1
+  hostname: master
   volumes_from:
     - projects
   links:
     - db
-# desk_pdns1:
-#   build: .
-#   command: python manage.py runserver 0.0.0.0:8000
-#   volumes:
-#     - projects
-#   ports:
-#     - "8000:8000"
-#   links:
-#     - db
+
+dns:
+  image: yvess/desk_dns
+  hostname: dns1
+  ports:
+    - "1053:53"
+  links:
+    - db
+
+dns:
+  image: yvess/desk_dns
+    hostname: dns2
+  ports:
+    - "2053:53"
+  links:
+    - db
