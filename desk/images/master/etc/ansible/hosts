@@ -1,3 +1,6 @@
+[masterserver]
 master1
+
+[dnsservers]
 dnsa_1
 dnsb_1
