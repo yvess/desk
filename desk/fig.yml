@@ -1,8 +1,11 @@
 db:
-  image: klaemo/couchdb
+  image: yvess/couchdb
   hostname: db1
+  volumes_from:
+    - projects
   ports:
     - "15984:5984"
+    - "2201:22"
 
 master:
   image: yvess/desk_master
