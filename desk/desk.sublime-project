@@ -4,6 +4,7 @@
 		{
 			"name": "Anaconda Python Builder",
 			"selector": "source.python",
+			"shell_cmd": "env python -u \"$file\""
 		}
 	],
 	"folders":
