@@ -1,0 +1,15 @@
+[couchdb]
+uri = http://admin:admin@db_1:5984
+db  = desk_drawer
+
+
+[worker]
+is_foreman = false
+dns = powerdns:{{ ansible_hostname }}
+
+
+[powerdns]
+backend = sqlite
+db = /etc/powerdns/dns.db
+name = {{ ansible_hostname }}
+primary = dnsa_1

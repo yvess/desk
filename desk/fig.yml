@@ -1,31 +1,38 @@
 db:
   image: klaemo/couchdb
   hostname: db1
-  # volumes:
-  #   - projects
   ports:
     - "15984:5984"
 
 master:
   image: yvess/desk_master
-  hostname: master
+  hostname: master1
+  command: /sbin/my_init --enable-insecure-key
   volumes_from:
     - projects
   links:
     - db
+    - dnsa
+    - dnsb
+  ports:
+    - "2202:22"
 
-dns:
+dnsa:
   image: yvess/desk_dns
   hostname: dns1
+  command: /sbin/my_init --enable-insecure-key
+  links:
+    - db
   ports:
     - "1053:53"
+    - "2203:22"
+
+dnsb:
+  image: yvess/desk_dns
+  hostname: dns2
+  command: /sbin/my_init --enable-insecure-key
   links:
     - db
-
-dns:
-  image: yvess/desk_dns
-    hostname: dns2
   ports:
     - "2053:53"
-  links:
-    - db
+    - "2204:22"
