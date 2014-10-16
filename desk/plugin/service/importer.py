@@ -12,9 +12,14 @@ from desk.utils import CouchdbUploader, FilesForCouch
 
 
 class ImportServices(object):
-    def __init__(self):
+    def __init__(self, settings):
         self.service_tpl = {'type': 'service', 'state': 'active'}
         self.docs, self.clients_extcrm_ids = [], {}
+        self.settings = settings
+        self.nr_cols = settings.nr_cols
+        self.server = Server(self.settings.couchdb_uri)
+        self.db = self.server.get_db(self.settings.couchdb_db)
+        self.init_spreadsheet()
 
     def init_spreadsheet(self):
         spreadsheet = ezodf.opendoc(self.settings.src)
@@ -78,10 +83,6 @@ class ImportServices(object):
                 break
         return services
 
-    def init_couch(self):
-        self.server = Server(self.settings.couchdb_uri)
-        self.db = self.server.get_db(self.settings.couchdb_db)
-
     def get_or_create_client(self, row):
         query_results = self.db.view(
             self._cmd("client_extcrm_id"), key=row['todoyu'],
@@ -106,17 +107,14 @@ class ImportServices(object):
             raise
 
     def create_docs(self):
-        # self.nr_cols = self.settings.nr_cols
-        # self.init_couch()
-        # self.init_spreadsheet()
         self.rows = self.process_sheet()
         self.todoyu = Todoyu(self.settings)
         self.dest = "{}/services_json".format(
             os.path.dirname(self.settings.src)
         )
-        self.create_services()
 
-    def create_services_files(self):
+    def create_files(self):
+        self.create_docs()
         if os.path.exists(self.dest):
             shutil.rmtree(self.dest)
         os.mkdir(self.dest)

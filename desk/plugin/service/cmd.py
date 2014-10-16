@@ -21,7 +21,7 @@ class ImportServiceCommand(SettingsCommand):
         )
 
         service_import_parser.add_argument(
-            "-nr", "--nr-cols", type=int, dest="nr_cols", default=17,
+            "-nr", "--nr-cols", type=int, dest="nr_cols", default=12,
             help="number of cols to read",
         )
 
@@ -38,10 +38,5 @@ class ImportServiceCommand(SettingsCommand):
 
     def run(self):
         self.todoyu = Todoyu(self.settings)
-        self.nr_cols = self.settings.nr_cols
-        import_service = ImportServices()
-        import_service.init_couch()
-        import_service.init_spreadsheet()
-        import_service.create_docs()
-        clients_extcrm_ids = {}
-        import_service.create_servies_files()
+        services = ImportServices(self.settings)
+        services.create_files()
