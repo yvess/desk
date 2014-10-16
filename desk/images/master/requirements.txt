@@ -18,7 +18,7 @@ cssselect==0.9.1
 #-e git+https://github.com/yvess/desk.git@a1634ce073e982db23a161a654d350db62c408fd#egg=desk-master
 dnspython==1.12.0
 ecdsa==0.11
-#ezodf==0.2.5
+ezodf==0.2.5
 gevent==1.0.1
 greenlet==0.4.4
 html5lib==0.999
