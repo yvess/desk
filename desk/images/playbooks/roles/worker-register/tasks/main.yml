@@ -1,0 +1,13 @@
+---
+# file: roles/worker-register/tasks/main.yml
+
+- name: check for worker doc
+  uri: url=http://cdb_1:5984/desk_drawer/worker-{{ ansible_hostname }}
+  register: worker_doc
+  failed_when: "worker_doc.status == 500"
+
+- name: install worker
+  when: "worker_doc.status == 404"
+  command: "/var/py27/bin/python dworker install-worker"
+  args:
+    chdir: /projects/python/desk/desk

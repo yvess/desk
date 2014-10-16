@@ -3,4 +3,5 @@
 - hosts: dnsservers
   roles:
     - worker
+    - worker-register
     - dns

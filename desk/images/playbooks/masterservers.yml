@@ -4,4 +4,5 @@
   roles:
     - worker
     - foreman
+    - worker-register
     - ansible-master
