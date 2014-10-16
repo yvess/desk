@@ -5,4 +5,4 @@
   - name: create /etc/desk
     file: path=/etc/desk state=directory
   - name: cretae /etc/desk/worker.conf
-    template: src=../../dns/etc/desk/worker.conf.j2 dest=/etc/desk/worker.conf
+    template: src=../dns/etc/desk/worker.conf.j2 dest=/etc/desk/worker.conf
