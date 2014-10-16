@@ -11,13 +11,13 @@ class ImportServiceCommand(SettingsCommand):
     def setup_parser(self, subparsers, config_parser):
         service_import_parser = subparsers.add_parser(
             'service-import',
-            help="""import service data from odt""",
-            description="Import service data odt, and load it into couch"
+            help="""import service data from ods""",
+            description="Import service data ods, and load it into couch"
         )
         service_import_parser.add_argument(*config_parser['args'],
                                            **config_parser['kwargs'])
         service_import_parser.add_argument(
-            "src", help="source of the odt file",
+            "src", help="source of the ods file",
         )
 
         service_import_parser.add_argument(
