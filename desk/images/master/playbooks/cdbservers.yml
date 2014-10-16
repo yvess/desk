@@ -1,0 +1,5 @@
+---
+# file: cdbservers.yml
+- hosts: cdbservers
+  roles:
+    - couchdb

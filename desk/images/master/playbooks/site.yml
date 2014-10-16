@@ -1,3 +1,4 @@
 ---
 # file: site.yml
 - include: dnsservers.yml
+- include: masterservers.yml

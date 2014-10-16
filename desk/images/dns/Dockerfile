@@ -8,5 +8,5 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 RUN virtualenv /var/py27
 ADD ./requirements.txt /tmp/requirements.txt
-RUN . /var/py27/bin/activate && pip install -r /tmp/requirements.txt
+RUN . /var/py27/bin/activate && cat /tmp/requirements.txt |grep -v "^#"| xargs -n 1 pip install
 ADD ./etc/service/pdns /etc/service/pdns

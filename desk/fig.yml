@@ -1,6 +1,6 @@
-db:
+cdb:
   image: yvess/couchdb
-  hostname: db1
+  hostname: cdb_1
   volumes_from:
     - projects
   ports:
@@ -9,12 +9,12 @@ db:
 
 master:
   image: yvess/desk_master
-  hostname: master1
+  hostname: master_1
   command: /sbin/my_init --enable-insecure-key
   volumes_from:
     - projects
   links:
-    - db
+    - cdb
     - dnsa
     - dnsb
   ports:
@@ -22,20 +22,24 @@ master:
 
 dnsa:
   image: yvess/desk_dns
-  hostname: dns1
+  hostname: dnsa_1
   command: /sbin/my_init --enable-insecure-key
+  volumes_from:
+    - projects
   links:
-    - db
+    - cdb
   ports:
     - "1053:53"
     - "2203:22"
 
 dnsb:
   image: yvess/desk_dns
-  hostname: dns2
+  hostname: dnsb_1
   command: /sbin/my_init --enable-insecure-key
+  volumes_from:
+    - projects
   links:
-    - db
+    - cdb
   ports:
     - "2053:53"
     - "2204:22"

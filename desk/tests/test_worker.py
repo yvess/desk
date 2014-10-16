@@ -20,7 +20,7 @@ from desk import Worker, Foreman
 class WorkerTestCase(unittest.TestCase):
     def setUp(self):
         self.db_conf = {
-            "couchdb_uri": "http://admin-test:admin-test@localhost:5984",
+            "couchdb_uri": "http://admin-test:admin-test@cdb_1:5984",
             "couchdb_db": "desk_tester",
         }
         self.conf = {

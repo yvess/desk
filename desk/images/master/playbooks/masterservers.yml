@@ -1,0 +1,7 @@
+---
+# file: masterservers.yml
+- hosts: masterservers
+  roles:
+    - worker
+    - foreman
+    - ansible-master
