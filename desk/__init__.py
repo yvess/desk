@@ -13,6 +13,8 @@ from desk.utils import ObjectDict
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
 
+__version__ = '0.1'
+
 DOC_TYPES = {
     'domain': dns
 }
