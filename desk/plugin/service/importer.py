@@ -83,6 +83,9 @@ class ImportServices(object):
                 break
         return services
 
+    def _cmd(self, cmd):
+        return "{}/{}".format(self.settings.couchdb_db, cmd)
+
     def get_or_create_client(self, row):
         query_results = self.db.view(
             self._cmd("client_extcrm_id"), key=row['todoyu'],
@@ -112,6 +115,8 @@ class ImportServices(object):
         self.dest = "{}/services_json".format(
             os.path.dirname(self.settings.src)
         )
+        for row in self.rows:
+            self.process_row(row)
 
     def create_files(self):
         self.create_docs()
