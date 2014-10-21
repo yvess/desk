@@ -1,0 +1,7 @@
+---
+# file: roles/dns/tasks/main.yml
+- name: remove not needed files
+  file: path={{ item }} state=absent
+  with_items:
+    - /etc/powerdns/bindbackend.conf
+    - /etc/powerdns/pdns.d/pdns.simplebind.conf

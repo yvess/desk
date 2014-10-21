@@ -1,0 +1,397 @@
+{
+   "rewrites": [
+       {
+           "from": "",
+           "to": "../../"
+       },
+       {
+           "from": "/desk_drawer/*",
+           "to": "_update/name/*",
+           "method": "POST"
+       },
+       {
+           "from": "/work_times",
+           "to": "_list/list_docs/work_time",
+           "method": "GET",
+           "query": {
+               "reduce": "false",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/work_times",
+           "to": "../../*",
+           "method": "POST"
+       },
+       {
+           "from": "/work_times/*",
+           "to": "../../*"
+       },
+       {
+           "from": "/clients",
+           "to": "_list/list_docs/client",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/clients",
+           "to": "../../*",
+           "method": "POST"
+       },
+       {
+           "from": "/clients/*",
+           "to": "../../*"
+       },
+       {
+           "from": "/domains",
+           "to": "_list/list_docs/domain",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/domains",
+           "to": "../../*",
+           "method": "POST"
+       },
+       {
+           "from": "/domains/*",
+           "to": "../../*"
+       },
+       {
+           "from": "/projects",
+           "to": "_list/list_docs/project",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/projects",
+           "to": "../../*",
+           "method": "POST"
+       },
+       {
+           "from": "/projects/*",
+           "to": "../../*",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/templates",
+           "to": "_list/list_docs/template",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/templates",
+           "to": "../../*",
+           "method": "POST"
+       },
+       {
+           "from": "/templates/*",
+           "to": "../../*",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/tasks/open",
+           "to": "../../_changes",
+           "query": {
+               "feed": "eventsource",
+               "filter": "desk_drawer/tasks_open",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/tasks/done",
+           "to": "../../_changes",
+           "query": {
+               "feed": "eventsource",
+               "filter": "desk_drawer/tasks_done",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/orders/open",
+           "to": "../../_changes",
+           "query": {
+               "feed": "eventsource",
+               "filter": "desk_drawer/orders_open",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/orders/done",
+           "to": "../../_changes",
+           "query": {
+               "feed": "eventsource",
+               "filter": "desk_drawer/orders_done",
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/orders",
+           "to": "_list/list_docs/order",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/orders",
+           "to": "../../*",
+           "method": "POST"
+       },
+       {
+           "from": "/orders/*",
+           "to": "../../*",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/workers",
+           "to": "_list/list_docs/worker",
+           "method": "GET",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/workers",
+           "to": "../../*",
+           "method": "POST"
+       },
+       {
+           "from": "/workers/*",
+           "to": "../../*",
+           "query": {
+               "include_docs": "true"
+           }
+       },
+       {
+           "from": "/show/*",
+           "to": "_show/showjson/*",
+           "method": "GET"
+       },
+       {
+           "from": "/add-editor/*",
+           "to": "_update/add-editor/*",
+           "method": "PUT"
+       }
+   ],
+   "language": "javascript",
+
+
+   "views": {
+       "project": {
+           "map": "
+function (doc) {
+    if (doc.type == 'project') {
+        emit([doc._id, 0], {_id:doc._id});
+    }
+}"
+       },
+
+       "domain": {
+           "map": "
+function(doc) {
+  if (doc.type == 'domain') {
+    emit(doc._id, doc._rev);
+  }
+}"
+       },
+
+       "recent-items": {
+           "map": "
+function(doc) {
+  if (doc.created_at) {
+    emit(doc.created_at, doc);
+  }
+}"
+       },
+
+       "worker": {
+           "map": "
+function(doc) {
+  if (doc.type == 'worker') {
+    emit(doc.hostname, doc._rev);
+  }
+}"
+       },
+
+       "work_time": {
+           "map": "
+function(doc) {
+  if (doc.type == 'work_time') {
+    emit([doc.project_id, doc.date], 1);
+  }
+}",
+           "reduce": "// reduce
+function(keys, values, rereduce) {
+  return sum(values);
+}"
+       },
+
+       "order": {
+           "map": "
+function(doc) {
+  if (doc.type == 'order' && doc.state  == 'new') {
+    emit(doc._id, doc.editor);
+  }
+}"
+       },
+
+       "client": {
+           "map": "
+function(doc) {
+  if (doc.type == 'client') {
+    emit(doc._id, doc._rev);
+  }
+}"
+       },
+
+       "by_type": {
+           "map": "
+function(doc) {
+  if (doc) {
+    emit(doc.type, null);
+  }
+}"
+       },
+
+       "template": {
+           "map": "
+function(doc) {
+  if (doc.type == 'template') {
+    emit(doc._id, doc._rev);
+  }
+}"
+       },
+
+       "todo": {
+           "map": "
+function (doc) {
+    if ((doc.state && doc.state == 'changed') || (doc.state && doc.state == 'new')) {
+        if (doc.type != 'order') {
+            emit(doc.state, doc);
+        }
+    }
+}"
+       }, 
+       "new_by_editor": {
+            "map": "
+function (doc) {
+    if (doc.type != 'order' && doc.type != 'task') {
+        if (doc.state  == 'new' || doc.state == 'changed') {
+          emit(doc.editor, doc._id);
+        } 
+    }
+}"
+       }
+   },
+
+
+   "lists": {
+       "list_docs": "
+function (head, req) {
+    // specify that we're providing a JSON response
+    provides('json', function() {
+        // create an array for our result set
+        var results = [];
+        var dataItem = {};
+        while (row = getRow()) {
+            row.doc.coId = row.doc._id;
+            row.doc.coRev = row.doc._rev;
+            if (row.doc.hasOwnProperty('_attachments')) {
+                row.doc.coAttachments = row.doc._attachments;
+            }
+            if (true) {
+                if (dataItem != {} && dataItem.client_id) {
+                    dataItem.client = row.doc;
+                } else {
+                    dataItem = row.doc;
+                }
+                results.push(dataItem);
+                dataItem = {};
+            }
+        }
+        // make sure to stringify the results :)
+        send(JSON.stringify(results));
+    });
+}"
+   },
+
+
+   "filters": {
+       "tasks_open": "
+function (doc, req)
+{
+  if (doc.type == 'task' && doc.state != 'done') {
+    return true;
+  }
+
+  return false;
+}",
+
+        "tasks_done": "
+function (doc, req)
+{
+  if (doc.type == 'task' && doc.state == 'done') {
+    return true;
+  }
+
+  return false;
+}",
+
+       "orders_open": "
+function (doc, req)
+{
+  if (doc.type == 'order' && doc.state != 'done') {
+    return true;
+  }
+
+  return false;
+}",
+
+        "orders_done": "
+function (doc, req)
+{
+  if (doc.type == 'order' && doc.state == 'done') {
+    return true;
+  }
+
+  return false;
+}"
+    },
+    "updates": {
+        "add-editor": "
+function(doc, req) {
+    var editor = req.userCtx.name;
+    doc['editor'] = editor;
+    var message = 'added editor';
+    return [doc, message];
+}"
+    },
+    "shows": {
+       "showjson": "
+function(doc, req) {
+    delete doc._id;
+    delete doc._rev;
+    delete doc._revisions;
+    delete doc.type;
+    delete doc.name;
+    delete doc.template_type;
+    var html = '<div><pre>' + JSON.stringify(doc, null, 4) + '<\\/pre><\\/div>';
+  return html;
+}"
+   }
+}

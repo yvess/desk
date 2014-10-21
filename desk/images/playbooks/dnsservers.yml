@@ -1,0 +1,7 @@
+---
+# file: dnsservers.yml
+- hosts: dnsservers
+  roles:
+    - worker
+    - worker-register
+    - dns

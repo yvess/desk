@@ -1,0 +1,20 @@
+---
+# file: roles/foreman/tasks/main.yml
+
+- name: check for couchdb db
+  uri: url="http://cdb_1:5984/desk_drawer"
+  register: db_desk_drawer
+  failed_when: "db_desk_drawer.status == 500"
+
+- name: create admin user
+  when: "db_desk_drawer.status == 404 or db_desk_drawer.status == 401"
+  uri: url="http://cdb_1:5984/_config/admins/admin"
+       method=PUT body='"admin"'
+  register: uri_result
+  failed_when: "uri_result.status == 500"
+
+- name: install desk db
+  when: "db_desk_drawer.status == 404 or db_desk_drawer.status == 401"
+  command: "/var/py27/bin/python dworker install-db"
+  args:
+    chdir: /projects/desk/desk

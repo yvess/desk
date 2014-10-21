@@ -1,0 +1,14 @@
+.DS_Store
+.xCodeSupport
+src
+desk_pad/Frameworks/*
+desk_pad/COViewController.j
+desk_pad/desk_pad.xcodeproj
+desk_drawer/.couchapprc
+desk_drawer/.couchappignore
+desk/.codeintel
+*.sublime-workspace
+.coverage
+desk/htmlcov
+htmlcov
+desk/py27/*

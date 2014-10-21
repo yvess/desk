@@ -1,0 +1,5 @@
+---
+# file: ansible-master.yml
+
+- name: update ansible inventory
+  copy: src=../master/etc/ansible/hosts dest=/etc/ansible/hosts
