@@ -17,4 +17,4 @@
   when: "db_desk_drawer.status == 404"
   command: "/var/py27/bin/python dworker install-db"
   args:
-    chdir: /projects/python/desk/desk
+    chdir: /projects/desk/desk

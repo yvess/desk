@@ -15,5 +15,5 @@
 - name: add desk to site-packages
   command: /var/py27/bin/python setup.py develop
   args:
-    chdir: /projects/python/desk
+    chdir: /projects/desk
     creates: /var/py27/lib/python2.7/site-packages/desk.egg-link

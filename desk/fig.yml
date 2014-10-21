@@ -4,8 +4,7 @@ cdb:
   volumes_from:
     - projects
   ports:
-    - "15984:5984"
-    - "2201:22"
+    - "5984:5984"
 
 master:
   image: yvess/desk_master
@@ -17,8 +16,6 @@ master:
     - cdb
     - dnsa
     - dnsb
-  ports:
-    - "2202:22"
 
 dnsa:
   image: yvess/desk_dns
@@ -30,7 +27,6 @@ dnsa:
     - cdb
   ports:
     - "1053:53"
-    - "2203:22"
 
 dnsb:
   image: yvess/desk_dns
@@ -42,4 +38,3 @@ dnsb:
     - cdb
   ports:
     - "2053:53"
-    - "2204:22"

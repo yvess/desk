@@ -10,4 +10,4 @@
   when: "worker_doc.status == 404"
   command: "/var/py27/bin/python dworker install-worker"
   args:
-    chdir: /projects/python/desk/desk
+    chdir: /projects/desk/desk
