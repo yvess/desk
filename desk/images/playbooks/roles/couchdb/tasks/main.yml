@@ -1,9 +1,5 @@
 ---
 # file: roles/couchdb/tasks/main.yml
 
-# - name: create dns worker.conf
-#   when: worker_type == "dns"
-#   template: src=../dns/etc/desk/worker.conf.j2 dest=/etc/desk/worker.conf
-
-
-
+- name: couchdb default.ini
+  copy: src=../couchdb/etc/couchdb/default.ini dest=/usr/local/etc/couchdb/default.ini
