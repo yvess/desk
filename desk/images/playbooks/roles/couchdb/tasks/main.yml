@@ -1,5 +1,0 @@
----
-# file: roles/couchdb/tasks/main.yml
-
-- name: couchdb default.ini
-  copy: src=../couchdb/etc/couchdb/default.ini dest=/usr/local/etc/couchdb/default.ini
