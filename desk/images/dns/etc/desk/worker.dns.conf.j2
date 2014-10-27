@@ -10,6 +10,6 @@ dns = powerdns:{{ ansible_hostname }}
 
 [powerdns]
 backend = sqlite
-db = /var/lib/powerdns/pdns.sqlite3
+db = /var/data/powerdns/pdns.sqlite3
 name = {{ ansible_hostname }}
 primary = dnsa_1

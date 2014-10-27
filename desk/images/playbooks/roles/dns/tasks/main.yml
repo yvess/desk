@@ -5,3 +5,6 @@
   with_items:
     - /etc/powerdns/bindbackend.conf
     - /etc/powerdns/pdns.d/pdns.simplebind.conf
+
+# - name: add dns a service
+#   copy: src=../dns/etc/service/pdns dest=/etc/service/pdns
