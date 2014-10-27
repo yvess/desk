@@ -84,8 +84,11 @@ class Invoice(object):
                 self._cmd("service_by_client"),
                 key=self.client_id, include_docs=True):
             service_doc = MergedDoc(self.db, result['doc']).doc
+            invoice_start_date = parse_date(service_doc['start_date'])
+            if invoice_start_date < self.invoice_cycle.doc['start_date']:
+                invoice_start_date = self.invoice_cycle.doc['start_date']
+            service_doc['start_date'] = invoice_start_date
             self.add_package(service_doc)
-            service_doc['start_date'] = parse_date(service_doc['start_date'])
             service_doc['addons'] = self.add_addons(service_doc)
             service_doc.update(self.add_amount(
                 service_doc['price'], service_doc['start_date'])
@@ -135,19 +138,22 @@ class Invoice(object):
                         addon['price'], addon['start_date']
                     )
                 )
-                addons.append(addon)
+                if not addon['start_date'] > self.invoice_cycle.doc['end_date']:
+                    addons.append(addon)
             return addons
 
     def add_amount(self, price, start_date):
         end_date = self.doc['end_date']
         item = {}
-        if 'last_invoice_end_date' in self.doc and \
-           start_date < self.doc['start_date']:
+        if ('last_invoice_end_date' in self.doc
+           and start_date < self.doc['start_date']):
             start_date = self.doc['start_date']
         months = (
             (end_date.year - start_date.year) * 12 +
             (end_date.month - start_date.month) + 1
         )
+        if months < 0:
+            months = 0
         item['months'] = months
         item['amount'] = months * price
         item['tax'] = item['amount'] * self.tax
@@ -165,8 +171,8 @@ class InvoiceCycle(object):
         self.current_nr = self.start_nr
         self.invoices = []
         self.doc = {
-            'start_date': date(2013, 1, 1),
-            'end_date': date(2013, 12, 31),
+            'start_date': date(2014, 1, 1), # TODO not hardcode
+            'end_date': date(2014, 12, 31), # TODO not hardcode
         }
 
     def add_invoice(self, invoice):
