@@ -3,6 +3,7 @@ cdb:
   hostname: cdb_1
   volumes_from:
     - projects
+    - data_desk
   ports:
     - "5984:5984"
 
@@ -12,6 +13,7 @@ master:
   command: /sbin/my_init --enable-insecure-key
   volumes_from:
     - projects
+    - data_desk
   links:
     - cdb
     - dnsa
@@ -23,6 +25,7 @@ dnsa:
   command: /sbin/my_init --enable-insecure-key
   volumes_from:
     - projects
+    - data_desk
   links:
     - cdb
   ports:
@@ -34,6 +37,7 @@ dnsb:
   command: /sbin/my_init --enable-insecure-key
   volumes_from:
     - projects
+    - data_desk
   links:
     - cdb
   ports:

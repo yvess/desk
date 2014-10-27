@@ -10,11 +10,9 @@
     - local.ini
     - local.d/desk.ini
 
-# - name: remove old couchdb files # doesn't work volume still mounted
-#   file: path=/usr/local/var/lib/couchdb state=absent
-
-- name: ensure right permissions for couchdb dir
-  command: chown -R couchdb:couchdb /projects/desk/desk/var/lib/couchdb
+- name: create couchdb data dir
+  file: path=/var/data/couchdb state=directory
+        owner=couchdb group=couchdb
 
 - name: start couchdb
   command: supervisorctl start couchdb
