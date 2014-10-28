@@ -7,9 +7,9 @@ cdb:
   ports:
     - "5984:5984"
 
-master:
-  image: yvess/desk_master
-  hostname: master_1
+foreman:
+  image: yvess/desk_foreman
+  hostname: foreman_1
   command: /sbin/my_init --enable-insecure-key
   volumes_from:
     - projects

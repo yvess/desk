@@ -1,0 +1,8 @@
+---
+# file: foremanservers.yml
+- hosts: foremanservers
+  serial: 1
+  roles:
+    - worker
+    - foreman
+    - worker-register

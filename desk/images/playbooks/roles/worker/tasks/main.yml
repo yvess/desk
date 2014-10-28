@@ -9,8 +9,8 @@
   template: src=../dns/etc/desk/worker.dns.conf.j2 dest=/etc/desk/worker.conf
 
 - name: create master worker.conf
-  when: worker_type == "master"
-  copy: src=../master/etc/desk/worker.conf dest=/etc/desk/worker.conf
+  when: worker_type == "foreman"
+  copy: src=../foreman/etc/desk/worker.conf dest=/etc/desk/worker.conf
 
 - name: add desk to site-packages
   command: /var/py27/bin/python setup.py develop

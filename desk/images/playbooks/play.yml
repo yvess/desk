@@ -1,0 +1,5 @@
+---
+# file: 01.yml
+- include: cdbservers.yml
+- include: foremanservers.yml
+- include: dnsservers.yml

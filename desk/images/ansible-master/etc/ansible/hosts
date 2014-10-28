@@ -1,8 +1,8 @@
-[masterservers]
-master_1
+[foremanservers]
+foreman_1
 
-[masterservers:vars]
-worker_type=master
+[foremanservers:vars]
+worker_type=foreman
 
 [dnsservers]
 dnsa_1
