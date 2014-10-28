@@ -12,3 +12,14 @@ freeze:
 	rm /tmp/requirements.txt && mv /tmp/requirements_new.txt /tmp/requirements.txt
 	cp /tmp/requirements.txt images/dns/requirements.txt
 	cp /tmp/requirements.txt images/master/requirements.txt
+
+play:
+	docker run -it --rm --volumes-from=projects -w /projects/desk/desk/images/playbooks \
+	-v /mnt/sda1/projects/desk/desk/images/ansible-master/etc/ansible/hosts:/etc/ansible/hosts \
+	--link desk_cdb_1:cdb_1 --link desk_foreman_1:foreman_1 --link desk_dnsa_1:dnsa_1 --link desk_dnsb_1:dnsb_1 \
+	yvess/ansible-master
+
+docker:
+	cd images/foreman && docker build -t yvess/desk_foreman . && cd - &
+	cd images/dns && docker build -t yvess/desk_dns . && cd -
+
