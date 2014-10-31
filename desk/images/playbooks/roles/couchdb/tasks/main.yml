@@ -12,4 +12,5 @@
         owner=couchdb group=couchdb
 
 - name: start couchdb
-  copy: src=../couchdb/etc/service/couchdb dest=/etc/service/ mode=0755
+  command: creates="/etc/service/couchdb"
+           mv /etc/service-off/couchdb /etc/service/couchdb

@@ -1,3 +1,0 @@
-#!/bin/sh
-export HOME=/usr/local/var/lib/couchdb/
-exec /usr/local/bin/couchdb
