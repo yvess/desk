@@ -1,9 +1,6 @@
 ---
 # file: roles/couchdb/tasks/main.yml
 
-- name: stop couchdb
-  command: supervisorctl stop couchdb
-
 - name: copy couchdb local.ini, desk.ini
   copy: src=../couchdb/etc/couchdb/{{ item }} dest=/usr/local/etc/couchdb/{{ item }}
   with_items:
@@ -15,4 +12,4 @@
         owner=couchdb group=couchdb
 
 - name: start couchdb
-  command: supervisorctl start couchdb
+  copy: src=../couchdb/etc/service/couchdb dest=/etc/service/ mode=0755

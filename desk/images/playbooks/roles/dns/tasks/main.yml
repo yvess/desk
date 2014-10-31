@@ -6,5 +6,9 @@
     - /etc/powerdns/bindbackend.conf
     - /etc/powerdns/pdns.d/pdns.simplebind.conf
 
-# - name: add dns a service
-#   copy: src=../dns/etc/service/pdns dest=/etc/service/pdns
+- name: add dns a service
+  copy: src=../dns/etc/service/pdns dest=/etc/service/ mode=0755
+
+
+- name: add as worker service
+  copy: src=../dns/etc/service/worker dest=/etc/service/ mode=0755

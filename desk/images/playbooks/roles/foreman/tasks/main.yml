@@ -11,3 +11,6 @@
   command: "/var/py27/bin/python dworker install-db"
   args:
     chdir: /projects/desk/desk
+
+- name: add as worker service
+  copy: src=../foreman/etc/service/worker dest=/etc/service/ mode=0755
