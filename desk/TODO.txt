@@ -18,5 +18,5 @@ Worker
 - test @ for main domain entry
 - fqn with or without "."?
 
-states new, changed, active
+states new, changed, active, failed
 
