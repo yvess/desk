@@ -1,15 +1,15 @@
 {
     "_id":"template-email",
     "type":"template",
-    "template_type":"dns",
-    "nameservers":["ns1.test.test"],
+    "template_type":"domain",
+    "nameservers":["dnsa_1.test", "dnsb_1.test"],
     "mx":[
-        {"host":"mx1.test.test","priority":"10"},
-        {"host":"mx2.test.test","priority":"20"}
+        {"host":"mx1.test","priority":"10"},
+        {"host":"mx2.test","priority":"20"}
     ],
-    "name":"email test.test",
-    "soa_primary": "ns1.test.test",
-    "soa_hostmaster": "dsnmaster@test.test",
+    "name":"email test",
+    "soa_primary": "dnsa_1.test",
+    "soa_hostmaster": "dsnmaster@test",
     "soa_refresh": 3600,
     "soa_retry": 3600,
     "soa_expire": 3600,

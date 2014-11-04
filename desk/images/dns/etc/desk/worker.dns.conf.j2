@@ -5,11 +5,11 @@ db  = desk_drawer
 
 [worker]
 is_foreman = false
-dns = powerdns:{{ ansible_hostname }}
+dns = powerdns:{{ ansible_hostname }}.test
 
 
 [powerdns]
 backend = sqlite
-db = /var/data/powerdns/pdns.sqlite3
-name = {{ ansible_hostname }}
+db = /var/data/powerdns/pdns_{{ ansible_hostname }}.sqlite3
+name = {{ ansible_hostname }}.test
 primary = dnsa_1

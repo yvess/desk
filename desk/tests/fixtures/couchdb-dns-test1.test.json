@@ -1,29 +1,29 @@
 {
-   "_id":"dns-test.test",
+   "_id":"dns-test1.test",
    "state":"new",
-   "domain":"test.test",
-   "client_id":"client-test",
+   "domain":"test1.test",
+   "client_id":"client-f64e2195bd2c2200f53b8f46ad41b012",
    "template_id":"template-email",
    "a":[
       {
-         "host":"ns1",
-         "ip":"1.1.1.1"
+         "host":"dnsa_1",
+         "ip":"172.17.1.1"
       },
       {
-         "host":"ns2",
-         "ip":"1.1.1.2"
+         "host":"dnsb_1",
+         "ip":"172.17.1.2"
       },
       {
          "host":"mx1",
-         "ip":"1.1.1.11"
+         "ip":"172.17.1.11"
       },
       {
          "host":"mx2",
-         "ip":"1.1.1.12"
+         "ip":"172.17.1.12"
       },
       {
          "host":"www",
-         "ip":"1.1.1.20"
+         "ip":"172.17.1.20"
       },
       {
          "host":"blog2",
@@ -31,7 +31,7 @@
       },
       {
          "host":"@",
-         "ip":"1.1.1.30"
+         "ip":"172.17.1.30"
       }
    ],
    "cname":[

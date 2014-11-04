@@ -2,12 +2,12 @@
    "_id":"dns-test2.test",
    "state":"new",
    "domain":"test2.test",
-   "client_id":"client-test",
+   "client_id":"client-f64e2195bd2c2200f53b8f46ad41b012",
    "template_id":"template-email",
    "a":[
       {
          "host":"www",
-         "ip":"1.1.1.22"
+         "ip":"172.17.1.22"
       }
    ],
    "type":"domain"
