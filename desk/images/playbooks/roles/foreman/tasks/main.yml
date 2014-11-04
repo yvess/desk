@@ -3,8 +3,8 @@
 
 - name: check for couchdb db
   uri: url="http://cdb_1:5984/desk_drawer"
+       user=admin password=admin status_code=404,401,200
   register: db_desk_drawer
-  failed_when: "db_desk_drawer.status == 500"
 
 - name: install desk db
   when: "db_desk_drawer.status == 404 or db_desk_drawer.status == 401"
