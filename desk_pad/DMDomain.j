@@ -95,14 +95,18 @@
     var a_items = [[self a] items],
         cname_items = [[self cname] items],
         mx_items = [[self mx] items],
-        nameservers_array = [[self nameservers] componentsSeparatedByString:@","],
         a_array = [],
         cname_array = [],
         mx_array = [];
-        nameservers_array = nameservers_array.map(
-            function(item) { return item.trim(); }
-        );
-        nameservers_array.sort();
+    if ([self nameservers]) {
+        var nameservers_array = [[self nameservers] componentsSeparatedByString:@","];
+        if (nameservers_array) {
+            nameservers_array = nameservers_array.map(
+                function(item) { return item.trim(); }
+            );
+            nameservers_array.sort();
+        }
+    }
 
     [a_items enumerateObjectsUsingBlock:function(item) {
         a_array.push([item JSONFromObject]);
