@@ -1,2 +1,3 @@
 #!/bin/sh
-cd /projects/desk/desk && /var/py27/bin/python ./dworker run -v
+cd /projects/desk/desk
+exec /var/py27/bin/python ./dworker run -v
