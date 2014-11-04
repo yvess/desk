@@ -26,8 +26,8 @@ class WorkerTestCase(unittest.TestCase):
         self.conf = {
             "powerdns_backend": "sqlite",
             "powerdns_db": "/opt/local/etc/powerdns/dns.db",
-            "powerdns_name": "ns1.test.tt",
-            "powerdns_primary": "ns1.test.tt",
+            "powerdns_name": "dnsa_1.test.tt",
+            "powerdns_primary": "dnsa_1.test.tt",
             "worker_is_foreman": True,
         }
         self.conf.update(self.db_conf)
@@ -50,7 +50,7 @@ class WorkerTestCase(unittest.TestCase):
         d = {
             "_id": worker_id, "type": "worker", "hostname": "localhost",
             "provides": {
-                "domain": [{"backend": "powerdns", "name": "ns1.test.tt"}]
+                "domain": [{"backend": "powerdns", "name": "dnsa_1.test.tt"}]
             }
         }
         self.assertTrue(
@@ -83,8 +83,8 @@ class WorkerTestCase(unittest.TestCase):
         w.run_once()
 
     def _get_dns_validator(self, doc_id, lookup={
-                           'ns1.test.tt': "127.0.0.1",
-                           'ns2.test.tt': "127.0.0.1"
+                           'dnsa_1.test.tt': "127.0.0.1",
+                           'dnsb_1.test.tt': "127.0.0.1"
                            }):
         doc = MergedDoc(self.db, self.db.get(doc_id)).doc
         validator = DnsValidator(doc, lookup=lookup)
@@ -152,7 +152,7 @@ class WorkerTestCase(unittest.TestCase):
         dns_doc = self.db.get(dns_id)
         dns_doc['a'][4]['ip'] = "1.1.1.21"
         dns_doc['a'][1]['host'] = "ns3"
-        dns_doc['cname'][0]['host'] = "ns1"
+        dns_doc['cname'][0]['host'] = "dnsa_1"
         VersionDoc(self.db, dns_doc).create_version()
         order_id = self._create_order_doc()
         self._run_order()
@@ -210,16 +210,16 @@ class WorkerTestCase(unittest.TestCase):
         self._remove_domain('test.tt', docs=[dns_id, order1_id, order2_id])
 
     def test_two_domains(self):
-        dns1_id, order_id = self._add_domain_test_tt(run=False, add_order=False)
-        dns2_id, order_id = self._add_domain_test2_tt(run=False, add_order=False)
+        ddnsa_1_id, order_id = self._add_domain_test_tt(run=False, add_order=False)
+        ddnsb_1_id, order_id = self._add_domain_test2_tt(run=False, add_order=False)
         order1_id = self._create_order_doc()
         self._run_order()
-        self.assertTrue(self.db.get(dns1_id)['state'] == 'active')
+        self.assertTrue(self.db.get(ddnsa_1_id)['state'] == 'active')
         self.assertTrue(self._get_dns_validator('dns-test.tt').do_check())
-        self.assertTrue(self.db.get(dns2_id)['state'] == 'active')
+        self.assertTrue(self.db.get(ddnsb_1_id)['state'] == 'active')
         self.assertTrue(self._get_dns_validator('dns-test2.tt').do_check())
-        self._remove_domain('test.tt', docs=[dns1_id, order1_id])
-        self._remove_domain('test2.tt', docs=[dns2_id])
+        self._remove_domain('test.tt', docs=[ddnsa_1_id, order1_id])
+        self._remove_domain('test2.tt', docs=[ddnsb_1_id])
 
 if __name__ == '__main__':
     unittest.main()
