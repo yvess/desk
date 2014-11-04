@@ -6,6 +6,16 @@
     - /etc/powerdns/bindbackend.conf
     - /etc/powerdns/pdns.d/pdns.simplebind.conf
 
+- name: copy powerdns config
+  template: src=../dns/etc/powerdns/pdns.d/{{ item.tpl }}
+            dest=/etc/powerdns/pdns.d/{{ item.file }} mode=0644
+  notify:
+    - restart pdns
+  with_items:
+    - { tpl: 'pdns.local.conf.j2', file: 'pdns.local.conf'}
+    - { tpl: 'pdns.local.gsqlite3.conf.j2', file: 'pdns.local.gsqlite3.conf'}
+
+
 - name: copy sqlfile powerdns
   copy: src=../dns/tmp/powerdns-setup.sql dest=/tmp/powerdns-setup.sql mode=0644
 
