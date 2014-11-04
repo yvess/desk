@@ -6,6 +6,21 @@
     - /etc/powerdns/bindbackend.conf
     - /etc/powerdns/pdns.d/pdns.simplebind.conf
 
+- name: copy sqlfile powerdns
+  copy: src=../dns/tmp/powerdns-setup.sql dest=/tmp/powerdns-setup.sql mode=0644
+
+- name: test if powerdns table exsits
+  shell: sqlite3 /var/data/powerdns/pdns_{{ ansible_hostname }}.sqlite3 'SELECT CASE WHEN tbl_name = "records" THEN "TRUE" ELSE "FALSE" END FROM sqlite_master WHERE tbl_name = "records" AND type = "table"'
+  register: powerdns_installed
+  changed_when: "powerdns_installed.stdout == ''"
+
+- name: setup powerdns
+  shell: 'sqlite3 /var/data/powerdns//pdns_{{ ansible_hostname }}.sqlite3 < /tmp/powerdns-setup.sql'
+  when: 'powerdns_installed.stdout != "TRUE"'
+
+- name: add dns a service
+  copy: src=../dns/etc/service/pdns dest=/etc/service/ mode=0755
+
 - name: copy powerdns config
   template: src=../dns/etc/powerdns/pdns.d/{{ item.tpl }}
             dest=/etc/powerdns/pdns.d/{{ item.file }} mode=0644
@@ -15,20 +30,6 @@
     - { tpl: 'pdns.local.conf.j2', file: 'pdns.local.conf'}
     - { tpl: 'pdns.local.gsqlite3.conf.j2', file: 'pdns.local.gsqlite3.conf'}
 
-
-- name: copy sqlfile powerdns
-  copy: src=../dns/tmp/powerdns-setup.sql dest=/tmp/powerdns-setup.sql mode=0644
-
-- name: test if powerdns table exsits
-  shell: sqlite3 /var/data/powerdns/pdns_{{ ansible_hostname }}.sqlite3 'SELECT CASE WHEN tbl_name = "records" THEN "TRUE" ELSE "FALSE" END FROM sqlite_master WHERE tbl_name = "records" AND type = "table"'
-  register: powerdns_installed
-
-- name: setup powerdns
-  shell: 'sqlite3 /var/data/powerdns//pdns_{{ ansible_hostname }}.sqlite3 < /tmp/powerdns-setup.sql'
-  when: 'powerdns_installed.stdout != "TRUE"'
-
-- name: add dns a service
-  copy: src=../dns/etc/service/pdns dest=/etc/service/ mode=0755
 
 - name: add as worker service
   copy: src=../dns/etc/service/worker dest=/etc/service/ mode=0755
