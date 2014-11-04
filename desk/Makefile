@@ -13,6 +13,11 @@ freeze:
 	cp /tmp/requirements.txt images/dns/requirements.txt
 	cp /tmp/requirements.txt images/master/requirements.txt
 
+images:
+	cd images/foreman && docker build -t yvess/desk_foreman . && cd - &
+	cd images/dns && docker build -t yvess/desk_dns . && cd -
+
+
 play:
 	docker run -it --rm --volumes-from=projects -w /projects/desk/desk/images/playbooks \
 	-v /mnt/sda1/projects/desk/desk/images/ansible-master/etc/ansible/hosts:/etc/ansible/hosts \
@@ -25,9 +30,11 @@ play-dns:
 	--link desk_cdb_1:cdb_1 --link desk_foreman_1:foreman_1 --link desk_dnsa_1:dnsa_1 --link desk_dnsb_1:dnsb_1 \
 	-h ansible yvess/ansible-master dnsservers.yml
 
-docker:
-	cd images/foreman && docker build -t yvess/desk_foreman . && cd - &
-	cd images/dns && docker build -t yvess/desk_dns . && cd -
+play-testdata:
+	docker run -it --rm --volumes-from=projects -w /projects/desk/desk/images/playbooks \
+	-v /mnt/sda1/projects/desk/desk/images/ansible-master/etc/ansible/hosts:/etc/ansible/hosts \
+	--link desk_cdb_1:cdb_1 --link desk_foreman_1:foreman_1 --link desk_dnsa_1:dnsa_1 --link desk_dnsb_1:dnsb_1 \
+	-h ansible yvess/ansible-master parts/couchdb-testdata.yml
 
 enter-ansible:
 	docker run -it --rm --volumes-from=projects -w /projects/desk/desk/images/playbooks \
