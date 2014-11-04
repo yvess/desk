@@ -166,6 +166,8 @@ class Foreman(Worker):
             order_doc['providers'] = providers
             if self._create_tasks(providers=providers, order_id=order_doc["_id"]):
                 order_doc['state'] = 'new_created_tasks'
+            if order_doc['state'] == 'new':
+                order_doc['state'] = 'failed'
             already_processed_orders.append(order_doc['_id'])
             self.db.save_doc(order_doc)
 
