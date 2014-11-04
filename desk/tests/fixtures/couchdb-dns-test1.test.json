@@ -44,5 +44,6 @@
          "host":"www"
       }
    ],
-   "type":"domain"
+   "type":"domain",
+   "editor": "admin"
 }

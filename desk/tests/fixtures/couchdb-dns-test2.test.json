@@ -10,5 +10,6 @@
          "ip":"172.17.1.22"
       }
    ],
-   "type":"domain"
+   "type":"domain",
+   "editor": "admin"
 }
