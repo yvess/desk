@@ -12,5 +12,6 @@ RUN mkdir -p /etc/desk
 ADD worker.conf /etc/desk/
 ADD service /etc/service
 ADD docker-entrypoint.sh /entrypoint.sh
+ENV WORKER_TYPE foreman
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["worker"]

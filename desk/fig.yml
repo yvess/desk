@@ -40,7 +40,6 @@ foreman:
   hostname: foreman
   environment:
     - TERM=xterm-256color
-    - WORKER_TYPE=foreman
   volumes_from:
     - projects
     - data_desk
