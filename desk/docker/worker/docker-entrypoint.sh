@@ -23,6 +23,10 @@ if [ "$1" = 'worker' ]; then
     cd /projects/desk/desk && /var/py27/bin/python ./dworker install-worker
     echo "* registred worker"
   fi
+  # setup worker
+  if [ -f "/entrypoint-worker.sh" ]; then
+    /entrypoint-worker.sh
+  fi
   exec /usr/sbin/runsvdir-start
 fi
 

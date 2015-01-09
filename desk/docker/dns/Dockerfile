@@ -1,4 +1,4 @@
-FROM yvess/pydev
+FROM desk/worker
 MAINTAINER Yves Serrano <y@yas.ch>
 
 RUN apt-get update && apt-get install -y \
@@ -6,5 +6,5 @@ RUN apt-get update && apt-get install -y \
         libsasl2-dev \
         pdns-backend-sqlite3 \
     && rm -rf /var/lib/apt/lists/*
-ADD ./requirements.txt /tmp/requirements.txt
-RUN . /var/py27/bin/activate && cat /tmp/requirements.txt |grep -v "^#"| xargs -n 1 pip install
+ADD service/pdns /etc/service/pdns
+ADD entrypoint-worker.sh /entrypoint-worker.sh

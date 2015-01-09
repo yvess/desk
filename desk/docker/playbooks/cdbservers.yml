@@ -1,6 +1,0 @@
----
-# file: cdbservers.yml
-- hosts: cdbservers
-  serial: 1
-  roles:
-    - couchdb
