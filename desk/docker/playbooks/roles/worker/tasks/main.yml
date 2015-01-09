@@ -1,6 +1,0 @@
----
-# file: roles/worker/tasks/main.yml
-
-- name: create dns worker.conf
-  when: worker_type == "dns"
-  template: src=../dns/etc/desk/worker.dns.conf.j2 dest=/etc/desk/worker.conf

@@ -6,5 +6,5 @@ RUN apt-get update && apt-get install -y \
         libsasl2-dev \
         pdns-backend-sqlite3 \
     && rm -rf /var/lib/apt/lists/*
-ADD service/pdns /etc/service/pdns
+ADD files /root/build
 ADD entrypoint-worker.sh /entrypoint-worker.sh
