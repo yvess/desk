@@ -1,28 +1,17 @@
 cdb:
-  image: yvess/couchdb
-  hostname: cdb_1
+  image: desk/couchdb
+  hostname: cdb
   volumes_from:
     - projects
     - data_desk
   ports:
     - "5984:5984"
 
-foreman:
-  image: yvess/desk_foreman
-  hostname: foreman_1
-  command: /sbin/my_init --enable-insecure-key
-  volumes_from:
-    - projects
-    - data_desk
-  links:
-    - cdb
-    - dnsa
-    - dnsb
-
 dnsa:
   image: yvess/desk_dns
-  hostname: dnsa_1
-  command: /sbin/my_init --enable-insecure-key
+  hostname: dnsa
+  environment:
+    - WORKER_TYPE=dns
   volumes_from:
     - projects
     - data_desk
@@ -33,8 +22,9 @@ dnsa:
 
 dnsb:
   image: yvess/desk_dns
-  hostname: dnsb_1
-  command: /sbin/my_init --enable-insecure-key
+  hostname: dnsb
+  environment:
+    - WORKER_TYPE=dns
   volumes_from:
     - projects
     - data_desk
@@ -42,3 +32,16 @@ dnsb:
     - cdb
   ports:
     - "2053:53"
+
+foreman:
+  image: yvess/desk_foreman
+  hostname: foreman
+  environment:
+    - WORKER_TYPE=foreman
+  volumes_from:
+    - projects
+    - data_desk
+  links:
+    - cdb
+    - dnsa
+    - dnsb
