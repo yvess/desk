@@ -1,5 +1,7 @@
-default: build_images
+default: build_couchdb build_worker
 
-build_images:
+build_couchdb:
 	docker build -t desk/couchdb couchdb
-	docker build -t desk/foreman foreman
+
+build_worker:
+	docker build -t desk/worker worker
