@@ -8,3 +8,4 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 ADD files /root/build
 ADD entrypoint-worker.sh /entrypoint-worker.sh
+ENV WORKER_TYPE dns

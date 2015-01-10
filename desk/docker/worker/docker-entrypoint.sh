@@ -17,15 +17,15 @@ if [ "$1" = 'worker' ]; then
         echo "* created desk_drawer database"
     fi
   fi
+  # setup worker
+  if [ -f "/entrypoint-worker.sh" ]; then
+    /entrypoint-worker.sh
+  fi
   # register worker
   curl -Is -u admin:admin http://cdb:5984/desk_drawer/worker-`hostname` | egrep -q "HTTP.*404"
   if [ $? -eq 0 ]; then # worker doesn't exist
     cd /projects/desk/desk && /var/py27/bin/python ./dworker install-worker
     echo "* registred worker"
-  fi
-  # setup worker
-  if [ -f "/entrypoint-worker.sh" ]; then
-    /entrypoint-worker.sh
   fi
   exec /usr/sbin/runsvdir-start
 fi

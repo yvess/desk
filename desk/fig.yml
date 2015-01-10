@@ -9,31 +9,27 @@ cdb:
   ports:
     - "5984:5984"
 
-# dnsa:
-#   image: yvess/desk_dns
-#   hostname: dnsa
-#   environment:
-#     - WORKER_TYPE=dns
-#   volumes_from:
-#     - projects
-#     - data_desk
-#   links:
-#     - cdb
-#   ports:
-#     - "1053:53"
+dnsa:
+  image: desk/dns
+  hostname: dnsa
+  volumes_from:
+    - projects
+    - data_desk
+  links:
+    - cdb
+  ports:
+    - "1053:53"
 
-# dnsb:
-#   image: yvess/desk_dns
-#   hostname: dnsb
-#   environment:
-#     - WORKER_TYPE=dns
-#   volumes_from:
-#     - projects
-#     - data_desk
-#   links:
-#     - cdb
-#   ports:
-#     - "2053:53"
+dnsb:
+  image: desk/dns
+  hostname: dnsb
+  volumes_from:
+    - projects
+    - data_desk
+  links:
+    - cdb
+  ports:
+    - "2053:53"
 
 foreman:
   image: desk/worker
@@ -45,5 +41,5 @@ foreman:
     - data_desk
   links:
     - cdb
-    # - dnsa
-    # - dnsb
+    - dnsa
+    - dnsb

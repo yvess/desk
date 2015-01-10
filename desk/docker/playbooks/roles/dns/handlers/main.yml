@@ -1,4 +1,0 @@
----
-# file: roles/dns/handlers/main.yml
-- name: restart pdns
-  command: /usr/bin/sv restart pdns
