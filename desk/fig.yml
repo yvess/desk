@@ -4,7 +4,7 @@ cdb:
   environment:
     - TERM=xterm-256color
   volumes:
-    - ../../:/opt/app/
+    - ../:/opt/app/
   volumes_from:
     - data_desk
   ports:
@@ -14,7 +14,7 @@ dnsa:
   image: desk/dns
   hostname: dnsa
   volumes:
-    - ../../:/opt/app/
+    - ../:/opt/app/
   volumes_from:
     - data_desk
   links:
@@ -26,7 +26,7 @@ dnsb:
   image: desk/dns
   hostname: dnsb
   volumes:
-    - ../../:/opt/app/
+    - ../:/opt/app/
   volumes_from:
     - data_desk
   links:
@@ -40,7 +40,7 @@ foreman:
   environment:
     - TERM=xterm-256color
   volumes:
-    - ../../:/opt/app/
+    - ../:/opt/app/
   volumes_from:
     - data_desk
   links:
