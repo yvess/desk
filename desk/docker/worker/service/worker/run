@@ -1,3 +1,3 @@
 #!/bin/sh
-cd /projects/desk/desk
+cd /opt/app/desk
 exec /var/py27/bin/python ./dworker run -v

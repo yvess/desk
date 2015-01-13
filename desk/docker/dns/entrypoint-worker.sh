@@ -11,6 +11,6 @@ if [ -d "/root/build" ]; then
   rm /etc/powerdns/bindbackend.conf /etc/powerdns/pdns.d/pdns.simplebind.conf
   # setup sqlitedatabase
   if [ -f "/var/services/data/powerdns/pdns_`hostname`.sqlite3" ]; then
-    sqlite3 /var/data/powerdns//pdns_`hostname`.sqlite3 < /root/build/powerdns-setup.sql
+    sqlite3 /var/services/data/powerdns//pdns_`hostname`.sqlite3 < /root/build/powerdns-setup.sql
   fi
 fi
