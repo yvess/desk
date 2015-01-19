@@ -5,6 +5,7 @@ if [ -d "/root/build" ]; then
   echo "* setup dns"
   IP=$(hostname -i)
   PDNS_DATA=${PDNS_DATA:-/var/services/data/powerdns}
+  mkdir -p "$PDNS_DATA"
   rm /etc/powerdns/pdns.d/pdns.local.conf
 
   # CONFIGURE PDNS
@@ -18,7 +19,7 @@ if [ -d "/root/build" ]; then
   fi
 
   # SETUP PDNS DATABASE
-  if [ -f "$PDNS_DATA/pdns_$(hostname).sqlite3" ]; then
+  if [ ! -f "$PDNS_DATA/pdns_$(hostname).sqlite3" ]; then
     sqlite3 $PDNS_DATA/pdns_$(hostname).sqlite3 < /root/build/powerdns-setup.sql
   fi
 fi
