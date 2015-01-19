@@ -11,13 +11,13 @@ from desk.utils import CouchdbUploader
 class UtilTestCase(unittest.TestCase):
     def setUp(self):
         self.settings = {
-            "couchdb_uri": "http://admin-test:admin-test@localhost:5984",
+            "couchdb_uri": "http://admin:admin@cdb:5984",
             "couchdb_db": "desk_tester",
         }
         s = Server(self.settings["couchdb_uri"])
         self.s = s
         s.create_db(self.settings['couchdb_db'])
-        self.up = CouchdbUploader(path=os.path.dirname(__file__), auth=('admin-test', 'admin-test'), **self.settings)
+        self.up = CouchdbUploader(path=os.path.dirname(__file__), auth=('admin', 'admin'), **self.settings)
 
     def tearDown(self):
         self.s.delete_db(self.settings["couchdb_db"])
