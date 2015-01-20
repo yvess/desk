@@ -108,7 +108,7 @@ class WorkerTestCase(unittest.TestCase):
 
     def _add_domain_test_tt(self, run=True, add_order=True):
         dns_id = "dns-test"
-        self.assertTrue(self.couch_up.put(data="@fixtures/couchdb-dns-test1.test.json",
+        self.assertTrue(self.couch_up.put(data="@fixtures/couchdb-dns-test.json",
                         doc_id=dns_id) == 201)
         self.assertTrue(self.couch_up.update(handler='add-editor',
                         doc_id=dns_id) == 201)
@@ -120,7 +120,7 @@ class WorkerTestCase(unittest.TestCase):
 
     def _add_domain_test2_tt(self, run=True, add_order=True):
         dns_id = "dns-test2"
-        self.assertTrue(self.couch_up.put(data="@fixtures/couchdb-dns-test2.test.json",
+        self.assertTrue(self.couch_up.put(data="@fixtures/couchdb-dns-test2.json",
                         doc_id=dns_id) == 201)
         self.assertTrue(self.couch_up.update(handler='add-editor',
                         doc_id=dns_id) == 201)
@@ -156,7 +156,6 @@ class WorkerTestCase(unittest.TestCase):
         VersionDoc(self.db, dns_doc).create_version()
         order_id = self._create_order_doc()
         self._run_order()
-        #import ipdb; ipdb.set_trace();
         self.assertTrue(self.db.get(dns_id)['state'] == 'active')
         self.assertTrue(self._get_dns_validator('dns-test').do_check())
         self._remove_domain('test', docs=[dns_id, order_id])
@@ -171,12 +170,10 @@ class WorkerTestCase(unittest.TestCase):
         order_id = self._create_order_doc()
         self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'active')
-        self.assertFalse(
-        #with self.assertRaises(NXDOMAIN):
+        with self.assertRaises(NXDOMAIN):
             self._get_dns_validator('dns-test').check_one_record(
                 'A', 'ip', q_key='host', item=changed_a
             )
-        )
         self.assertTrue(self._get_dns_validator('dns-test').do_check())
         self._remove_domain('test', docs=[dns_id, order_id])
 
@@ -201,12 +198,10 @@ class WorkerTestCase(unittest.TestCase):
         order2_id = self._create_order_doc()
         self._run_order()
         self.assertTrue(self.db.get(dns_id)['state'] == 'active')
-        self.assertFalse(
-        #with self.assertRaises(NXDOMAIN):
+        with self.assertRaises(NXDOMAIN):
             self._get_dns_validator('dns-test').check_one_record(
                 'A', 'ip', q_key='host', item=removed_a
             )
-        )
         self._remove_domain('test', docs=[dns_id, order1_id, order2_id])
 
     def test_two_domains(self):

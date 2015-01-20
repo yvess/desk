@@ -1,7 +1,7 @@
 {
-   "_id":"dns-test2.test",
+   "_id":"dns-test2",
    "state":"new",
-   "domain":"test2.test",
+   "domain":"test2",
    "client_id":"client-f64e2195bd2c2200f53b8f46ad41b012",
    "template_id":"template-email",
    "a":[

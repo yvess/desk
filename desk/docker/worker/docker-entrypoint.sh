@@ -15,24 +15,20 @@ if [ "$1" = 'worker' ]; then
     /entrypoint-worker.sh
   fi
 
-  # RUN IN TEST CASE
-  if [ "$TESTING" ]; then
-    shift
-    exec "$@"
-  # DON'T RUN IN TEST CASE
-  else
-    # RUN STUFF FOR FOREMAN, CREATE DATABASE
-    if [ $WORKER_TYPE = "foreman" ]; then
-      echo "* setup foreman"
-      wget -q --retry-connrefused -t 10 http://cdb:5984/ # wait for couchdb to get up
-      # creating desk_drawer database
-      curl -Is -u admin:admin http://cdb:5984/desk_drawer | egrep -q "HTTP.*200|HTTP.*401"
-      if [ $? -ne 0 ]; then # db desk_drawer does not exist
-          cd /opt/app/desk && /var/py27/bin/python ./dworker install-db
-          echo "* created desk_drawer database"
-      fi
+  # RUN STUFF FOR FOREMAN, CREATE DATABASE
+  if [ $WORKER_TYPE = "foreman" ]; then
+    echo "* setup foreman"
+    wget -q --retry-connrefused -t 10 http://cdb:5984/ # wait for couchdb to get up
+    # creating desk_drawer database
+    curl -Is -u admin:admin http://cdb:5984/desk_drawer | egrep -q "HTTP.*200|HTTP.*401"
+    if [ $? -ne 0 ]; then # db desk_drawer does not exist
+        cd /opt/app/desk && /var/py27/bin/python ./dworker install-db
+        echo "* created desk_drawer database"
     fi
+  fi
 
+  # DON'T RUN IN TEST CASE
+  if [ ! "$TESTING" ]; then
     # EDIT WORKER.CONF
     if grep -qv -e "-HOSTNAME-" /etc/desk/worker.conf; then
       echo "* update worker.conf"
@@ -52,11 +48,22 @@ if [ "$1" = 'worker' ]; then
     fi
 
     # ACTIVATE RUNIT SERVICES
-    [ ! -d "/etc/service/worker" ] && mv /root/build/service/* /etc/service/
-    # cleanup
-    rm -Rf /root/build
-    exec /usr/sbin/runsvdir-start
+    echo "* added runit worker"
+    [ ! -d "/etc/service/worker" ] && mv /root/build/service/worker /etc/service/
+
+  # RUN IN TEST CASE
+  else
+    shift
+    exec /usr/sbin/runsvdir-start &
+    exec "$@"
   fi
+
+  # CLEANUP
+  rm -Rf /root/build
+
+  # ENABLE RUNIT SERVICES
+  exec /usr/sbin/runsvdir-start
+
 fi
 
 exec "$@"

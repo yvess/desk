@@ -1,16 +1,16 @@
 {
-   "_id":"dns-test1.test",
+   "_id":"dns-test",
    "state":"new",
-   "domain":"test1.test",
+   "domain":"test",
    "client_id":"client-f64e2195bd2c2200f53b8f46ad41b012",
    "template_id":"template-email",
    "a":[
       {
-         "host":"dnsa_1",
+         "host":"dnsa",
          "ip":"172.17.1.1"
       },
       {
-         "host":"dnsb_1",
+         "host":"dnsb",
          "ip":"172.17.1.2"
       },
       {

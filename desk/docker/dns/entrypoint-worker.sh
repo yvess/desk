@@ -22,4 +22,8 @@ if [ -d "/root/build" ]; then
   if [ ! -f "$PDNS_DATA/pdns_$(hostname).sqlite3" ]; then
     sqlite3 $PDNS_DATA/pdns_$(hostname).sqlite3 < /root/build/powerdns-setup.sql
   fi
+
+  # ACTIVATE RUNIT SERVICES
+  echo "* added runit pdns"
+  [ ! -d "/etc/service/pdns" ] && mv /root/build/service/pdns /etc/service/
 fi

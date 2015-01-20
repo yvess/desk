@@ -1,0 +1,25 @@
+cdb:
+  image: desk/couchdb
+  hostname: cdb
+  environment:
+    - TERM=xterm-256color
+  volumes:
+    - ../../../:/opt/app/
+  # volumes_from:
+  #   - projects
+  # ports:
+  #   - "15990:5984"
+
+foreman:
+  image: desk/dns
+  hostname: dnsa.test
+  environment:
+    - TERM=xterm-256color
+    - TESTING=true
+    - WORKER_TYPE=foreman
+  volumes:
+    - ../../../:/opt/app/
+  links:
+    - cdb
+  command: tail -f /var/log/faillog
+

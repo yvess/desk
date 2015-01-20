@@ -2,13 +2,13 @@
     "_id":"template-email",
     "type":"template",
     "template_type":"domain",
-    "nameservers":["dnsa_1.test", "dnsb_1.test"],
+    "nameservers":["dnsa.test"],
     "mx":[
         {"host":"mx1.test","priority":"10"},
         {"host":"mx2.test","priority":"20"}
     ],
     "name":"email test",
-    "soa_primary": "dnsa_1.test",
+    "soa_primary": "dnsa.test",
     "soa_hostmaster": "dsnmaster@test",
     "soa_refresh": 3600,
     "soa_retry": 3600,
