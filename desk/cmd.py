@@ -147,6 +147,7 @@ class InstallWorkerCommand(SettingsCommand):
 class DocsProcessor(SettingsCommand):
     allowed_template_type = None  # needs to be set by subclass
     map_id = None  # needs to be set by subclass
+    replace_id = None  # needs to be set by subclass
 
     def __init__(self, settings, docs):
         self.set_settings(settings)
@@ -160,10 +161,11 @@ class DocsProcessor(SettingsCommand):
         else:
             self.template_docs = self.get_templates(template_ids)
         if self.map_id:
-            self.map_keys = self.get_map()
-            self.map_values = dict(zip(
-                self.map_keys.values(), self.map_keys.keys())
-            )
+            self.map_dict = self.get_map()
+            self.map_keys = self.map_dict.keys()
+        if self.replace_id:
+            self.replace_dict = self.get_replace()
+            self.replace_keys = self.replace_dict.keys()
         self.docs = docs
 
     def clean_template(self, template_doc):
@@ -178,12 +180,20 @@ class DocsProcessor(SettingsCommand):
         return template_doc
 
     def get_map(self):
-        map_keys = None
+        map_dict = None
         try:
-            map_keys = self.db.get(self.map_id)['map']
+            map_dict = self.db.get(self.map_id)['map']
         except ResourceNotFound:
             pass
-        return map_keys
+        return map_dict
+
+    def get_replace(self):
+        replace_dict = None
+        try:
+            replace_dict = self.db.get(self.replace_id)['replace']
+        except ResourceNotFound:
+            pass
+        return replace_dict
 
     def get_templates(self, template_ids):
         docs = []

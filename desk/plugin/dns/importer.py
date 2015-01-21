@@ -127,6 +127,7 @@ class IspmanClientLDIF(LDIFParser):
 class DnsDocsProcessor(DocsProcessor):
     allowed_template_type = 'dns'
     map_id = 'map-ips'
+    replace_id = 'replace-cnames'
 
     def postprocess_tpl(self, doc):
         [doc.pop(key) for key in doc.keys() if key.startswith('soa_')]
@@ -135,6 +136,10 @@ class DnsDocsProcessor(DocsProcessor):
     def postprocess_doc(self, doc):
         if 'a' in doc:
             for a_record in doc['a']:
-                if a_record['ip'] in self.map_values:
-                    a_record['ip'] = self.map_values[a_record['ip']]
+                if a_record['ip'] in self.map_dict:
+                    a_record['ip'] = self.map_dict[a_record['ip']]
+        if 'cname' in doc:
+            for cname in doc['cname']:
+                if cname['host'] in self.replace_dict:
+                    cname['host'] = self.replace_dict[cname['host']]
         return doc
