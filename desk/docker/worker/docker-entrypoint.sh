@@ -9,14 +9,16 @@ if [ -n "$EXTRA_HOSTS" ]; then
   fi
 fi
 
+WORKER_TYPE=${WORKER_TYPE:-worker} # set to worker as default
+TESTING=${TESTING:-false}
+START_WORKER=${START_WORKER:-true}
+
 if [ "$1" = 'worker' ]; then
   # ADDING DESK TO PYTHON PATH
   if [ ! -f "/var/py27/lib/python2.7/site-packages/desk.egg-link" ]; then
-    echo "* adding desk to python packages"
     cd /opt/app && /var/py27/bin/python setup.py develop > /dev/null
+    echo "* added desk to python packages"
   fi
-  WORKER_TYPE=${WORKER_TYPE:-worker} # set to worker as default
-  TESTING=${TESTING:-false}
 
   # RUN SETUP WORKER SCRIPT
   if [ -f "/entrypoint-worker.sh" ]; then
@@ -35,8 +37,14 @@ if [ "$1" = 'worker' ]; then
     fi
   fi
 
-  # DON'T RUN IN TEST CASE
-  if [ ! "$TESTING" ]; then
+  # RUN IN TEST CASE
+  if [ "$TESTING" == true ]; then
+    shift
+    exec /usr/sbin/runsvdir-start &
+    exec "$@"
+
+  # NORMAL CASE
+  else
     # EDIT WORKER.CONF
     if grep -qv -e "-HOSTNAME-" /etc/desk/worker.conf; then
       echo "* update worker.conf"
@@ -55,15 +63,11 @@ if [ "$1" = 'worker' ]; then
       echo "* registred worker"
     fi
 
-    # ACTIVATE RUNIT SERVICES
-    echo "* added runit worker"
-    [ ! -d "/etc/service/worker" ] && mv /root/build/service/worker /etc/service/
-
-  # RUN IN TEST CASE
-  else
-    shift
-    exec /usr/sbin/runsvdir-start &
-    exec "$@"
+    # ACTIVATE RUNIT WORKER SERVICE
+    if [ "$START_WORKER" == true ]; then
+      echo "* started runit worker"
+      [ ! -d "/etc/service/worker" ] && mv /root/build/service/worker /etc/service/
+    fi
   fi
 
   # CLEANUP
