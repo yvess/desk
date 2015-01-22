@@ -152,7 +152,8 @@ class Foreman(Worker):
                 self._cmd("new_by_editor"), key=editor, include_docs=True
             ):
                 if result['doc']['_id'] not in already_processed_orders:
-                    doc = MergedDoc(self.db, result['doc']).doc
+                    doc = MergedDoc(self.db, result['doc'],
+                                    cache_key=order['doc']['_id']).doc
                     get_providers = getattr(
                         DOC_TYPES[doc['type']], 'get_providers'
                     )

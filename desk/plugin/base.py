@@ -19,13 +19,29 @@ class OptionsClassDiff(object):
 
 
 class MergedDoc(object):
-    def __init__(self, db, doc):
+    cache = {}
+
+    def __init__(self, db, doc, cache_key=None):
+        self.db = db
+        if len(MergedDoc.cache.keys()) > 50:
+            MergedDoc.cache = {}
         merged_doc = None
         if 'template_id' in doc:
-            merged_doc = db.get(doc['template_id'])
+            merged_doc = self.get_template(doc['template_id'], cache_key)
             merged_doc.update(doc)
             del merged_doc['template_id']
         self.doc = merged_doc if merged_doc else doc
+
+    def get_template(self, template_id, cache_key):
+        if cache_key in MergedDoc.cache \
+           and template_id in MergedDoc.cache[cache_key]:
+            template_doc = MergedDoc.cache[cache_key][template_id]
+        else:
+            template_doc = self.db.get(template_id)
+            if cache_key not in MergedDoc.cache:
+                MergedDoc.cache[cache_key] = {}
+            MergedDoc.cache[cache_key][template_id] = template_doc
+        return template_doc
 
 
 class VersionDoc(object):
