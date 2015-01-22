@@ -1,6 +1,14 @@
 #!/bin/bash
 #set -e
 
+# PUT EXTRA_HOST in /etc/hosts
+if [ -z $EXTRA_HOSTS]; then
+  FIRST_ENTRY=$(echo $EXTRA_HOSTS|awk -F'[/ |;]'  '{ print $2 }')
+  if ! grep -q "$(echo $FIRST_ENTRY)" /etc/hosts; then # only do it once
+    echo -e "$(eval "echo -e \"$EXTRA_HOSTS\"")"| tr ";" "\n" >> /etc/hosts
+  fi
+fi
+
 if [ "$1" = 'worker' ]; then
   # ADDING DESK TO PYTHON PATH
   if [ ! -f "/var/py27/lib/python2.7/site-packages/desk.egg-link" ]; then
@@ -63,7 +71,6 @@ if [ "$1" = 'worker' ]; then
 
   # ENABLE RUNIT SERVICES
   exec /usr/sbin/runsvdir-start
-
 fi
 
 exec "$@"
