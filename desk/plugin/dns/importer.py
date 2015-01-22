@@ -23,6 +23,7 @@ class IspmanDnsLDIF(LDIFParser):
                 [dc.split('=')[1] for dc in dn.split(',')
                  if dc.startswith('dc=')]
             )
+            domain = domain.decode("utf-8").encode("iso8859-1")
             if domain not in self.domains:
                 self.add_domain(domain)
 
@@ -97,6 +98,8 @@ class IspmanClientLDIF(LDIFParser):
     def handle(self, dn, entry):
         if dn.startswith('ispmanDomain='):
             client = entry['ispmanDomainCustomer'][0]
+            # for strange umlaut bug
+            client = client.decode("utf-8").encode("iso8859-1")
             domain = entry['ispmanDomain'][0]
             if client not in self.clients:
                 self.add_client(client)
