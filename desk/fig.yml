@@ -5,9 +5,10 @@ cdb:
     - TERM=xterm-256color
   volumes:
     - ../:/opt/app/
+    - /opt/src:/opt/src
+    - /opt/env:/opt/env
   volumes_from:
     - data_desk
-    - projects
   ports:
     - "5984:5984"
 
