@@ -207,6 +207,7 @@ class DocsProcessor(SettingsCommand):
         for t in self.db.view("%s/template" % (self.settings.couchdb_db)):
             template_doc = self.db.get(t['id'])
             if (template_doc['template_type'] == self.allowed_template_type
+               and 'template_autoload' in template_doc
                and template_doc['template_autoload'] is True):
                 docs.append(self.clean_template(template_doc))
         # assumption that templates with more keys will be checked first
