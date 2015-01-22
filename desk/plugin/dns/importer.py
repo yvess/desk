@@ -55,9 +55,6 @@ class IspmanDnsLDIF(LDIFParser):
 
             def ns(entry):
                 nameserver = entry['nSRecord'][0]
-                # TODO other solution?
-                if nameserver.endswith("."):
-                    nameserver = nameserver[:-1]
                 self.domains[domain]['nameservers'].append(nameserver)
                 self.domains[domain]['nameservers'].sort()
 

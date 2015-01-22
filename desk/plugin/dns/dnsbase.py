@@ -102,18 +102,18 @@ class DnsBase(object):
         {
             'name': 'a',
             'key_id': 'host', 'value_id': 'ip',
-            'key_trans': lambda k, domain: (
-                ".".join([k, domain]) if k != "@" else domain
+            'key_trans': lambda host, domain: (
+                ".".join([host, domain]) if host != "@" else domain
             )
         },
         {
             'name': 'cname',
             'key_id': 'alias', 'value_id': 'host',
-            'key_trans': lambda k, domain: (
-                k[:-1] if k.endswith(".") else ".".join([k, domain])
+            'key_trans': lambda alias, domain: (
+                alias[:-1] if alias.endswith(".") else ".".join([alias, domain])
             ),
-            'value_trans': lambda v, domain: (
-                v[:-1] if v.endswith(".") else ".".join([v, domain])
+            'value_trans': lambda host, domain: (
+                host[:-1] if host.endswith(".") else ".".join([host, domain])
             )
         },
         {
@@ -122,6 +122,10 @@ class DnsBase(object):
         }
     ]
     map_doc_id = 'map-ips'
+
+    @abc.abstractmethod
+    def set_domain(self, domain, new):
+        """Set the current domain."""
 
     @abc.abstractmethod
     def create(self):
@@ -164,8 +168,15 @@ class DnsBase(object):
         self.lookup_map = doc['map']
         self.validator.lookup_map = doc['map']
 
+def to_fqdn(entry, domain=None):
+    if entry.endswith('.'):
+        return entry[:-1]
+    if domain:
+        return "%s.%s" % (entry, domain)
+    return entry
+
 
 def get_providers(doc):
     provider_key = 'nameservers'
-    nameservers = doc[provider_key]
+    nameservers = [to_fqdn(provider) for provider in doc[provider_key]]
     return nameservers
