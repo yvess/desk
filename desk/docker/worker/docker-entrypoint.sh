@@ -2,7 +2,7 @@
 #set -e
 
 # PUT EXTRA_HOST in /etc/hosts
-if [ -z $EXTRA_HOSTS]; then
+if [ -n "$EXTRA_HOSTS" ]; then
   FIRST_ENTRY=$(echo $EXTRA_HOSTS|awk -F'[/ |;]'  '{ print $2 }')
   if ! grep -q "$(echo $FIRST_ENTRY)" /etc/hosts; then # only do it once
     echo -e "$(eval "echo -e \"$EXTRA_HOSTS\"")"| tr ";" "\n" >> /etc/hosts
