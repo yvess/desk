@@ -20,3 +20,7 @@ Worker
 
 states new, changed, active, failed
 
+BUGS
+====
+
+- reedit domain after change doesn't work without reload, needs upddated _rev
