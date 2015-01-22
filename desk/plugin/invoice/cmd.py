@@ -5,7 +5,7 @@ from __future__ import unicode_literals, division
 
 from datetime import date
 from couchdbkit import Server
-from desk.cmd import SettingsCommand
+from desk.command import SettingsCommand
 from desk.plugin.extcrm.todoyu import Todoyu
 from desk.plugin.invoice.invoice import Invoice, InvoiceCycle
 

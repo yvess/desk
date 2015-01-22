@@ -7,7 +7,7 @@ import sys
 import shutil
 import tempfile
 from socket import gethostbyaddr
-from desk.cmd import SettingsCommand
+from desk.command import SettingsCommand
 from desk.utils import CouchdbUploader, create_order_doc, auth_from_uri
 from desk.plugin.dns.importer import IspmanDnsLDIF, IspmanClientLDIF
 from desk.utils import FilesForCouch

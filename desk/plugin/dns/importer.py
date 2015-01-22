@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function
 from __future__ import division, unicode_literals
 from ldif import LDIFParser
 import hashlib
-from desk.cmd import DocsProcessor
+from desk.command import DocsProcessor
 
 
 class IspmanDnsLDIF(LDIFParser):

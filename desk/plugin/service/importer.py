@@ -6,7 +6,7 @@ import os
 import shutil
 import ezodf
 from couchdbkit import Server
-from desk.cmd import SettingsCommand
+from desk.command import SettingsCommand
 from desk.plugin.extcrm.todoyu import Todoyu
 from desk.utils import CouchdbUploader, FilesForCouch
 

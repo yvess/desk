@@ -7,8 +7,8 @@ import sys
 from ConfigParser import SafeConfigParser
 import argparse
 import codecs
-from desk.cmd import InstallDbCommand, InstallWorkerCommand
-from desk.cmd import WorkerCommand, UploadJsonCommand
+from desk.command import InstallDbCommand, InstallWorkerCommand
+from desk.command import WorkerCommand, UploadJsonCommand
 from desk.plugin.dns.cmd import ImportDnsCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand

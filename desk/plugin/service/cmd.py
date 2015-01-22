@@ -2,7 +2,7 @@
 # python3
 from __future__ import absolute_import, print_function, unicode_literals, division
 from couchdbkit import Server
-from desk.cmd import SettingsCommand
+from desk.command import SettingsCommand
 from desk.plugin.extcrm.todoyu import Todoyu
 from desk.plugin.service.importer import ImportServices
 
