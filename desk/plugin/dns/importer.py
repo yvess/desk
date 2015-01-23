@@ -134,10 +134,11 @@ class DnsDocsProcessor(DocsProcessor):
         return doc
 
     def postprocess_doc(self, doc):
+        reverse_map_dict = {v: k for k, v in self.map_dict.iteritems()}
         if 'a' in doc:
             for a_record in doc['a']:
-                if a_record['ip'] in self.map_dict:
-                    a_record['ip'] = self.map_dict[a_record['ip']]
+                if a_record['ip'] in reverse_map_dict:
+                    a_record['ip'] = reverse_map_dict[a_record['ip']]
         if 'cname' in doc:
             for cname in doc['cname']:
                 if cname['host'] in self.replace_dict:
