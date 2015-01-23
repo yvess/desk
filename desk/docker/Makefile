@@ -1,13 +1,13 @@
 default: build_couchdb build_worker build_dns
 
 build_couchdb:
-	docker build -t desk/couchdb couchdb
+	docker build -t yvess/desk-couchdb couchdb
 
 build_worker:
-	docker build -t desk/worker worker
+	docker build -t yvess/desk-worker worker
 
 build_dns:
-	docker build -t desk/dns dns
+	docker build -t yvess/desk-dns dns
 
 data:
 	docker run -v /var/services --name data_desk busybox true

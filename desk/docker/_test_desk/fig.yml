@@ -1,5 +1,5 @@
 cdb:
-  image: desk/couchdb
+  image: yvess/desk-couchdb
   hostname: cdb
   environment:
     - TERM=xterm-256color
@@ -11,7 +11,7 @@ cdb:
   #   - "15990:5984"
 
 foreman:
-  image: desk/dns
+  image: yvess/desk-dns
   hostname: dnsa.test
   environment:
     - TERM=xterm-256color

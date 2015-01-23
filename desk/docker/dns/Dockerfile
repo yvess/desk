@@ -1,4 +1,4 @@
-FROM desk/worker
+FROM yvess/desk-worker
 MAINTAINER Yves Serrano <y@yas.ch>
 
 RUN apt-get update && \

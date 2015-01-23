@@ -1,5 +1,5 @@
 cdb:
-  image: desk/couchdb
+  image: yvess/desk-couchdb
   hostname: cdb
   environment:
     - TERM=xterm-256color
@@ -13,7 +13,7 @@ cdb:
     - "5984:5984"
 
 dnsa:
-  image: desk/dns
+  image: yvess/desk-dns
   hostname: dnsa.test
   environment:
     - TERM=xterm-256color
@@ -27,7 +27,7 @@ dnsa:
     - "1053:53"
 
 dnsb:
-  image: desk/dns
+  image: yvess/desk-dns
   hostname: dnsb.test
   environment:
     - TERM=xterm-256color
@@ -41,7 +41,7 @@ dnsb:
     - "2053:53"
 
 foreman:
-  image: desk/worker
+  image: yvess/desk-worker
   hostname: foreman
   environment:
     - TERM=xterm-256color
