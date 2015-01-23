@@ -2,4 +2,5 @@ FROM yvess/couchdb
 MAINTAINER Yves Serrano <y@yas.ch>
 
 ADD local.append.ini /tmp/
-ADD desk.ini /etc/couchdb/local.d/
+ADD desk.ini /root/build/
+ADD entrypoint-couchdb.sh /
