@@ -1,3 +1,2 @@
 #!/bin/sh
-exec /usr/sbin/pdns_server --daemon=no --guardian=no
-# >> /var/log/pdns.log 2>&1
+exec /usr/sbin/pdns_server --daemon=no --guardian=no >> -PDNS_LOG-/pdns.log 2>&1
