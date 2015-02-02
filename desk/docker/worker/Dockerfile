@@ -10,7 +10,6 @@ RUN apt-get update && \
 ADD requirements.txt /tmp/requirements.txt
 RUN . /var/py27/bin/activate && cat /tmp/requirements.txt |grep -v "^#"| xargs -n 1 pip install
 ADD files /root/build
-ADD worker.conf /etc/desk/
 ADD docker-entrypoint.sh /entrypoint.sh
 ENV WORKER_TYPE foreman
 ENTRYPOINT ["/entrypoint.sh"]
