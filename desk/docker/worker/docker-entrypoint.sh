@@ -12,8 +12,12 @@ fi
 WORKER_TYPE=${WORKER_TYPE:-worker} # set to worker as default
 TESTING=${TESTING:-false}
 START_WORKER=${START_WORKER:-true}
+WORKER_LOG=${WORKER_LOG:-/var/services/log/worker}
 
 if [ "$1" = 'worker' ]; then
+  # CREATE DIRS
+  mkdir -p "$WORKER_LOG" 
+
   # ADDING DESK TO PYTHON PATH
   if [ ! -f "/var/py27/lib/python2.7/site-packages/desk.egg-link" ]; then
     cd /opt/app && /var/py27/bin/python setup.py develop > /dev/null
@@ -63,10 +67,16 @@ if [ "$1" = 'worker' ]; then
       echo "* registred worker"
     fi
 
+    # CONFIGURE RUNIT WORKER
+    if [ ! -f "/etc/service/worker" ]; then
+      sed -i -e "s#-WORKER_LOG-#${WORKER_LOG}#" \
+        /root/build/service/worker/run
+    fi
+
     # ACTIVATE RUNIT WORKER SERVICE
     if [ "$START_WORKER" == true ]; then
       echo "* started runit worker"
-      [ ! -d "/etc/service/worker" ] && mv /root/build/service/worker /etc/service/
+      [ ! -d "/etc/service/worker" ] && cp /root/build/service/worker /etc/service/
     fi
   fi
 
