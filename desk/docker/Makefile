@@ -21,3 +21,5 @@ setup: build_couchdb build_worker build_dns data
 
 fig_test:
 	cd ../ && fig run foreman
+
+.PHONY: build_couchdb build_worker build_dns data pull setup fig_test
