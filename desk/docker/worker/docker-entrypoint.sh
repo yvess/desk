@@ -16,7 +16,7 @@ WORKER_LOG=${WORKER_LOG:-/var/services/log/worker}
 
 if [ "$1" = 'worker' ]; then
   # CREATE DIRS
-  mkdir -p "$WORKER_LOG" 
+  mkdir -p "$WORKER_LOG" "/etc/desk"
 
   # ADDING DESK TO PYTHON PATH
   if [ ! -f "/var/py27/lib/python2.7/site-packages/desk.egg-link" ]; then
@@ -39,6 +39,12 @@ if [ "$1" = 'worker' ]; then
         cd /opt/app/desk && /var/py27/bin/python ./dworker install-db
         echo "* created desk_drawer database"
     fi
+
+    # COPY worker.conf for foreman
+    if [ ! -f "/etc/desk/worker.conf" ]; then
+      echo "* configure worker.conf"
+      cp /root/build/etc/worker.conf /etc/desk/worker.conf
+    fi
   fi
 
   # RUN IN TEST CASE
@@ -49,11 +55,6 @@ if [ "$1" = 'worker' ]; then
 
   # NORMAL CASE
   else
-    # EDIT WORKER.CONF
-    if grep -qv -e "-HOSTNAME-" /etc/desk/worker.conf; then
-      echo "* update worker.conf"
-      sed -i -e "s/-HOSTNAME-/`hostname`/" /etc/desk/worker.conf
-    fi
 
     # REGISTER WORKER
     # wait for db created
@@ -76,7 +77,7 @@ if [ "$1" = 'worker' ]; then
     # ACTIVATE RUNIT WORKER SERVICE
     if [ "$START_WORKER" == true ]; then
       echo "* started runit worker"
-      [ ! -d "/etc/service/worker" ] && cp /root/build/service/worker /etc/service/
+      [ ! -d "/etc/service/worker" ] && cp -R /root/build/service/worker /etc/service/
     fi
   fi
 

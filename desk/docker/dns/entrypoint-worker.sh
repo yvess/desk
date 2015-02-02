@@ -12,8 +12,10 @@ if [ -d "/root/build" ]; then
 
   # CONFIGURE WORKER
   if [ ! -f "/etc/desk/worker.conf" ]; then
+    echo "* configure worker.conf"
     cp /root/build/etc/worker.conf /etc/desk/worker.conf
     sed -i -e "s#-HOSTNAME-#${HOSTNAME}#" -e "s#-DNS_PRIMARY-#${DNS_PRIMARY}#" \
+        -e "s#-PDNS_DATA-#${PDNS_DATA}#" \
       /etc/desk/worker.conf
   fi
 
@@ -40,5 +42,5 @@ if [ -d "/root/build" ]; then
 
   # ACTIVATE RUNIT SERVICE
   echo "* added runit pdns"
-  [ ! -d "/etc/service/pdns" ] && cp /root/build/service/pdns /etc/service/
+  [ ! -d "/etc/service/pdns" ] && cp -R /root/build/service/pdns /etc/service/
 fi
