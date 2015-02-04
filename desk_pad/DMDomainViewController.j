@@ -26,6 +26,7 @@
     CPMutableArray        clients;
     CPMutableArray        domainRecordTemplates @accessors;
     CPMutableDictionary   clientLookup;
+    CPMutableDictionary   itemLookup @accessors();
     DMDomain              currentDomain @accessors;
 }
 
@@ -40,6 +41,7 @@
     {
         clients = aClientsArray;
         clientLookup = aClientLookup;
+        itemLookup = [self createLookup];
     }
     return self;
 }

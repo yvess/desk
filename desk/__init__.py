@@ -192,16 +192,19 @@ class Foreman(Worker):
 
     def _update_order(self, tasks):
         for task in tasks:
-            logging.info("updating order for task %s" % task['doc']['_id'])
             task_doc = task['doc']
             order_doc = self.db.get(task_doc['order_id'])
-            if not 'providers_done' in order_doc:
+            if 'providers_done' not in order_doc:
                 order_doc['providers_done'] = []
             providers = order_doc['providers'].keys()
             providers_done = order_doc['providers_done']
             providers_done.append(task_doc['provider'])
-            if (all([p in providers for p in providers_done]) and
-               not order_doc['state'] == 'done'):
+            task_doc['state'] = 'done_checked'
+            self.db.save_doc(task_doc)
+            self.db.save_doc(order_doc)
+            logging.info("updating order for task %s, state: %s"
+                         % (task['doc']['_id'], order_doc['state']))
+            if providers == providers_done:
                 order_doc['state'] = 'done'
                 update_docs, update_docs_id = [], []
                 [update_docs_id.extend(v) for v in order_doc['providers'].viewvalues()]
@@ -214,9 +217,8 @@ class Foreman(Worker):
                     doc['state'] = 'active'
                     update_docs.append(doc)
                 self.db.save_docs(update_docs)
-            task_doc['state'] = 'done_checked'
-            self.db.save_doc(order_doc)
-            self.db.save_doc(task_doc)
+                self.db.save_doc(order_doc)
+                logging.info("order state: %s" % order_doc['state'])
 
     def run(self):
         queue_tasks_open = self._create_queue(

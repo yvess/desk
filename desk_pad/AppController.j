@@ -169,7 +169,12 @@
         var source = new EventSource("/orders/done/?since=now");
         source.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
-          doNotification(data)
+          doNotification(data);
+          if (data.doc['type'] == 'order') {
+            var currentDomainIndex = [domainViewController selectionIndex];
+            [domainViewController reloadItems];
+            [domainViewController setSelectionIndex:currentDomainIndex];
+          }
         }, false);
 
         source.addEventListener('open', function(e) {

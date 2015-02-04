@@ -63,7 +63,6 @@
         var viewDomainEntry = nil;
         if ([domainEntry isKindOfClass:DMDomainA])
         {
-            console.log("DMDomainA3", domainEntry);
             [[popover contentViewController] setView:[self viewDomainA]];
         }
         if ([domainEntry isKindOfClass:DMDomainCname])

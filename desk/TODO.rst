@@ -5,26 +5,29 @@ TODO
 Worker
 ======
 
+TASKS
+=====
+
 - previous version template update on tempalte change
-- fix umlaute import
 - cleanup template doc befor merge
 - use_doc for all plugins
 - permission sqlitedb
 - validate couchdb doc for dns
-- placeholder $ip 
 - doc strings
 - check affected rows from sql
 - undo queue feature
 - test @ for main domain entry
 - fqn with or without "."?
+- generic cache doc
+- add order nothing todo
 
 states new, changed, active, failed
 
 BUGS
 ====
 
-- reedit domain after change doesn't work without reload, needs upddated _rev
 - @ for cname doesn't work
+- client name doesn't updates automatic in dns
 
 REFACTOR
 ========
