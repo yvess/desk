@@ -5,10 +5,10 @@ cdb:
     - TERM=xterm-256color
   volumes:
     - ../:/opt/app/
-    - /opt/src:/opt/src
-    - /opt/env:/opt/env
+    - ~/src:/opt/src
+    - ~/env:/opt/env
   volumes_from:
-    - data_desk
+    - desk_data
   ports:
     - "5984:5984"
 
@@ -20,7 +20,7 @@ dnsa:
   volumes:
     - ../:/opt/app/
   volumes_from:
-    - data_desk
+    - desk_data
   links:
     - cdb
   ports:
@@ -34,7 +34,7 @@ dnsb:
   volumes:
     - ../:/opt/app/
   volumes_from:
-    - data_desk
+    - desk_data
   links:
     - cdb
   ports:
@@ -48,8 +48,18 @@ foreman:
   volumes:
     - ../:/opt/app/
   volumes_from:
-    - data_desk
+    - desk_data
   links:
     - cdb
     - dnsa
     - dnsb
+
+# for mounting source into host, for auto complete
+ssh:
+  image: yvess/ssh
+  volumes:
+    - ~/.ssh/id_rsa.pub:/root/id.pub:ro
+  volumes_from:
+    - foreman
+  ports:
+    - "2026:22"

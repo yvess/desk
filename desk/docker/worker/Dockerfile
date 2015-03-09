@@ -12,5 +12,6 @@ RUN . /var/py27/bin/activate && cat /tmp/requirements.txt |grep -v "^#"| xargs -
 ADD files /root/build
 ADD docker-entrypoint.sh /entrypoint.sh
 ENV WORKER_TYPE foreman
+VOLUME /var/py27
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["worker"]

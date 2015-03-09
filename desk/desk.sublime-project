@@ -18,8 +18,7 @@
 			"folder_exclude_patterns":
 			[
 				".codeintel",
-				"htmlcov",
-				"py27"
+				"htmlcov"
 			],
 			"path": "."
 		}

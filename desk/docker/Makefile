@@ -10,7 +10,7 @@ build_dns:
 	docker build -t yvess/desk-dns dns
 
 data:
-	docker run -v /var/services --name data_desk busybox true
+	docker create -v /var/services --name desk_data busybox true
 
 pull:
 	docker pull yvess/desk-couchdb
