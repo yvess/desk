@@ -4,6 +4,8 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 
 from gevent import monkey; monkey.patch_all()
 import sys
+import os
+import signal
 from ConfigParser import SafeConfigParser
 import argparse
 import codecs
@@ -140,6 +142,15 @@ class SetupWorkerParser(object):
             self.settings = self.main_parser.parse_args(self.pass_args)
         else:
             self.settings = self.main_parser.parse_args()
+
+
+def signal_handler(signum, frame):
+    if signum == signal.SIGHUP:
+        # restart program
+        python = sys.executable
+        os.execl(python, python, * sys.argv)
+
+signal.signal(signal.SIGHUP, signal_handler)
 
 if __name__ == "__main__":
     worker = SetupWorkerParser()
