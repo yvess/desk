@@ -98,13 +98,19 @@ class Powerdns(DnsBase):
         )
         self._db("DELETE FROM domains WHERE id={}".format(self.domain_id))
 
+    def _prepare_record_value(self, value):
+        if value.startswith('@ip_'):  # get ip value from hashmap
+            value = self.lookup_map[value]
+        elif value == '@':  # use main domain a alias target
+            value = self.domain
+        return value
+
     def add_record(self, key, value, rtype='A', ttl=86400,
                    priority='NULL', domain=None):
         if domain:
             self.set_domain(domain)
         # TOOD set ttl
-        if value.startswith('@ip_'):  # get ip value from hashmap
-            value = self.lookup_map[value]
+        value = self._prepare_record_value(value)
         self._db(
             """INSERT INTO records
                (domain_id, name, content, type, ttl, prio)
@@ -119,8 +125,7 @@ class Powerdns(DnsBase):
         if domain:
             self.set_domain(domain)
         # TOOD set ttl
-        if value.startswith('@ip_'):  # get ip value from hashmap
-            value = self.lookup_map[value]
+        value = self._prepare_record_value(value)
         if lookup == 'key':
             where = "name='{}'".format(key)
         elif lookup == 'value':
