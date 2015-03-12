@@ -95,6 +95,16 @@ class DnsValidator(object):
         return is_valid
 
 
+def dnsbase_structure_cname_value_trans(host, domain):
+    if host.endswith("."):
+        value = host[:-1]
+    elif host == '@':
+        value = domain
+    else:
+        value = ".".join([host, domain])
+    return value
+
+
 class DnsBase(object):
     __metaclass__ = abc.ABCMeta
     validator = DnsValidator
@@ -110,11 +120,10 @@ class DnsBase(object):
             'name': 'cname',
             'key_id': 'alias', 'value_id': 'host',
             'key_trans': lambda alias, domain: (
-                alias[:-1] if alias.endswith(".") else ".".join([alias, domain])
+                alias[:-1] if alias.endswith(".")
+                else ".".join([alias, domain])
             ),
-            'value_trans': lambda host, domain: (
-                host[:-1] if host.endswith(".") else ".".join([host, domain])
-            )
+            'value_trans': dnsbase_structure_cname_value_trans
         },
         {
             'name': 'mx',

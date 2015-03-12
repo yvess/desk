@@ -101,8 +101,6 @@ class Powerdns(DnsBase):
     def _prepare_record_value(self, value):
         if value.startswith('@ip_'):  # get ip value from hashmap
             value = self.lookup_map[value]
-        elif value == '@':  # use main domain a alias target
-            value = self.domain
         return value
 
     def add_record(self, key, value, rtype='A', ttl=86400,
