@@ -21,7 +21,7 @@
                 <rect key="frame" x="0.0" y="0.0" width="800" height="600"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <tabView type="noTabsBezelBorder" id="547" userLabel="Tab View (Clients, Projects, WorkTimes)">
+                    <tabView type="noTabsBezelBorder" id="547" userLabel="Tab View (Clients, DNS)">
                         <rect key="frame" x="-4" y="-4" width="808" height="545"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <font key="font" metaFont="system"/>

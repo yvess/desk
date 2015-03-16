@@ -7,12 +7,12 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="DMDomainViewController">
             <connections>
-                <outlet property="aDomainOutline" destination="37" id="300"/>
                 <outlet property="addDomainAButton" destination="171" id="297"/>
                 <outlet property="addDomainCnameButton" destination="173" id="298"/>
                 <outlet property="addDomainMxButton" destination="189" id="299"/>
                 <outlet property="arrayController" destination="47" id="181"/>
                 <outlet property="clientsForDomainPopUp" destination="26" id="301"/>
+                <outlet property="domainOutline" destination="37" id="QYF-QX-KTd"/>
                 <outlet property="itemsTable" destination="9" id="182"/>
                 <outlet property="popoverDomain" destination="143" id="302"/>
                 <outlet property="popoverTpl" destination="287" id="289"/>
