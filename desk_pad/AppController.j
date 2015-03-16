@@ -16,27 +16,16 @@
 @import <CouchResource/COViewController.j>
 @import "DMClient.j"
 @import "DMClientViewController.j"
-@import "DMProject.j"
-@import "DMProjectViewController.j"
-@import "DMWorkTime.j"
-@import "DMWorkTimeViewController.j"
 @import "DMDomain.j"
 @import "DMDomainViewController.j"
 @import "DMOrder.j"
-//@import "DMDomainViewController.j"
 
 @implementation AppController : CPObject
 {
     CPWindow              theWindow; //this "outlet" is connected automatically by the Cib
 
-/*    CPMutableArray        workTimes;
-    @outlet              WorkTimeArrayController workTimeArrayController;
-    @outlet              CPTableView workTimesTable;*/
-
     @outlet              CPTabView mainTabView;
     @outlet              CPButton clientsSwitchButton;
-    @outlet              CPButton projectsSwitchButton;
-    @outlet              CPButton workTimesSwitchButton;
     @outlet              CPButton domainSwitchButton;
     @outlet              CPButton orderButton;
 
@@ -53,14 +42,8 @@
     case @"Clients":
         [mainTabView selectTabViewItemAtIndex:0];
         break;
-    case @"Projects":
-        [mainTabView selectTabViewItemAtIndex:1];
-        break;
-    case @"WorkTimes":
-        [mainTabView selectTabViewItemAtIndex:2];
-        break;
     case @"DNS":
-        [mainTabView selectTabViewItemAtIndex:3];
+        [mainTabView selectTabViewItemAtIndex:1];
         break;
     }
 }
@@ -110,21 +93,10 @@
     [theWindow setFullPlatformWindow:YES];
 
     var clientVC = [[DMClientViewController alloc]
-                                //[COViewController alloc]
                                 initWithCibName:@"ClientView"
-                                bundle:nil //],
-                                modelClass:[DMClient class]]; //,
-        // projectViewController = [[DMProjectViewController alloc]
-        //                         initWithCibName:@"ProjectView"
-        //                         bundle:nil
-        //                         modelClass:[DMProject class]
-        //                         clients:[clientViewController items]
-        //                         clientLookup:[clientViewController itemLookup]],
-        // workTimeViewController = [[DMWorkTimeViewController alloc]
-        //                         initWithCibName:@"WorkTimeView"
-        //                         bundle:nil
-        //                         modelClass:[DMWorkTime class]],
-    var domainVC = [[DMDomainViewController alloc]
+                                bundle:nil,
+                                modelClass:[DMClient class]],
+        domainVC = [[DMDomainViewController alloc]
                                 initWithCibName:@"DomainView"
                                 bundle:nil
                                 modelClass:[DMDomain class]
@@ -135,8 +107,6 @@
     self.clientViewController = clientVC;
 
     [[mainTabView tabViewItemAtIndex:0] setView:[clientVC view]];
-    // [[mainTabView tabViewItemAtIndex:1] setView:[projectViewController view]];
-    // [[mainTabView tabViewItemAtIndex:2] setView:[workTimeViewController view]];
     [[mainTabView tabViewItemAtIndex:3] setView:[domainVC view]];
 }
 
@@ -144,8 +114,6 @@
 {
     // This is called when the application is done loading.
     [clientsSwitchButton setAction:@selector(switchTabFromButton:)];
-    // [projectsSwitchButton setAction:@selector(switchTabFromButton:)];
-    // [workTimesSwitchButton setAction:@selector(switchTabFromButton:)];
     [domainSwitchButton setAction:@selector(switchTabFromButton:)];
     [orderButton setAction:@selector(pushUpdate)];
     [orderButton setTarget:self];
@@ -170,7 +138,8 @@
         source.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
           doNotification(data);
-          if (data.doc['type'] == 'order') {
+          if (data.doc['type'] == 'order')
+          {
             var currentDomainIndex = [domainViewController selectionIndex];
             [domainViewController reloadItems];
             [domainViewController setSelectionIndex:currentDomainIndex];

@@ -90,7 +90,8 @@
     var clientIndex = [clients indexOfObject:[clientLookup objectForKey:[aItem clientId]]];
     [clientsForDomainPopUp selectItemAtIndex:clientIndex];
     var objectPassingFunction = function(object, index, context) {
-        if ([object coId] == [context templateId]) {
+        if ([object coId] == [context templateId])
+        {
             return true;
         } else {
             return false;
@@ -134,14 +135,14 @@
     [clients enumerateObjectsUsingBlock:function(item) {
         [clientsForDomainPopUp addItemWithTitle:[item name]];
         var menuItem = [clientsForDomainPopUp itemWithTitle:[item name]];
-        [menuItem setRepresentedObject: item];
+        [menuItem setRepresentedObject:item];
     }];
     [tplForDomainPopUp addItemWithTitle:@" "];
     [self setDomainRecordTemplates:[DMTemplate all]];
     [[self domainRecordTemplates] enumerateObjectsUsingBlock:function(item) {
         [tplForDomainPopUp addItemWithTitle:[item name]];
         var menuItem = [tplForDomainPopUp itemWithTitle:[item name]];
-        [menuItem setRepresentedObject: item];
+        [menuItem setRepresentedObject:item];
     }];
     [arrayController addObserver:self forKeyPath:@"selection.domain" options:nil context:@"domain"];
     var last = [self lastSelectedObject];
@@ -163,8 +164,8 @@
 
 - (void)saveModel:(id)sender
 {
-    var item = [self lastSelectedObject];
-    var selectedClientId = [[[clientsForDomainPopUp selectedItem] representedObject] coId];
+    var item = [self lastSelectedObject],
+        selectedClientId = [[[clientsForDomainPopUp selectedItem] representedObject] coId];
     [item setClientId:selectedClientId];
 
     var selectedTemplateId = [[[tplForDomainPopUp selectedItem] representedObject] coId];

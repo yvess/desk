@@ -131,7 +131,7 @@
 @implementation DMDomainRecordsOutlineController (OutlineProtocol)
 - (int)outlineView:(CPOutlineView)outlineView numberOfChildrenOfItem:(id)item
 {
-    var count = 3; // for root îtem
+    var count = 3; // for root item
     if (item != nil)
     {
         if ([item respondsToSelector:CPSelectorFromString(@"items")])
@@ -177,7 +177,7 @@
     return [self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
 }
 
--(id)outlineView:(id)outlineView viewForTableColumn:(id)tableColumn item:(id)item
+- (id)outlineView:(id)outlineView viewForTableColumn:(id)tableColumn item:(id)item
 {
     var view = nil;
     if ([item isKindOfClass:COItemsParent])
