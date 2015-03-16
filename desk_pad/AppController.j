@@ -11,6 +11,7 @@
 @import <AppKit/CPTextField.j>
 @import <AppKit/CPPopUpButton.j>
 @import <AppKit/CPButtonBar.j>
+@import <AppKit/CPTabView.j>
 @import <GrowlCappuccino/GrowlCappuccino.j>
 @import <CouchResource/COCategories.j>
 @import <CouchResource/COViewController.j>
@@ -69,39 +70,16 @@
         old_value = [aChange valueForKey:@"CPKeyValueChangeOldKey"];
 }
 
-/*! Notification responder of DMRemoveTableRow
-    @param aNotification the received notification. This notification will contains as object the row
-*/
-/*- (void)tableRowRemoved:(CPNotification)aNotification
-{
-
-    var row = [[aNotification object] lastObject];
-    console.log("remove", row);
-    if ([row coId])
-    {
-        [row destroy]; // TODO remove itesm with space propogate error to interface
-    }
-}*/
-
 - (void)awakeFromCib
 {
-    /*[[CPNotificationCenter defaultCenter]
-        addObserver:self
-        selector:@selector(tableRowRemoved:)
-        name:@"DMRemoveTableRow" object:nil];*/
-
     [theWindow setFullPlatformWindow:YES];
 
     var clientVC = [[DMClientViewController alloc]
-                                initWithCibName:@"ClientView"
-                                bundle:nil,
-                                modelClass:[DMClient class]],
+                    initWithCibName:@"ClientView" bundle:nil modelClass:[DMClient class]],
         domainVC = [[DMDomainViewController alloc]
-                                initWithCibName:@"DomainView"
-                                bundle:nil
-                                modelClass:[DMDomain class]
-                                clients:[clientVC items]
-                                clientLookup:[clientVC itemLookup]];
+                    initWithCibName:@"DomainView" bundle:nil
+                    modelClass:[DMDomain class] clients:[clientVC items]
+                    clientLookup:[clientVC itemLookup]];
 
     self.domainViewController = domainVC;
     self.clientViewController = clientVC;

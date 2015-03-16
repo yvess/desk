@@ -1,10 +1,12 @@
 @import "DMDomain.j"
+@import <AppKit/CPPopover.j>
+@import <AppKit/CPOutlineView.j>
 @import <CouchResource/COResource.j>
 @import <CouchResource/COItemsParent.j>
 
 @implementation DMDomainRecordsOutlineController : CPObject
 {
-    Domain domainRecord @accessors(readonly);
+    DMDomain domainRecord @accessors(readonly);
     CPOutlineView domainOutline @accessors(readonly);
     CPPopover popover @accessors;
     CPMutableDictionary lookupDomainEntries @accessors;

@@ -1,6 +1,8 @@
 @import <AppKit/CPViewController.j>
 @import <AppKit/CPEvent.j>
 @import <AppKit/CPWebView.j>
+@import <AppKit/CPOutlineView.j>
+@import <AppKit/CPPopover.j>
 @import <CouchResource/COViewController.j>
 @import <CouchResource/COArrayController.j>
 @import "DMDomain.j"
