@@ -94,6 +94,26 @@
                                                             </binding>
                                                         </connections>
                                                     </tableColumn>
+                                                    <tableColumn identifier="_rev" editable="NO" width="22" minWidth="10" maxWidth="3.4028234663852886e+38" hidden="YES" id="qD3-Ru-fse" userLabel="prev_active_rev">
+                                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="_rev">
+                                                            <font key="font" metaFont="smallSystem"/>
+                                                            <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                            <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
+                                                        </tableHeaderCell>
+                                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="WUG-zL-OF2">
+                                                            <font key="font" metaFont="system"/>
+                                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                        </textFieldCell>
+                                                        <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                                        <connections>
+                                                            <binding destination="47" name="value" keyPath="arrangedObjects.prevActiveRev" id="tKl-Xt-5up">
+                                                                <dictionary key="options">
+                                                                    <bool key="NSConditionallySetsEditable" value="YES"/>
+                                                                </dictionary>
+                                                            </binding>
+                                                        </connections>
+                                                    </tableColumn>
                                                     <tableColumn identifier="domain" editable="NO" width="255" minWidth="10" maxWidth="3.4028234663852886e+38" id="13">
                                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Domain">
                                                             <font key="font" metaFont="smallSystem"/>
