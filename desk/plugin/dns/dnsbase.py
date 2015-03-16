@@ -165,7 +165,7 @@ class DnsBase(object):
         """delete record"""
 
     @abc.abstractmethod
-    def del_records(self, rtype=none):
+    def del_records(self, rtype, domain=None):
         """delete records from one rtype"""
 
     def set_docs(self, doc, prev_doc=None):
@@ -180,6 +180,7 @@ class DnsBase(object):
     def set_lookup_map(self, doc):
         self.lookup_map = doc['map']
         self.validator.lookup_map = doc['map']
+
 
 def to_fqdn(entry, domain=None):
     if entry.endswith('.'):

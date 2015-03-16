@@ -191,8 +191,8 @@ class Powerdns(DnsBase):
             self.set_domain(domain)
         self._db(
             """DELETE FROM records
-               WHERE domain_id='{domain_id}' type='{rtype}'
-            """.format(domain_id=self.domain_id, rtype=rtype)
+               WHERE domain_id='{domain_id}' AND type='{rtype}'
+            """.format(domain_id=self.domain_id, rtype=rtype.upper())
         )
 
     def _trans(self, key, value, rtype=None):
@@ -232,7 +232,7 @@ class Powerdns(DnsBase):
                 # update records
                 if name in self.diff['update']:
                     update = self.diff['update'][name]
-                self.del_records(rytpe=name)
+                self.del_records(rtype=name)
                 self._create_records(only_rtype=name)
             self._conn.commit()
             self.update_soa()
