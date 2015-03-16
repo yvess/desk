@@ -147,41 +147,44 @@ class Powerdns(DnsBase):
                        value=value, rtype=rtype)
         )
 
-    def create(self):
+    def create(self,):
         was_sucessfull = False
         if self.doc:
             self.set_domain(self.doc['domain'], new=True)
             self.add_domain()
             for nameserver in self.doc['nameservers']:
                 self.add_record(self.domain, nameserver, rtype="NS")
-            for rtype in self.structure:
-                name, key_id, value_id = (
-                    rtype['name'], rtype['key_id'], rtype['value_id']
-                )
-                if name in self.doc:
-                    for d in self.doc[name]:  # TODO merge with create logic
-                        if 'key_trans' in rtype:
-                            key = rtype['key_trans'](d[key_id], self.domain)
-                        else:
-                            key = d[key_id]
-                        if 'value_trans' in rtype:
-                            value = rtype['value_trans'](
-                                d[value_id], self.domain
-                            )
-                        else:
-                            value = d[value_id]
-                        if name.upper() == "MX":
-                            self.add_record(
-                                self.domain, key,
-                                priority=int(value), rtype="MX"
-                            )
-                        else:
-                            # TODO add special case for main @ self.domain?
-                            self.add_record(key, value, rtype=name.upper())
+            self._create_records()
             self._conn.commit()
             self.add_soa()
             was_sucessfull = True
         return was_sucessfull
+
+    def _create_records(self, only_rtype=None):
+        for rtype in self.structure:
+            name, key_id, value_id = (
+                rtype['name'], rtype['key_id'], rtype['value_id']
+            )
+            if name in self.doc and (not only_rtype or name == only_rtype):
+                for item in self.doc[name]:  # TODO merge with create logic
+                    if 'key_trans' in rtype:
+                        key = rtype['key_trans'](item[key_id], self.domain)
+                    else:
+                        key = item[key_id]
+                    if 'value_trans' in rtype:
+                        value = rtype['value_trans'](
+                            item[value_id], self.domain
+                        )
+                    else:
+                        value = item[value_id]
+                    if name.upper() == "MX":
+                        self.add_record(
+                            self.domain, key,
+                            priority=int(value), rtype="MX"
+                        )
+                    else:
+                        # TODO add special case for main @ self.domain?
+                        self.add_record(key, value, rtype=name.upper())
 
     def _trans(self, key, value, rtype=None):
         if 'key_trans' in rtype:
@@ -204,32 +207,32 @@ class Powerdns(DnsBase):
                 # remove records
                 if name in self.diff['remove']:
                     remove = self.diff['remove'][name]
-                for d in remove:
+                for item in remove:
                     key, value = self._trans(
-                        d[key_id], d[value_id], rtype=rtype
+                        item[key_id], item[value_id], rtype=rtype
                     )
                     self.del_record(key, value, rtype=name.upper())
                 # new records
                 if name in self.diff['append']:
                     append = self.diff['append'][name]
-                for d in append:
+                for item in append:
                     key, value = self._trans(
-                        d[key_id], d[value_id], rtype=rtype
+                        item[key_id], item[value_id], rtype=rtype
                     )
                     self.add_record(key, value, rtype=name.upper())
                 # update records
                 if name in self.diff['update']:
                     update = self.diff['update'][name]
-                for d in update:
+                for item in update:
                     key, value = (
-                        self._trans(d[key_id], d[value_id], rtype=rtype)
+                        self._trans(item[key_id], item[value_id], rtype=rtype)
                     )
-                    lookup = d['lookup']
+                    lookup = item['lookup']
                     if lookup in ('key', 'value'):
                         self.update_record(key, value, rtype=name.upper(),
                                            lookup=lookup)
                     elif lookup == 'id':
-                        record = copy(d)
+                        record = copy(item)
                         del record['lookup']
                         index = self.doc[name].index(record)
                         d_old = self.prev_doc[name][index]
