@@ -215,7 +215,8 @@ class Foreman(Worker):
                 for result in bulk_docs:
                     doc = result['doc']
                     doc['state'] = 'active'
-                    doc['prev_active_rev'] = doc['prev_rev']
+                    if 'prev_rev' in doc:
+                        doc['prev_active_rev'] = doc['prev_rev']
                     update_docs.append(doc)
                 self.db.save_docs(update_docs)
                 self.db.save_doc(order_doc)
