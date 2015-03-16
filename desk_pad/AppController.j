@@ -81,11 +81,11 @@
                     modelClass:[DMDomain class] clients:[clientVC items]
                     clientLookup:[clientVC itemLookup]];
 
-    self.domainViewController = domainVC;
     self.clientViewController = clientVC;
+    self.domainViewController = domainVC;
 
     [[mainTabView tabViewItemAtIndex:0] setView:[clientVC view]];
-    [[mainTabView tabViewItemAtIndex:3] setView:[domainVC view]];
+    [[mainTabView tabViewItemAtIndex:1] setView:[domainVC view]];
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
