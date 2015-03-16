@@ -164,6 +164,10 @@ class DnsBase(object):
     def del_record(self, key, value, rtype='A', ttl=86400, priority='NULL'):
         """delete record"""
 
+    @abc.abstractmethod
+    def del_records(self, rtype=none):
+        """delete records from one rtype"""
+
     def set_docs(self, doc, prev_doc=None):
         """sets the doc to use"""
         self.doc = doc

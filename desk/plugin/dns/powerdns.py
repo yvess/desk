@@ -186,6 +186,15 @@ class Powerdns(DnsBase):
                         # TODO add special case for main @ self.domain?
                         self.add_record(key, value, rtype=name.upper())
 
+    def del_records(self, rtype, domain=None):
+        if domain:
+            self.set_domain(domain)
+        self._db(
+            """DELETE FROM records
+               WHERE domain_id='{domain_id}' type='{rtype}'
+            """.format(domain_id=self.domain_id, rtype=rtype)
+        )
+
     def _trans(self, key, value, rtype=None):
         if 'key_trans' in rtype:
             key = rtype['key_trans'](key, self.domain)
@@ -223,24 +232,8 @@ class Powerdns(DnsBase):
                 # update records
                 if name in self.diff['update']:
                     update = self.diff['update'][name]
-                for item in update:
-                    key, value = (
-                        self._trans(item[key_id], item[value_id], rtype=rtype)
-                    )
-                    lookup = item['lookup']
-                    if lookup in ('key', 'value'):
-                        self.update_record(key, value, rtype=name.upper(),
-                                           lookup=lookup)
-                    elif lookup == 'id':
-                        record = copy(item)
-                        del record['lookup']
-                        index = self.doc[name].index(record)
-                        d_old = self.prev_doc[name][index]
-                        key_old, value_old = self._trans(
-                            d_old[key_id], d_old[value_id], rtype=rtype
-                        )
-                        self.del_record(key_old, value_old, rtype=name.upper())
-                        self.add_record(key, value, rtype=name.upper())
+                self.del_records(rytpe=name)
+                self._create_records(only_rtype=name)
             self._conn.commit()
             self.update_soa()
             was_sucessfull = True
