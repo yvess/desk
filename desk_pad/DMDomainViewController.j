@@ -15,7 +15,7 @@
     @outlet              CPButton addDomainAButton;
     @outlet              CPButton addDomainMxButton;
     @outlet              CPPopUpButton clientsForDomainPopUp;
-    @outlet              CPOutlineView aDomainOutline;
+    @outlet              CPOutlineView domainOutline;
     @outlet              CPPopover popoverDomain;
     @outlet              CPView viewDomainA;
     @outlet              CPView viewDomainCname;
@@ -52,24 +52,24 @@
 {
     [[[[self currentDomain] a] items] addObject:[[DMDomainA alloc]
         initWithJSObject:{ "host": "new", "ip": "0.0.0.0" }] ];
-    [[aDomainOutline delegate] setLookupForDomainEntries];
-    [aDomainOutline reloadData];
+    [[domainOutline delegate] setLookupForDomainEntries];
+    [domainOutline reloadData];
 }
 
 - (void)addDomainCname:(id)sender
 {
     [[[[self currentDomain] cname] items] addObject:[[DMDomainCname alloc]
         initWithJSObject:{ "alias": "new", "host": "new" }] ];
-    [[aDomainOutline delegate] setLookupForDomainEntries];
-    [aDomainOutline reloadData];
+    [[domainOutline delegate] setLookupForDomainEntries];
+    [domainOutline reloadData];
 }
 
 - (void)addDomainMx:(id)sender
 {
     [[[[self currentDomain] mx] items] addObject:[[DMDomainMx alloc]
         initWithJSObject:{ "host": "new", "priority": "10" }] ];
-    [[aDomainOutline delegate] setLookupForDomainEntries];
-    [aDomainOutline reloadData];
+    [[domainOutline delegate] setLookupForDomainEntries];
+    [domainOutline reloadData];
 }
 
 - (void)showTpl:(id)sender
@@ -99,19 +99,18 @@
             return false;
         }
     }
-    var templateIndex = [domainRecordTemplates
-            indexOfObjectPassingTest: objectPassingFunction
-            context:aItem
-        ];
+    var templateIndex = [
+        domainRecordTemplates indexOfObjectPassingTest:objectPassingFunction
+        context:aItem];
     [tplForDomainPopUp selectItemAtIndex:(templateIndex == -1) ? 0 : templateIndex + 1];
 
     var domainOutlineController = [[DMDomainRecordsOutlineController alloc] initWithDomain:aItem
-        domainOutline:aDomainOutline popover:popoverDomain viewDomainA:viewDomainA
+        domainOutline:domainOutline popover:popoverDomain viewDomainA:viewDomainA
         viewDomainCname:viewDomainCname viewDomainMx:viewDomainMx];
-    [aDomainOutline setDataSource:domainOutlineController];
-    [aDomainOutline setDelegate:domainOutlineController];
-    [aDomainOutline setRowHeight:28];
-    [aDomainOutline reloadData];
+    [domainOutline setDelegate:domainOutlineController];
+    [domainOutline setDataSource:domainOutlineController];
+    //[domainOutline setRowHeight:28];
+    [domainOutline reloadData];
     [self setCurrentDomain:aItem];
 }
 
