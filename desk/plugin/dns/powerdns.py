@@ -63,8 +63,8 @@ class Powerdns(DnsBase):
         self.add_record(
             self.domain,
             SOA_FORMAT.format(serial=serial, **self.doc),
-            #"localhost dnsmaster@test.tt {}".format(serial),
-            rtype="SOA"
+            rtype="SOA",
+            ttl=self.get_ttl(self.doc)
         )
 
     def update_soa(self, domain=None):
@@ -77,7 +77,7 @@ class Powerdns(DnsBase):
 
         self.update_record(
             self.domain, self._calc_serial(current_serial),
-            rtype="SOA"
+            rtype="SOA", ttl=self.get_ttl(self.doc)
         )
         # TODO sudoers
         os.system("sudo pdns_control purge {}$".format(self.domain))
@@ -153,7 +153,8 @@ class Powerdns(DnsBase):
             self.set_domain(self.doc['domain'], new=True)
             self.add_domain()
             for nameserver in self.doc['nameservers']:
-                self.add_record(self.domain, nameserver, rtype="NS")
+                self.add_record(self.domain, nameserver, rtype="NS",
+                                ttl=self.get_ttl(self.doc))
             self._create_records()
             self._conn.commit()
             self.add_soa()
@@ -180,11 +181,12 @@ class Powerdns(DnsBase):
                     if name.upper() == "MX":
                         self.add_record(
                             self.domain, key,
-                            priority=int(value), rtype="MX"
+                            priority=int(value), rtype="MX",
+                            ttl=self.get_ttl(self.doc)
                         )
                     else:
-                        # TODO add special case for main @ self.domain?
-                        self.add_record(key, value, rtype=name.upper())
+                        self.add_record(key, value, rtype=name.upper(),
+                                        ttl=self.get_ttl(self.doc))
 
     def del_records(self, rtype, domain=None):
         if domain:
@@ -228,7 +230,8 @@ class Powerdns(DnsBase):
                     key, value = self._trans(
                         item[key_id], item[value_id], rtype=rtype
                     )
-                    self.add_record(key, value, rtype=name.upper())
+                    self.add_record(key, value, rtype=name.upper(),
+                                    ttl=self.get_ttl(self.doc))
                 # update records
                 if name in self.diff['update']:
                     update = self.diff['update'][name]

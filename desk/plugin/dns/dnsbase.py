@@ -181,6 +181,13 @@ class DnsBase(object):
         self.lookup_map = doc['map']
         self.validator.lookup_map = doc['map']
 
+    def get_ttl(self, doc):
+        if 'ttl' in doc:
+            return doc['ttl']
+        if 'soa_default_ttl' in doc:
+            return doc['soa_default_ttl']
+        return 86400
+
 
 def to_fqdn(entry, domain=None):
     if entry.endswith('.'):
