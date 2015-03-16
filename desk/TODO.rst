@@ -16,8 +16,6 @@ TASKS
 - doc strings
 - check affected rows from sql
 - undo queue feature
-- test @ for main domain entry
-- fqn with or without "."?
 - generic cache doc
 - add order nothing todo
 
@@ -26,7 +24,6 @@ states new, changed, active, failed
 BUGS
 ====
 
-- @ for cname doesn't work
 - client name doesn't updates automatic in dns
 
 REFACTOR
