@@ -417,8 +417,8 @@
                                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                 <subviews>
                                                                     <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="328">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="347" height="17"/>
-                                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                                        <rect key="frame" x="0.0" y="2" width="347" height="20"/>
+                                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="329">
                                                                             <font key="font" metaFont="system"/>
                                                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -435,8 +435,8 @@
                                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                 <subviews>
                                                                     <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="316">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="347" height="17"/>
-                                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                                        <rect key="frame" x="0.0" y="2" width="347" height="20"/>
+                                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="317">
                                                                             <font key="font" metaFont="system"/>
                                                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -444,19 +444,19 @@
                                                                         </textFieldCell>
                                                                     </textField>
                                                                     <button identifier="domainRecordEditButton" verticalHuggingPriority="750" tag="1000" id="323">
-                                                                        <rect key="frame" x="226" y="-4" width="64" height="32"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
-                                                                        <buttonCell key="cell" type="push" title="edit" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="326">
+                                                                        <rect key="frame" x="227" y="-9" width="62" height="28"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                                                        <buttonCell key="cell" type="push" title="edit" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="326">
                                                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                                                            <font key="font" metaFont="system"/>
+                                                                            <font key="font" metaFont="smallSystem"/>
                                                                         </buttonCell>
                                                                     </button>
                                                                     <button identifier="domainRecordDeleteButton" verticalHuggingPriority="750" tag="1010" id="324">
-                                                                        <rect key="frame" x="290" y="-4" width="60" height="32"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES"/>
-                                                                        <buttonCell key="cell" type="push" title="del" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="325">
+                                                                        <rect key="frame" x="291" y="-9" width="58" height="28"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                                                        <buttonCell key="cell" type="push" title="del" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="325">
                                                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                                                            <font key="font" metaFont="system"/>
+                                                                            <font key="font" metaFont="smallSystem"/>
                                                                         </buttonCell>
                                                                     </button>
                                                                 </subviews>
