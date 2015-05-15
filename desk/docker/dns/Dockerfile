@@ -1,10 +1,9 @@
 FROM yvess/desk-worker
 MAINTAINER Yves Serrano <y@yas.ch>
 
-RUN apt-get update && \
-    apt-get install -y \
-        pdns-backend-sqlite3 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --update \
+        pdns-backend-sqlite3@testing && \
+    rm -rf /var/cache/apk/*
 ADD files /root/build
 ADD entrypoint-worker.sh /entrypoint-worker.sh
 ENV WORKER_TYPE worker
