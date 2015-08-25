@@ -5,10 +5,8 @@ Cython==0.21
 Jinja2==2.7.3
 MarkupSafe==0.23
 PyMySQL==0.6.2
-PyYAML==3.11
 Pyphen==0.9.1
 WeasyPrint==0.23
-ansible==1.7.2
 argparse==1.2.1
 cairocffi==0.6
 cffi==0.8.6
@@ -36,4 +34,3 @@ six==1.8.0
 socketpool==0.5.2
 tinycss==0.3
 wsgiref==0.1.2
-yolk==0.4.3

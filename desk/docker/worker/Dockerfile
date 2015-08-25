@@ -1,23 +1,24 @@
-FROM yvess/aldev
+FROM alpine:edge
 MAINTAINER Yves Serrano <y@yas.ch>
 
-RUN echo "@testing http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
+ADD requirements.txt /tmp/requirements.txt
+RUN sed -i -e "s#dl-4\.#nl\.#" /etc/apk/repositories && \
+    echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk add --update \
-        openldap-dev \
-        libffi-dev \
+        python py-pip make readline openssl python-dev \
+        libxml2 libxslt openldap libffi pango \
+        git gcc g++ \
+        openssl-dev readline-dev \
+        libxml2-dev libxslt-dev openldap-dev libffi-dev pango-dev \
         cairo \
         pango-dev \
         bind-tools \
-        runit@testing  && \
-    curl -SL 'https://bootstrap.pypa.io/get-pip.py' | python2.7  && \
-    pip install virtualenv && virtualenv /var/py27 && \
-    rm -rf /var/cache/apk/*
-
-ADD requirements.txt /tmp/requirements.txt
-RUN . /var/py27/bin/activate && cat /tmp/requirements.txt |grep -v "^#"| xargs -n 1 pip install
+        runit@testing && \
+    cat /tmp/requirements.txt |grep -v "^#"| xargs -n 1 pip install && \
+    apk del gcc g++ openssl-dev readline-dev libxml2-dev libxslt-dev openldap-dev libffi-dev pango-dev && \
+    rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 ADD files /root/build
 ADD docker-entrypoint.sh /entrypoint.sh
 ENV WORKER_TYPE foreman
-VOLUME /var/py27
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["worker"]

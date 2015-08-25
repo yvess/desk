@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -d "/root/build" ]; then
   # PREPARE STUFF

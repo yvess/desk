@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -d "/root/build" ]; then
   # SET DEFAULT VALUES IF NOT SET
