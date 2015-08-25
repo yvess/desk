@@ -8,7 +8,6 @@ if [ -d "/root/build" ]; then
   PDNS_LOG=${PDNS_LOG:-/var/services/log/powerdns}
   DNS_PRIMARY=${DNS_PRIMARY:-$HOSTNAME}
   mkdir -p "$PDNS_DATA" "$PDNS_LOG"
-  rm /etc/powerdns/pdns.d/pdns.local.conf
 
   # CONFIGURE WORKER
   if [ ! -f "/etc/desk/worker.conf" ]; then
@@ -20,13 +19,15 @@ if [ -d "/root/build" ]; then
   fi
 
   # CONFIGURE PDNS
-  if [ ! -f "/etc/powerdns/pdns.d/pdns.local.conf" ]; then
-    cp /root/build/pdns.local.conf /root/build/pdns.local.gsqlite3.conf /etc/powerdns/pdns.d/
+  if [ ! -f "/etc/pdns.d/pdns.local.conf" ]; then
+    echo "* configure pdns"
+    cp /root/build/pdns.conf /etc/pdns.conf
+    mkdir -p /etc/pdns.d/
+    cp /root/build/pdns.local.* /etc/pdns.d/
     sed -i -e "s#-PDNS_DATA-#${PDNS_DATA}#" \
-      /etc/powerdns/pdns.d/pdns.local.gsqlite3.conf
+      /etc/pdns.d/pdns.local.gsqlite3.conf
     sed -i -e "s/-IP-/${IP}/" -e "s/-HOSTNAME-/${HOSTNAME}/" \
-      /etc/powerdns/pdns.d/*
-    rm /etc/powerdns/bindbackend.conf /etc/powerdns/pdns.d/pdns.simplebind.conf
+      /etc/pdns.d/*
   fi
 
   # SETUP PDNS DATABASE

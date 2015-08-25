@@ -1,4 +1,4 @@
-FROM alpine:edge
+FROM alpine:3.2
 MAINTAINER Yves Serrano <y@yas.ch>
 
 ADD requirements.txt /tmp/requirements.txt

@@ -82,7 +82,7 @@ if [ "$1" = 'worker' ]; then
   fi
 
   # CLEANUP
-  #rm -Rf /root/build
+  rm -Rf /root/build
 
   # ENABLE RUNIT SERVICES
   exec /sbin/runsvdir /etc/service
