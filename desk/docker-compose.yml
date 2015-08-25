@@ -54,12 +54,3 @@ foreman:
     - dnsa
     - dnsb
 
-# for mounting source into host, for auto complete
-ssh:
-  image: yvess/ssh
-  volumes:
-    - ~/.ssh/id_rsa.pub:/root/id.pub:ro
-  volumes_from:
-    - foreman
-  ports:
-    - "2026:22"
