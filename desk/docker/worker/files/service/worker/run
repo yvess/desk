@@ -1,3 +1,3 @@
 #!/bin/sh
 cd /opt/app/desk
-exec /var/py27/bin/python -u ./dworker run -v >> -WORKER_LOG-/worker.log 2>&1
+exec python -u ./dworker run -v >> -WORKER_LOG-/worker.log 2>&1

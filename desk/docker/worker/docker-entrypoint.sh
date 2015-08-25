@@ -20,7 +20,7 @@ if [ "$1" = 'worker' ]; then
 
   # ADDING DESK TO PYTHON PATH
   if [ ! -f "/var/py27/lib/python2.7/site-packages/desk.egg-link" ]; then
-    cd /opt/app && /var/py27/bin/python setup.py develop > /dev/null
+    cd /opt/app && python setup.py develop > /dev/null
     echo "* added desk to python packages"
   fi
 
@@ -34,23 +34,23 @@ if [ "$1" = 'worker' ]; then
     echo "* setup foreman"
     wget -q --retry-connrefused -t 10 http://cdb:5984/ # wait for couchdb to get up
     # creating desk_drawer database
-    curl -Is -u admin:admin http://cdb:5984/desk_drawer | egrep -q "HTTP.*200|HTTP.*401"
+    curl -Is -u admin:admin http://cdb:5984/desk_drawer|cat|grep -q -E "HTTP.*200|HTTP.*401"
     if [ $? -ne 0 ]; then # db desk_drawer does not exist
-        cd /opt/app/desk && /var/py27/bin/python ./dworker install-db
+        cd /opt/app/desk && python ./dworker install-db
         echo "* created desk_drawer database"
     fi
 
     # COPY worker.conf for foreman
     if [ ! -f "/etc/desk/worker.conf" ]; then
       echo "* configure worker.conf"
-      cp /root/build/etc/worker.conf /etc/desk/worker.conf
+      cp /root/build/worker.conf /etc/desk/worker.conf
     fi
   fi
 
   # RUN IN TEST CASE
   if [ "$TESTING" == true ]; then
     shift
-    exec /usr/sbin/runsvdir-start &
+    exec /sbin/runsvdir /etc/service &
     exec "$@"
 
   # NORMAL CASE
@@ -58,13 +58,13 @@ if [ "$1" = 'worker' ]; then
 
     # REGISTER WORKER
     # wait for db created
-    until $(curl -Is -u admin:admin http://cdb:5984/desk_drawer|egrep -q "HTTP.*200"); do
+    until $(curl -Is -u admin:admin http://cdb:5984/desk_drawer|cat|grep -q -E "HTTP.*200"); do
       sleep 1
       echo "* wait desk_drawer db"
     done
-    curl -Is -u admin:admin http://cdb:5984/desk_drawer/worker-`hostname` | egrep -q "HTTP.*404"
+    curl -Is -u admin:admin http://cdb:5984/desk_drawer/worker-`hostname`|cat|grep -q -E "HTTP.*404"
     if [ $? -eq 0 ]; then # worker doesn't exist
-      cd /opt/app/desk && /var/py27/bin/python ./dworker install-worker
+      cd /opt/app/desk && python ./dworker install-worker
       echo "* registred worker"
     fi
 
@@ -82,10 +82,10 @@ if [ "$1" = 'worker' ]; then
   fi
 
   # CLEANUP
-  rm -Rf /root/build
+  #rm -Rf /root/build
 
   # ENABLE RUNIT SERVICES
-  exec /usr/sbin/runsvdir-start
+  exec /sbin/runsvdir /etc/service
 fi
 
 exec "$@"

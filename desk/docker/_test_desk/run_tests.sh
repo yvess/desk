@@ -1,3 +1,3 @@
 #!/bin/bash
 
-fig run --rm foreman worker /var/py27/bin/python -m unittest discover
+fig run --rm foreman worker python -m unittest discover
