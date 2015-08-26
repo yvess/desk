@@ -19,7 +19,7 @@ if [ "$1" = 'worker' ]; then
   mkdir -p "$WORKER_LOG" "/etc/desk"
 
   # ADDING DESK TO PYTHON PATH
-  if [ ! -f "/var/py27/lib/python2.7/site-packages/desk.egg-link" ]; then
+  if [ ! -f "/usr/lib/python2.7/site-packages/desk.egg-link" ]; then
     cd /opt/app && python setup.py develop > /dev/null
     echo "* added desk to python packages"
   fi
