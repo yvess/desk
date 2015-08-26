@@ -5,8 +5,8 @@ cdb:
     - TERM=xterm-256color
   volumes:
     - ../:/opt/app/
-    - ~/src:/opt/src
-    - ~/env:/opt/env
+    ~/src:/opt/src
+    ~/env:/opt/env
   volumes_from:
     - desk_data
   ports:
@@ -25,6 +25,7 @@ dnsa:
     - cdb
   ports:
     - "1053:53"
+  # command: tail -f /dev/null
 
 dnsb:
   image: yvess/desk-dns
@@ -39,6 +40,7 @@ dnsb:
     - cdb
   ports:
     - "2053:53"
+  # command: tail -f /dev/null
 
 foreman:
   image: yvess/desk-worker
@@ -53,4 +55,5 @@ foreman:
     - cdb
     - dnsa
     - dnsb
+  # command: tail -f /dev/null
 

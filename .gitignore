@@ -1,7 +1,6 @@
 .DS_Store
 .xCodeSupport
 src
-desk_pad/Frameworks/*
 desk_pad/COViewController.j
 desk_pad/desk_pad.xcodeproj
 desk_drawer/.couchapprc
