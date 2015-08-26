@@ -8,6 +8,8 @@ Worker
 TASKS
 =====
 
+- change to env vars for couchdb
+- autosetup db if it doesn't exists
 - previous version template update on tempalte change
 - cleanup template doc befor merge
 - use_doc for all plugins
@@ -18,8 +20,7 @@ TASKS
 - undo queue feature
 - generic cache doc
 - add order nothing todo
-
-states new, changed, active, failed
+- 
 
 BUGS
 ====
@@ -30,3 +31,12 @@ REFACTOR
 ========
 
 - change everything to command from cmd
+
+STATES
+======
+
+states:
+ - new
+ - changed
+ - active
+ - failed
