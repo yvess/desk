@@ -5,8 +5,8 @@ cdb:
     - TERM=xterm-256color
   volumes:
     - ../:/opt/app/
-    ~/src:/opt/src
-    ~/env:/opt/env
+    - ~/src:/opt/src
+    - ~/env:/opt/env
   volumes_from:
     - desk_data
   ports:
