@@ -4,7 +4,8 @@
 
 @implementation DMClientViewController : COViewController
 {
-    CPMutableDictionary   itemLookup @accessors();
+    @outlet              CPButton addServiceButton;
+    CPMutableDictionary  itemLookup @accessors();
 }
 
 - (id)initWithCibName:(CPString) aCibNameOrNil
