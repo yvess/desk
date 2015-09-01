@@ -6,12 +6,17 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="DMClientViewController">
             <connections>
+                <outlet property="addAddonButton" destination="8zv-D4-FTe" id="gye-me-2am"/>
+                <outlet property="addIncludedButton" destination="g9M-gh-UeA" id="s0s-Ud-gdQ"/>
                 <outlet property="addServiceButton" destination="AxO-mf-8aS" id="dsH-DG-9W6"/>
                 <outlet property="arrayController" destination="90" id="122"/>
                 <outlet property="itemsTable" destination="56" id="123"/>
+                <outlet property="popoverAddon" destination="ULh-z5-0Pf" id="E5G-q5-dgm"/>
+                <outlet property="popoverIncluded" destination="fqz-Bo-z0P" id="Nq0-Jj-Df9"/>
                 <outlet property="popoverService" destination="OEc-XT-j3a" id="p6e-k7-lka"/>
                 <outlet property="saveModelButton" destination="68" id="124"/>
                 <outlet property="view" destination="47" id="96"/>
+                <outlet property="viewAddonIncluded" destination="j8V-da-N6J" id="EBT-ii-KYB"/>
                 <outlet property="viewService" destination="EB3-vO-OPi" id="MOv-ne-4NR"/>
             </connections>
         </customObject>
@@ -864,6 +869,18 @@
         <popover id="OEc-XT-j3a" userLabel="PopoverService">
             <connections>
                 <outlet property="contentViewController" destination="S51-TI-hQk" id="1Yg-8c-94v"/>
+            </connections>
+        </popover>
+        <viewController id="SNL-iR-ndH" userLabel="PopoverIncluded VC"/>
+        <popover id="fqz-Bo-z0P" userLabel="PopoverIncluded">
+            <connections>
+                <outlet property="contentViewController" destination="SNL-iR-ndH" id="CwL-6p-i1P"/>
+            </connections>
+        </popover>
+        <viewController id="xPS-5H-4LO" userLabel="PopoverAddon VC"/>
+        <popover id="ULh-z5-0Pf" userLabel="PopoverAddon">
+            <connections>
+                <outlet property="contentViewController" destination="xPS-5H-4LO" id="ASJ-oF-w8e"/>
             </connections>
         </popover>
     </objects>

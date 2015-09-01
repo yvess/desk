@@ -6,8 +6,13 @@
 @implementation DMClientViewController : COViewController
 {
     @outlet              CPButton addServiceButton;
+    @outlet              CPButton addIncludedButton;
+    @outlet              CPButton addAddonButton;
     @outlet              CPView viewService;
+    @outlet              CPView viewAddonIncluded;
     @outlet              CPPopover popoverService;
+    @outlet              CPPopover popoverIncluded;
+    @outlet              CPPopover popoverAddon;
     CPMutableDictionary  itemLookup @accessors();
 }
 
@@ -28,11 +33,20 @@
 {
     [super viewDidLoad];
 
-    [addServiceButton setAction:@selector(addService:)];
+    [addServiceButton setAction:@selector(showService:)];
     [addServiceButton setTarget:self];
+
+    [addIncludedButton setAction:@selector(showIncluded:)];
+    [addIncludedButton setTarget:self];
+
+    [addAddonButton setAction:@selector(showAddon:)];
+    [addAddonButton setTarget:self];
+
+    [popoverIncluded setAnimates:NO];
+    [popoverAddon setAnimates:NO];
 }
 
-- (void)addService:(id)sender
+- (void)showService:(id)sender
 {
     [popoverService setAnimates:NO];
     [[popoverService contentViewController] setView:viewService];
@@ -45,9 +59,28 @@
 
 }
 
-- (void)popoverDidShow:(CPPopover)aPopover
+- (void)showIncluded:(id)sender
 {
-    [CPApp runModalForWindow:[[[aPopover contentViewController] view] window]];
+    [[popoverIncluded contentViewController] setView:viewAddonIncluded];
+    if (![popoverIncluded isShown])
+    {
+        [popoverAddon close];
+        [popoverIncluded showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
+    } else {
+        [popoverIncluded close];
+    }
+}
+
+- (void)showAddon:(id)sender
+{
+    [[popoverAddon contentViewController] setView:viewAddonIncluded];
+    if (![popoverAddon isShown])
+    {
+        [popoverIncluded close];
+        [popoverAddon showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
+    } else {
+        [popoverAddon close];
+    }
 }
 
 - (void)saveModel:(id)sender
