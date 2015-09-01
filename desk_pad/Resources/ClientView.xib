@@ -401,19 +401,6 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <datePicker verticalHuggingPriority="750" id="1Xf-j3-Acm">
-                    <rect key="frame" x="94" y="547" width="136" height="31"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <datePickerCell key="cell" borderStyle="bezel" alignment="left" id="21L-Pf-RfH">
-                        <font key="font" metaFont="system"/>
-                        <calendarDate key="date" timeIntervalSinceReferenceDate="-595929600" calendarFormat="%Y-%m-%d %H:%M:%S %z">
-                            <!--1982-02-12 16:00:00 +0000-->
-                            <timeZone key="timeZone" name="US/Pacific"/>
-                        </calendarDate>
-                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                    </datePickerCell>
-                </datePicker>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="ixm-Rl-qMC">
                     <rect key="frame" x="18" y="520" width="36" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -450,19 +437,6 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <datePicker verticalHuggingPriority="750" id="01N-3j-1z1">
-                    <rect key="frame" x="300" y="547" width="133" height="27"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                    <datePickerCell key="cell" borderStyle="bezel" alignment="left" id="e3Z-J4-IUG">
-                        <font key="font" metaFont="system"/>
-                        <calendarDate key="date" timeIntervalSinceReferenceDate="-595929600" calendarFormat="%Y-%m-%d %H:%M:%S %z">
-                            <!--1982-02-12 16:00:00 +0000-->
-                            <timeZone key="timeZone" name="US/Pacific"/>
-                        </calendarDate>
-                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                    </datePickerCell>
-                </datePicker>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="DpO-tn-Us9">
                     <rect key="frame" x="19" y="475" width="99" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -710,6 +684,24 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </tableHeaderView>
                 </scrollView>
+                <textField verticalHuggingPriority="750" id="Nd2-dV-yNG">
+                    <rect key="frame" x="94" y="545" width="130" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="hQc-JG-K6W">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField verticalHuggingPriority="750" id="Ne1-Zr-9GH">
+                    <rect key="frame" x="300" y="545" width="130" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="2Ia-IZ-zfI">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
             </subviews>
             <point key="canvasLocation" x="-158" y="355"/>
         </customView>
@@ -813,19 +805,6 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <datePicker verticalHuggingPriority="750" id="CHc-8I-RlO">
-                    <rect key="frame" x="88" y="97" width="133" height="27"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <datePickerCell key="cell" borderStyle="bezel" alignment="left" id="sv0-mp-pZX">
-                        <font key="font" metaFont="system"/>
-                        <calendarDate key="date" timeIntervalSinceReferenceDate="-595929600" calendarFormat="%Y-%m-%d %H:%M:%S %z">
-                            <!--1982-02-12 16:00:00 +0000-->
-                            <timeZone key="timeZone" name="US/Pacific"/>
-                        </calendarDate>
-                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                    </datePickerCell>
-                </datePicker>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="xaI-aG-ECD">
                     <rect key="frame" x="226" y="100" width="18" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -835,19 +814,6 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <datePicker verticalHuggingPriority="750" id="Szb-Sv-hw4">
-                    <rect key="frame" x="250" y="97" width="133" height="27"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                    <datePickerCell key="cell" borderStyle="bezel" alignment="left" id="UZA-KP-5yQ">
-                        <font key="font" metaFont="system"/>
-                        <calendarDate key="date" timeIntervalSinceReferenceDate="-595929600" calendarFormat="%Y-%m-%d %H:%M:%S %z">
-                            <!--1982-02-12 16:00:00 +0000-->
-                            <timeZone key="timeZone" name="US/Pacific"/>
-                        </calendarDate>
-                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                    </datePickerCell>
-                </datePicker>
                 <button verticalHuggingPriority="750" id="fag-wE-vzI">
                     <rect key="frame" x="14" y="13" width="73" height="32"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -873,6 +839,24 @@
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                 </button>
+                <textField verticalHuggingPriority="750" id="hpW-My-vHy">
+                    <rect key="frame" x="87" y="97" width="130" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="LCu-XT-1ul">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField verticalHuggingPriority="750" id="xBV-BM-FR6">
+                    <rect key="frame" x="250" y="97" width="130" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="WzK-Ny-rCP">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
             </subviews>
             <point key="canvasLocation" x="-664" y="129.5"/>
         </customView>
