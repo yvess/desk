@@ -1,7 +1,8 @@
 @import <AppKit/CPPopover.j>
+@import <AppKit/CPArrayController.j>
 @import <CouchResource/COArrayController.j>
 @import <CouchResource/COViewController.j>
-
+@import "DMService.j"
 
 @implementation DMClientViewController : COViewController
 {
@@ -14,7 +15,9 @@
     @outlet              CPPopover popoverService;
     @outlet              CPPopover popoverIncluded;
     @outlet              CPPopover popoverAddon;
-    @outlet              CPRuleEditor packageProperties
+    @outlet              CPTableView packageProperties;
+    @outlet              COArrayController packagePropertiesController;
+    CPMutableArray       packagePropertiesItems @accessors();
     CPMutableDictionary  itemLookup @accessors();
 }
 
@@ -26,6 +29,7 @@
     if (self)
     {
         itemLookup = [self createLookup];
+        packagePropertiesItems = [[CPMutableArray alloc] init];
     }
     return self;
 }
@@ -46,6 +50,7 @@
 
     [popoverIncluded setAnimates:NO];
     [popoverAddon setAnimates:NO];
+    console.log(packagePropertiesItems);
 }
 
 - (void)showService:(id)sender
