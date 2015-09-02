@@ -9,10 +9,12 @@
     @outlet              CPButton addIncludedButton;
     @outlet              CPButton addAddonButton;
     @outlet              CPView viewService;
-    @outlet              CPView viewAddonIncluded;
+    @outlet              CPView viewIncluded;
+    @outlet              CPView viewAddon;
     @outlet              CPPopover popoverService;
     @outlet              CPPopover popoverIncluded;
     @outlet              CPPopover popoverAddon;
+    @outlet              CPRuleEditor packageProperties
     CPMutableDictionary  itemLookup @accessors();
 }
 
@@ -61,7 +63,7 @@
 
 - (void)showIncluded:(id)sender
 {
-    [[popoverIncluded contentViewController] setView:viewAddonIncluded];
+    [[popoverIncluded contentViewController] setView:viewIncluded];
     if (![popoverIncluded isShown])
     {
         [popoverAddon close];
@@ -73,7 +75,7 @@
 
 - (void)showAddon:(id)sender
 {
-    [[popoverAddon contentViewController] setView:viewAddonIncluded];
+    [[popoverAddon contentViewController] setView:viewAddon];
     if (![popoverAddon isShown])
     {
         [popoverIncluded close];
