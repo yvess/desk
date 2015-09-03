@@ -1,4 +1,5 @@
 @import <Foundation/CPObject.j>
+@import <AppKit/CPTableView.j>
 
 @implementation DMServicePackageProperty : CPObject
 {
@@ -24,5 +25,21 @@
     console.log(self);
     return self;
 }
+@end
 
+
+@implementation DMPropertyCellView : CPTableCellView
+{
+    @outlet CPTextField valueText;
+    @outlet CPPopUpButton namePUB;
+    @outlet CPPopUpButton propertyPUB;
+}
+
+- (void)awakeFromCib
+{
+    [valueText bind:@"value"
+               toObject:self
+            withKeyPath:@"objectValue.value"
+                options:nil];
+}
 @end
