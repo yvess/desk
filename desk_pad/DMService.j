@@ -4,7 +4,7 @@
 @implementation DMServicePackageProperty : CPObject
 {
     CPString name     @accessors();
-    CPString item     @accessors();
+    CPString property @accessors();
     CPString value    @accessors();
 }
 
@@ -19,7 +19,7 @@
     if (self)
     {
         [self setName:@"email"];
-        [self setItem:@"xxx"];
+        [self setProperty:@"prop"];
         [self setValue:@"new value"];
     }
     console.log(self);
@@ -40,6 +40,14 @@
     [valueText bind:@"value"
                toObject:self
             withKeyPath:@"objectValue.value"
+                options:nil];
+    [namePUB bind:@"selectedValue"
+               toObject:self
+            withKeyPath:@"objectValue.name"
+                options:nil];
+    [propertyPUB bind:@"selectedValue"
+               toObject:self
+            withKeyPath:@"objectValue.property"
                 options:nil];
 }
 @end

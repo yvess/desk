@@ -452,7 +452,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="HC2-M8-jHa" viewBased="YES" id="Edc-Es-I0i">
-                                <rect key="frame" x="0.0" y="0.0" width="336" height="138"/>
+                                <rect key="frame" x="0.0" y="0.0" width="336" height="0.0"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -576,7 +576,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="9YH-3c-I66" viewBased="YES" id="cPC-2W-c22">
-                                <rect key="frame" x="0.0" y="0.0" width="336" height="138"/>
+                                <rect key="frame" x="0.0" y="0.0" width="336" height="0.0"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -765,7 +765,7 @@
                                                             <font key="font" metaFont="cellTitle"/>
                                                             <menu key="menu" id="w7p-kn-LEm">
                                                                 <items>
-                                                                    <menuItem title="Item 1" id="XPA-rL-uyt"/>
+                                                                    <menuItem title="email" id="XPA-rL-uyt"/>
                                                                     <menuItem title="Item 2" id="qeK-s7-EFq"/>
                                                                 </items>
                                                             </menu>
@@ -780,7 +780,7 @@
                                                             <menu key="menu" id="8IB-Wq-QS8">
                                                                 <items>
                                                                     <menuItem title="Item 1" id="hf9-Sw-lBd"/>
-                                                                    <menuItem title="Item 2" id="hGB-Da-EtC"/>
+                                                                    <menuItem title="prop" id="hGB-Da-EtC"/>
                                                                 </items>
                                                             </menu>
                                                         </popUpButtonCell>
@@ -803,7 +803,7 @@
                                             </tableCellView>
                                         </prototypeCellViews>
                                         <connections>
-                                            <binding destination="Dzg-78-n2d" name="value" keyPath="arrangedObjects" id="opu-aM-LWy"/>
+                                            <binding destination="Dzg-78-n2d" name="value" keyPath="arrangedObjects" id="pO5-3E-93L"/>
                                         </connections>
                                     </tableColumn>
                                 </tableColumns>
