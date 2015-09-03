@@ -693,17 +693,6 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <button verticalHuggingPriority="750" id="gpG-K6-toW">
-                    <rect key="frame" x="15" y="450" width="74" height="28"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="push" title="Add" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RjR-Sh-tQ3">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="smallSystem"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="add:" target="Dzg-78-n2d" id="8MT-AY-GA4"/>
-                    </connections>
-                </button>
                 <button verticalHuggingPriority="750" id="5iB-Ep-FKb">
                     <rect key="frame" x="14" y="422" width="74" height="28"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -712,7 +701,7 @@
                         <font key="font" metaFont="smallSystem"/>
                     </buttonCell>
                     <connections>
-                        <action selector="add:" target="Dzg-78-n2d" id="c55-iG-QBU"/>
+                        <action selector="remove:" target="Dzg-78-n2d" id="XJW-FL-OdJ"/>
                     </connections>
                 </button>
                 <button verticalHuggingPriority="750" id="aYp-Ri-3Q6">
@@ -722,9 +711,6 @@
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="smallSystem"/>
                     </buttonCell>
-                    <connections>
-                        <action selector="add:" target="Dzg-78-n2d" id="f0h-vX-J7V"/>
-                    </connections>
                 </button>
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="29" horizontalPageScroll="10" verticalLineScroll="29" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="2ap-wS-lhx">
                     <rect key="frame" x="94" y="426" width="338" height="89"/>
@@ -844,8 +830,16 @@
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="smallSystem"/>
                     </buttonCell>
+                </button>
+                <button verticalHuggingPriority="750" id="gpG-K6-toW">
+                    <rect key="frame" x="15" y="450" width="74" height="28"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="push" title="Add" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RjR-Sh-tQ3">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
                     <connections>
-                        <action selector="add:" target="Dzg-78-n2d" id="rJu-PN-wdu"/>
+                        <action selector="add:" target="Dzg-78-n2d" id="jLd-We-Qd4"/>
                     </connections>
                 </button>
             </subviews>
