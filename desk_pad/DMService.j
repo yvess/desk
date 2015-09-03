@@ -4,6 +4,7 @@
 {
     CPString name     @accessors();
     CPString item     @accessors();
+    CPString value    @accessors();
 }
 
 - (CPString)nameIdentifierString
@@ -16,9 +17,11 @@
     self = [super init];
     if (self)
     {
-        [self setName:@"MEW"];
+        [self setName:@"email"];
         [self setItem:@"xxx"];
+        [self setValue:@"new value"];
     }
+    console.log(self);
     return self;
 }
 
