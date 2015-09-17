@@ -14,30 +14,30 @@
     return @"name";
 }
 
-- (id)init
-{
-    self = [super init];
-    if (self)
-    {
-        [self setName:@"email"];
-        [self setProperty:@"prop"];
-        [self setValue:@"new value"];
-    }
-    console.log(self);
-    return self;
-}
+// - (id)init
+// {
+//     self = [super init];
+//     if (self)
+//     {
+//         [self setName:@"email"];
+//         [self setProperty:@"prop"];
+//         [self setValue:@"new value"];
+//     }
+//     return self;
+// }
 @end
 
 
 @implementation DMPropertyCellView : CPTableCellView
 {
-    @outlet CPTextField valueText;
     @outlet CPPopUpButton namePUB;
     @outlet CPPopUpButton propertyPUB;
+    @outlet CPTextField valueText;
 }
 
 - (void)awakeFromCib
 {
+    console.log("DMPropertyCellView awakeFromCib");
     [valueText bind:@"value"
                toObject:self
             withKeyPath:@"objectValue.value"
@@ -51,6 +51,23 @@
             withKeyPath:@"objectValue.property"
                 options:nil];
 }
+
+- (void)setObjectValue:(id)aValue
+{
+    [[namePUB menu] removeAllItems];
+    [servicePropertyNamesArray enumerateObjectsUsingBlock:function(item) {
+        [namePUB addItem:[item copy]];
+    }];
+
+    [[propertyPUB menu] removeAllItems];
+    var representedObject = [[namePUB itemAtIndex:0] representedObject];
+    [representedObject enumerateObjectsUsingBlock:function(item) {
+        var menuItem = [[CPMenuItem alloc] init];
+        [menuItem setTitle:item.name];
+        [propertyPUB addItem:menuItem];
+    }];
+    [super setObjectValue:aValue];
+}
 @end
 
 @implementation DMServiceDefinition : COResource
@@ -61,8 +78,9 @@
 
     /* custom ivars */
     CPString serviceType  @accessors();
-    CPArray packages  @accessors();
+    CPArray packages @accessors();
     CPDictionary addons @accessors();
+    CPDictionary properties @accessors();
 }
 
 + (id)couchId:(id)aItem

@@ -747,7 +747,7 @@
                                                             </menu>
                                                         </popUpButtonCell>
                                                     </popUpButton>
-                                                    <popUpButton identifier="property" verticalHuggingPriority="750" id="KKt-ra-XTF" userLabel="property">
+                                                    <popUpButton identifier="property" verticalHuggingPriority="750" tag="1" id="KKt-ra-XTF" userLabel="property">
                                                         <rect key="frame" x="129" y="3" width="126" height="22"/>
                                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                         <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="5J7-K6-Ta1" userLabel="property cell">
@@ -761,7 +761,7 @@
                                                             </menu>
                                                         </popUpButtonCell>
                                                     </popUpButton>
-                                                    <textField identifier="value" verticalHuggingPriority="750" id="Bc4-De-LiX" userLabel="value">
+                                                    <textField identifier="value" verticalHuggingPriority="750" tag="2" id="Bc4-De-LiX" userLabel="value">
                                                         <rect key="frame" x="260" y="4" width="67" height="20"/>
                                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                         <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="oyc-oM-TuZ">
@@ -829,7 +829,7 @@
                         <font key="font" metaFont="smallSystem"/>
                     </buttonCell>
                     <connections>
-                        <action selector="add:" target="Dzg-78-n2d" id="jLd-We-Qd4"/>
+                        <action selector="add:" target="Dzg-78-n2d" id="S38-Lf-QFh"/>
                     </connections>
                 </button>
             </subviews>
@@ -1091,16 +1091,5 @@
             </subviews>
             <point key="canvasLocation" x="-655" y="118"/>
         </customView>
-        <popUpButtonCell type="bevel" title="Item 1" bezelStyle="rounded" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" borderStyle="bezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" selectedItem="YRx-aW-3ny" id="5wz-oL-Q8Q">
-            <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-            <font key="font" metaFont="smallSystem"/>
-            <menu key="menu" id="VY5-aP-g33">
-                <items>
-                    <menuItem title="Item 1" state="on" id="YRx-aW-3ny"/>
-                    <menuItem title="Item 2" id="jAl-kw-gfe"/>
-                    <menuItem title="Item 3" id="feH-KM-jO7"/>
-                </items>
-            </menu>
-        </popUpButtonCell>
     </objects>
 </document>
