@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7706"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="DMClientViewController">
@@ -17,6 +17,8 @@
                 <outlet property="popoverIncluded" destination="fqz-Bo-z0P" id="Nq0-Jj-Df9"/>
                 <outlet property="popoverService" destination="OEc-XT-j3a" id="p6e-k7-lka"/>
                 <outlet property="saveModelButton" destination="68" id="124"/>
+                <outlet property="serviceDefinitionPackagePopUp" destination="23C-fi-fii" id="fer-XQ-a9v"/>
+                <outlet property="serviceDefinitionPopUp" destination="Vbn-2H-yrg" id="tyI-J2-kp0"/>
                 <outlet property="view" destination="47" id="96"/>
                 <outlet property="viewAddon" destination="j8V-da-N6J" id="g91-HK-dcg"/>
                 <outlet property="viewIncluded" destination="U6q-A6-Tjv" id="LNn-10-3c6"/>
@@ -142,7 +144,7 @@
                                         <autoresizingMask key="autoresizingMask"/>
                                     </scroller>
                                     <tableHeaderView key="headerView" id="58">
-                                        <rect key="frame" x="0.0" y="0.0" width="258" height="17"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="198" height="17"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                     </tableHeaderView>
                                 </scrollView>
@@ -333,7 +335,7 @@
                                         <autoresizingMask key="autoresizingMask"/>
                                     </scroller>
                                     <tableHeaderView key="headerView" id="8f0-Q2-TrE">
-                                        <rect key="frame" x="0.0" y="0.0" width="238" height="17"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="428" height="17"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                     </tableHeaderView>
                                 </scrollView>
@@ -357,7 +359,7 @@
             <point key="canvasLocation" x="537" y="298"/>
         </view>
         <customView id="EB3-vO-OPi" userLabel="ViewService">
-            <rect key="frame" x="0.0" y="-2" width="450" height="559"/>
+            <rect key="frame" x="0.0" y="0.0" width="450" height="559"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="JVv-nl-0uP">
@@ -372,31 +374,19 @@
                 <popUpButton verticalHuggingPriority="750" id="Vbn-2H-yrg">
                     <rect key="frame" x="92" y="520" width="165" height="26"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                    <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="FEV-gi-JJh" id="FUW-2g-pUd">
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="FUW-2g-pUd">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="menu"/>
-                        <menu key="menu" id="XLw-DZ-n8o">
-                            <items>
-                                <menuItem title="Item 1" state="on" id="FEV-gi-JJh"/>
-                                <menuItem title="Item 2" id="Fqz-eC-jP9"/>
-                                <menuItem title="Item 3" id="ZUk-EK-ffT"/>
-                            </items>
-                        </menu>
+                        <menu key="menu" id="XLw-DZ-n8o"/>
                     </popUpButtonCell>
                 </popUpButton>
                 <popUpButton verticalHuggingPriority="750" id="23C-fi-fii">
                     <rect key="frame" x="268" y="520" width="165" height="26"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                    <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="HE0-Xb-yvW" id="Fkg-Dh-ffc">
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="Fkg-Dh-ffc">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="menu"/>
-                        <menu key="menu" id="Ycx-FI-k0i">
-                            <items>
-                                <menuItem title="Item 1" state="on" id="HE0-Xb-yvW"/>
-                                <menuItem title="Item 2" id="mZe-w4-KR5"/>
-                                <menuItem title="Item 3" id="Q0k-v0-A30"/>
-                            </items>
-                        </menu>
+                        <menu key="menu" id="Ycx-FI-k0i"/>
                     </popUpButtonCell>
                 </popUpButton>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="bht-qq-tiG">
@@ -538,7 +528,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
                     <tableHeaderView key="headerView" id="HC2-M8-jHa">
-                        <rect key="frame" x="0.0" y="0.0" width="238" height="17"/>
+                        <rect key="frame" x="0.0" y="0.0" width="336" height="17"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </tableHeaderView>
                 </scrollView>
@@ -662,7 +652,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
                     <tableHeaderView key="headerView" id="9YH-3c-I66">
-                        <rect key="frame" x="0.0" y="0.0" width="238" height="17"/>
+                        <rect key="frame" x="0.0" y="0.0" width="336" height="17"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </tableHeaderView>
                 </scrollView>
@@ -846,7 +836,7 @@
             <point key="canvasLocation" x="-158" y="309.5"/>
         </customView>
         <customView id="j8V-da-N6J" userLabel="ViewAddon">
-            <rect key="frame" x="0.0" y="5" width="400" height="199"/>
+            <rect key="frame" x="0.0" y="0.0" width="400" height="199"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="Oc5-cZ-iAm">
@@ -1001,7 +991,7 @@
             </connections>
         </popover>
         <customView id="U6q-A6-Tjv" userLabel="ViewIncluded">
-            <rect key="frame" x="0.0" y="-5" width="400" height="176"/>
+            <rect key="frame" x="0.0" y="0.0" width="400" height="176"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="Nz3-aw-RHk">

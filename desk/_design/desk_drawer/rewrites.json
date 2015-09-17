@@ -35,6 +35,16 @@
     "to": "../../*",
     "from": "/clients/*"
 }, {
+    "to": "_list/list_docs/service_definition",
+    "from": "/service_definitions",
+    "method": "GET",
+    "query": {
+        "include_docs": "true"
+    }
+}, {
+    "to": "../../*",
+    "from": "/service_definitions/*"
+}, {
     "to": "_list/list_docs/domain",
     "from": "/domains",
     "method": "GET",

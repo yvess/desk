@@ -3,7 +3,7 @@
 	[
 		{
 			"path": ".",
-            "folder_exclude_patterns": [".xCodeSupport"],
+            "folder_exclude_patterns": [".xCodeSupport", "Frameworks"],
             "file_exclude_patterns": ["*.sublime-workspace",
             "*.sublime-project"]
 		}

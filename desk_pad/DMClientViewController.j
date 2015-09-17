@@ -17,7 +17,10 @@
     @outlet              CPPopover popoverAddon;
     @outlet              CPTableView packageProperties;
     @outlet              COArrayController packagePropertiesController;
+    @outlet              CPPopUpButton serviceDefinitionPopUp;
+    @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
     CPMutableArray       packagePropertiesItems @accessors();
+    CPMutableArray       serviceDefinitions @accessors();
     CPMutableDictionary  itemLookup @accessors();
 }
 
@@ -30,10 +33,15 @@
     {
         itemLookup = [self createLookup];
         packagePropertiesItems = [[CPMutableArray alloc] init];
+        serviceDefinitions = [DMServiceDefinition all];
     }
     return self;
 }
 
+- (void)popUpSelectionChanged:(CPNotification)notification
+{
+    [self updatePackagePopup];
+}
 
 - (void)viewDidLoad
 {
@@ -50,7 +58,30 @@
 
     [popoverIncluded setAnimates:NO];
     [popoverAddon setAnimates:NO];
-    console.log(packagePropertiesItems);
+    [serviceDefinitions enumerateObjectsUsingBlock:function(item) {
+        var menuItem = [[CPMenuItem alloc] init];
+        [menuItem setTitle:item.serviceType];
+        [menuItem setRepresentedObject:item];
+        [serviceDefinitionPopUp addItem:menuItem];
+    }];
+    [[CPNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(popUpSelectionChanged:)
+            name:CPMenuDidChangeItemNotification
+          object:[serviceDefinitionPopUp menu]
+    ];
+}
+
+- (void)updatePackagePopup
+{
+    [[serviceDefinitionPackagePopUp menu] removeAllItems];
+    var currentServiceDefinition = [[serviceDefinitionPopUp selectedItem] representedObject];
+    [currentServiceDefinition.packages.items enumerateObjectsUsingBlock:function(item) {
+        var menuItem = [[CPMenuItem alloc] init];
+        [menuItem setTitle:item.name];
+        [menuItem setRepresentedObject:item];
+        [serviceDefinitionPackagePopUp addItem:menuItem];
+        serviceDefinitionPackagePopUp
+    }];
 }
 
 - (void)showService:(id)sender
@@ -60,6 +91,7 @@
     if (![popoverService isShown])
     {
         [popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
+        [self updatePackagePopup];
     } else {
         [popoverService close];
     }

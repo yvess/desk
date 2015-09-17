@@ -1,5 +1,6 @@
 @import <Foundation/CPObject.j>
 @import <AppKit/CPTableView.j>
+@import <CouchResource/COResource.j>
 
 @implementation DMServicePackageProperty : CPObject
 {
@@ -49,5 +50,29 @@
                toObject:self
             withKeyPath:@"objectValue.property"
                 options:nil];
+}
+@end
+
+@implementation DMServiceDefinition : COResource
+{
+    /* default ivars for couchdb */
+    CPString coId @accessors();
+    CPString coRev  @accessors();
+
+    /* custom ivars */
+    CPString serviceType  @accessors();
+    CPArray packages  @accessors();
+    CPDictionary addons @accessors();
+}
+
++ (id)couchId:(id)aItem
+{
+    var cType = [[self class] underscoreName];
+    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
+- (CPString)nameIdentifierString
+{
+    return @"serviceType";
 }
 @end
