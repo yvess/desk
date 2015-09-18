@@ -9,7 +9,9 @@
                 <outlet property="addAddonButton" destination="oSW-wF-igT" id="pgu-Kj-hKW"/>
                 <outlet property="addIncludedButton" destination="g9M-gh-UeA" id="s0s-Ud-gdQ"/>
                 <outlet property="addServiceButton" destination="AxO-mf-8aS" id="dsH-DG-9W6"/>
+                <outlet property="addonTypePUB" destination="8ln-tD-xrA" id="jbi-i2-Se0"/>
                 <outlet property="arrayController" destination="90" id="122"/>
+                <outlet property="includedTypePUB" destination="ldr-rv-4Fl" id="53z-At-Jde"/>
                 <outlet property="itemsTable" destination="56" id="123"/>
                 <outlet property="packageProperties" destination="ksZ-Zl-HR7" id="zyp-Kp-ffc"/>
                 <outlet property="packagePropertiesController" destination="Dzg-78-n2d" id="VPm-Cb-TbL"/>
@@ -1006,12 +1008,12 @@
                 <popUpButton verticalHuggingPriority="750" id="ldr-rv-4Fl">
                     <rect key="frame" x="85" y="134" width="160" height="26"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                    <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="kzK-T1-xcd" id="em7-Gb-J6s">
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="em7-Gb-J6s">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="menu"/>
                         <menu key="menu" id="4kn-UO-Q7f">
                             <items>
-                                <menuItem title="Item 1" state="on" id="kzK-T1-xcd"/>
+                                <menuItem title="Item 1" id="kzK-T1-xcd"/>
                                 <menuItem title="Item 2" id="njO-wl-9XO"/>
                                 <menuItem title="Item 3" id="SQ2-qI-URe"/>
                             </items>

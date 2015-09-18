@@ -19,6 +19,8 @@
     @outlet              COArrayController packagePropertiesController;
     @outlet              CPPopUpButton serviceDefinitionPopUp;
     @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
+    @outlet              CPPopUpButton includedTypePUB;
+    @outlet              CPPopUpButton addonTypePUB;
     CPMutableArray       packagePropertiesItems @accessors();
     CPMutableArray       serviceDefinitions @accessors();
     CPMutableDictionary  itemLookup @accessors();
@@ -86,12 +88,13 @@
 {
     [[serviceDefinitionPackagePopUp menu] removeAllItems];
     var currentServiceDefinition = [[serviceDefinitionPopUp selectedItem] representedObject];
-    [currentServiceDefinition.packages.items enumerateObjectsUsingBlock:function(item) {
+    for (key in currentServiceDefinition.packages)
+    {
         var menuItem = [[CPMenuItem alloc] init];
-        [menuItem setTitle:item.name];
-        [menuItem setRepresentedObject:item];
+        [menuItem setTitle:key];
+        [menuItem setRepresentedObject:currentServiceDefinition.packages[key]];
         [serviceDefinitionPackagePopUp addItem:menuItem];
-    }];
+    }
     servicePropertyNamesArray = [[CPMutableArray alloc] init];
     if (currentServiceDefinition.hasOwnProperty("properties"))
     {
