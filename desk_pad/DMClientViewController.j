@@ -42,7 +42,13 @@
 
 - (void)servicePopUpSelectionChanged:(CPNotification)notification
 {
-    [self updatePackagePopup];
+    [self updateServiceDefinition];
+    [self updateServicePackageDefinition];
+}
+
+- (void)servicePackagePopUpSelectionChanged:(CPNotification)notification
+{
+    [self updateServicePackageDefinition];
 }
 
 - (void)servicePropertyNameSelectionChanged:(CPNotification)notification
@@ -78,37 +84,75 @@
           object:[serviceDefinitionPopUp menu]
     ];
     [[CPNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(servicePackagePopUpSelectionChanged:)
+            name:CPMenuDidChangeItemNotification
+          object:[serviceDefinitionPackagePopUp menu]
+    ];
+    [[CPNotificationCenter defaultCenter] addObserver:self
         selector:@selector(servicePropertyNameSelectionChanged:)
             name:CPMenuDidChangeItemNotification
           object:nil
     ];
 }
 
-- (void)updatePackagePopup
+- (void)buildMenu:(id)aMenuHolder items:(id)items
+{
+    var filler = function(key, value) {
+        var menuItem = [[CPMenuItem alloc] init];
+        [menuItem setTitle:key];
+        if (value != null)
+        {
+            [menuItem setRepresentedObject:value];
+        }
+        if ([aMenuHolder respondsToSelector:@selector(addItem:)])
+        {
+            [aMenuHolder addItem:menuItem];
+        } else if ([aMenuHolder respondsToSelector:@selector(addObject:)]) {
+            [aMenuHolder addObject:menuItem];
+        }
+    };
+    try // array case
+    {
+        if ([items className] == @"_CPJavaScriptArray")
+        {
+            items.forEach(function(item) {
+                filler(item, null);
+            });
+        }
+    } catch (err) { // object / hashmap case
+        for (key in items)
+        {
+            filler(key, items[key]);
+        }
+    }
+}
+
+- (void)updateServiceDefinition
 {
     [[serviceDefinitionPackagePopUp menu] removeAllItems];
     var currentServiceDefinition = [[serviceDefinitionPopUp selectedItem] representedObject];
-    for (key in currentServiceDefinition.packages)
-    {
-        var menuItem = [[CPMenuItem alloc] init];
-        [menuItem setTitle:key];
-        [menuItem setRepresentedObject:currentServiceDefinition.packages[key]];
-        [serviceDefinitionPackagePopUp addItem:menuItem];
-    }
+    [self buildMenu:serviceDefinitionPackagePopUp items:currentServiceDefinition.packages];
     servicePropertyNamesArray = [[CPMutableArray alloc] init];
     if (currentServiceDefinition.hasOwnProperty("properties"))
     {
-        for (key in currentServiceDefinition.properties)
-        {
-        //[currentServiceDefinition.properties enumerateKeysAndObjectsUsingBlock:function(key, item) {
-            var menuItem = [[CPMenuItem alloc] init];
-            [menuItem setTitle:key];
-            [menuItem setRepresentedObject:currentServiceDefinition.properties[key]];
-            [servicePropertyNamesArray addObject:menuItem];
-        //}];
-        }
+        [self buildMenu:servicePropertyNamesArray items:currentServiceDefinition.properties];
     } else {
         servicePropertyNamesArray = nil;
+    }
+}
+
+- (void)updateServicePackageDefinition
+{
+    [[includedTypePUB menu] removeAllItems];
+    [[addonTypePUB menu] removeAllItems];
+    var currentDefinitionPackages = [[serviceDefinitionPackagePopUp selectedItem] representedObject];
+    if (currentDefinitionPackages.hasOwnProperty("included"))
+    {
+        [self buildMenu:includedTypePUB items:currentDefinitionPackages.included];
+    }
+    if (currentDefinitionPackages.hasOwnProperty("allowed_addons"))
+    {
+        [self buildMenu:addonTypePUB items:currentDefinitionPackages.allowed_addons];
     }
 }
 
@@ -119,7 +163,8 @@
     if (![popoverService isShown])
     {
         [popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
-        [self updatePackagePopup];
+        [self updateServiceDefinition];
+        [self updateServicePackageDefinition];
     } else {
         [popoverService close];
     }
