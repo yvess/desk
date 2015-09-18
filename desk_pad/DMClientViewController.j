@@ -9,6 +9,8 @@
     @outlet              CPButton addServiceButton;
     @outlet              CPButton addIncludedButton;
     @outlet              CPButton addAddonButton;
+    @outlet              CPButton addPropertyButton;
+    @outlet              CPButton removePropertyButton;
     @outlet              CPView viewService;
     @outlet              CPView viewIncluded;
     @outlet              CPView viewAddon;
@@ -22,6 +24,8 @@
     @outlet              CPPopUpButton includedTypePUB;
     @outlet              CPPopUpButton addonTypePUB;
     CPMutableArray       packagePropertiesItems @accessors();
+    CPMutableArray       includedServiceItems @accessors();
+    CPMutableArray       addonServiceItems @accessors();
     CPMutableArray       serviceDefinitions @accessors();
     CPMutableDictionary  itemLookup @accessors();
 }
@@ -35,6 +39,8 @@
     {
         itemLookup = [self createLookup];
         packagePropertiesItems = [[CPMutableArray alloc] init];
+        includedServiceItems = [[CPMutableArray alloc] init];
+        addonServiceItems = [[CPMutableArray alloc] init];
         serviceDefinitions = [DMServiceDefinition all];
     }
     return self;
@@ -95,7 +101,7 @@
     ];
 }
 
-- (void)buildMenu:(id)aMenuHolder items:(id)items
+- (void)buildMenu:(id)aMenuHolder items:(id)someItems
 {
     var filler = function(key, value) {
         var menuItem = [[CPMenuItem alloc] init];
@@ -113,16 +119,16 @@
     };
     try // array case
     {
-        if ([items className] == @"_CPJavaScriptArray")
+        if ([someItems className] == @"_CPJavaScriptArray")
         {
-            items.forEach(function(item) {
+            someItems.forEach(function(item) {
                 filler(item, null);
             });
         }
     } catch (err) { // object / hashmap case
-        for (key in items)
+        for (key in someItems)
         {
-            filler(key, items[key]);
+            filler(key, someItems[key]);
         }
     }
 }
@@ -132,12 +138,16 @@
     [[serviceDefinitionPackagePopUp menu] removeAllItems];
     var currentServiceDefinition = [[serviceDefinitionPopUp selectedItem] representedObject];
     [self buildMenu:serviceDefinitionPackagePopUp items:currentServiceDefinition.packages];
-    servicePropertyNamesArray = [[CPMutableArray alloc] init];
     if (currentServiceDefinition.hasOwnProperty("properties"))
     {
-        [self buildMenu:servicePropertyNamesArray items:currentServiceDefinition.properties];
-    } else {
-        servicePropertyNamesArray = nil;
+        [self buildMenu:[DMPropertyCellView namesArray] items:currentServiceDefinition.properties];
+        [addPropertyButton setEnabled:YES];
+        [removePropertyButton setEnabled:YES];
+    }
+    else {
+        [[DMPropertyCellView namesArray] removeAllObjects];
+        [addPropertyButton setEnabled:NO];
+        [removePropertyButton setEnabled:NO];
     }
 }
 

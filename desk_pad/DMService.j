@@ -2,6 +2,8 @@
 @import <AppKit/CPTableView.j>
 @import <CouchResource/COResource.j>
 
+var  servicePropertyNamesArray = [[CPMutableArray alloc] init];
+
 @implementation DMServicePackageProperty : CPObject
 {
     CPString name     @accessors();
@@ -13,18 +15,6 @@
 {
     return @"name";
 }
-
-// - (id)init
-// {
-//     self = [super init];
-//     if (self)
-//     {
-//         [self setName:@"email"];
-//         [self setProperty:@"prop"];
-//         [self setValue:@"new value"];
-//     }
-//     return self;
-// }
 @end
 
 
@@ -35,9 +25,13 @@
     @outlet CPTextField valueText;
 }
 
++ (CPMutableArray)namesArray
+{
+    return servicePropertyNamesArray;
+}
+
 - (void)awakeFromCib
 {
-    console.log("DMPropertyCellView awakeFromCib");
     [valueText bind:@"value"
                toObject:self
             withKeyPath:@"objectValue.value"
@@ -66,6 +60,39 @@
         [menuItem setTitle:item.name];
         [propertyPUB addItem:menuItem];
     }];
+    [super setObjectValue:aValue];
+}
+@end
+
+@implementation DMIncludedServiceItem : CPObject
+{
+    CPString itemid   @accessors();
+}
+
+- (CPString)nameIdentifierString
+{
+    return @"itemid";
+}
+@end
+
+@implementation DMIncludedServiceItemCellView : CPTableCellView
+{
+    @outlet CPTextField itemidField;
+    @outlet CPTextField itemidFieldPopOver;
+    CPObject test;
+}
+
+- (void)awakeFromCib
+{
+    [itemidField bind:@"value"
+               toObject:self
+            withKeyPath:@"objectValue.itemid"
+                options:nil];
+}
+
+- (void)setObjectValue:(id)aValue
+{
+    // aValue.itemid = @"6";
     [super setObjectValue:aValue];
 }
 @end
