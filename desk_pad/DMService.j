@@ -2,7 +2,9 @@
 @import <AppKit/CPTableView.j>
 @import <CouchResource/COResource.j>
 
-var  servicePropertyNamesArray = [[CPMutableArray alloc] init];
+var servicePropertyNamesArray = [[CPMutableArray alloc] init],
+    itemIncluded = {},
+    inita = 0;
 
 @implementation DMServicePackageProperty : CPObject
 {
@@ -78,21 +80,25 @@ var  servicePropertyNamesArray = [[CPMutableArray alloc] init];
 @implementation DMIncludedServiceItemCellView : CPTableCellView
 {
     @outlet CPTextField itemidField;
-    @outlet CPTextField itemidFieldPopOver;
-    CPObject test;
+}
+
++ (id)itemIncluded
+{
+    return itemIncluded;
 }
 
 - (void)awakeFromCib
 {
     [itemidField bind:@"value"
-               toObject:self
-            withKeyPath:@"objectValue.itemid"
-                options:nil];
+       toObject:self
+    withKeyPath:@"objectValue.itemid"
+        options:nil];
 }
 
 - (void)setObjectValue:(id)aValue
 {
-    // aValue.itemid = @"6";
+    aValue.itemid = [itemIncluded.itemidInput stringValue];
+    console.log(aValue);
     [super setObjectValue:aValue];
 }
 @end

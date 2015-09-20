@@ -23,6 +23,7 @@
     @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
     @outlet              CPPopUpButton includedTypePUB;
     @outlet              CPPopUpButton addonTypePUB;
+    @outlet              CPTextField itemidIncludedFieldInput;
     CPMutableArray       packagePropertiesItems @accessors();
     CPMutableArray       includedServiceItems @accessors();
     CPMutableArray       addonServiceItems @accessors();
@@ -99,6 +100,8 @@
             name:CPMenuDidChangeItemNotification
           object:nil
     ];
+    var itemidIncluded = [DMIncludedServiceItemCellView itemIncluded];
+    itemidIncluded.itemidInput = itemidIncludedFieldInput;
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
