@@ -455,6 +455,9 @@
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="smallSystem"/>
                     </buttonCell>
+                    <connections>
+                        <action selector="add:" target="Tia-C6-EQa" id="JpG-PW-Z3a"/>
+                    </connections>
                 </button>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="4hf-9v-Zjw">
                     <rect key="frame" x="159" y="369" width="88" height="17"/>
@@ -584,6 +587,9 @@
                                                                 <binding destination="40K-TO-d5r" name="value" keyPath="objectValue" id="GmB-EX-mIo"/>
                                                             </connections>
                                                         </textFieldCell>
+                                                        <connections>
+                                                            <binding destination="40K-TO-d5r" name="value" keyPath="objectValue" id="yjd-wE-ejc"/>
+                                                        </connections>
                                                     </textField>
                                                 </subviews>
                                                 <connections>
@@ -751,14 +757,14 @@
                         <rect key="frame" x="1" y="1" width="336" height="154"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="cPC-2W-c22" userLabel="includedServiceItems">
+                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="cPC-2W-c22" userLabel="includedServiceItems">
                                 <rect key="frame" x="0.0" y="0.0" width="334" height="0.0"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                 <tableColumns>
-                                    <tableColumn identifier="identifier" width="331" minWidth="40" maxWidth="1000" id="26C-4k-kP1" userLabel="identifier">
+                                    <tableColumn identifier="" width="331" minWidth="40" maxWidth="1000" id="26C-4k-kP1" userLabel="itemid">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                             <font key="font" metaFont="smallSystem"/>
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -778,18 +784,11 @@
                                                     <textField identifier="itemid" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="BcN-Vg-pTa">
                                                         <rect key="frame" x="0.0" y="0.0" width="204" height="17"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="itemid" id="dwc-zC-jhm" userLabel="itemid">
+                                                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="aitemid" id="dwc-zC-jhm" userLabel="itemid">
                                                             <font key="font" metaFont="system"/>
                                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                         </textFieldCell>
-                                                        <connections>
-                                                            <binding destination="Y9I-Y4-4kd" name="value" keyPath="objectValue" id="lLu-kP-OlR">
-                                                                <dictionary key="options">
-                                                                    <string key="NSValueTransformerName">itemid</string>
-                                                                </dictionary>
-                                                            </binding>
-                                                        </connections>
                                                     </textField>
                                                     <button verticalHuggingPriority="750" id="CRL-L6-XIX">
                                                         <rect key="frame" x="254" y="-9" width="80" height="28"/>
@@ -801,12 +800,13 @@
                                                     </button>
                                                 </subviews>
                                                 <connections>
-                                                    <outlet property="itemidField" destination="BcN-Vg-pTa" id="6v9-B6-W4X"/>
+                                                    <outlet property="editButton" destination="CRL-L6-XIX" id="IZI-0b-pZc"/>
+                                                    <outlet property="itemidField" destination="BcN-Vg-pTa" id="0Xr-CR-39f"/>
                                                 </connections>
                                             </tableCellView>
                                         </prototypeCellViews>
                                         <connections>
-                                            <binding destination="Tia-C6-EQa" name="value" keyPath="arrangedObjects" id="nRd-Mg-0bu"/>
+                                            <binding destination="Tia-C6-EQa" name="value" keyPath="arrangedObjects" id="wcw-cE-pOk"/>
                                         </connections>
                                     </tableColumn>
                                 </tableColumns>
@@ -1066,9 +1066,6 @@
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
-                    <connections>
-                        <action selector="add:" target="Tia-C6-EQa" id="kH9-0W-59N"/>
-                    </connections>
                 </button>
                 <textField identifier="itemidFieldPopOver" verticalHuggingPriority="750" id="3bc-qD-pyY">
                     <rect key="frame" x="87" y="105" width="293" height="22"/>

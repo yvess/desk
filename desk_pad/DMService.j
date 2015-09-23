@@ -3,8 +3,7 @@
 @import <CouchResource/COResource.j>
 
 var servicePropertyNamesArray = [[CPMutableArray alloc] init],
-    itemIncluded = {},
-    inita = 0;
+    itemIncluded = {};
 
 @implementation DMServicePackageProperty : CPObject
 {
@@ -71,6 +70,16 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString itemid   @accessors();
 }
 
+// - (id)init
+// {
+//     self = [super init];
+//     if (self)
+//     {
+//         [self setItemid:@"test"];
+//     }
+//     return self;
+// }
+
 - (CPString)nameIdentifierString
 {
     return @"itemid";
@@ -80,6 +89,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @implementation DMIncludedServiceItemCellView : CPTableCellView
 {
     @outlet CPTextField itemidField;
+    @outlet CPButton editButton;
 }
 
 + (id)itemIncluded
@@ -93,14 +103,38 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
        toObject:self
     withKeyPath:@"objectValue.itemid"
         options:nil];
+    [editButton setAction:@selector(showEditIncluded:)];
+    [editButton setTarget:self];
 }
 
-- (void)setObjectValue:(id)aValue
+- (void)showEditIncluded:(id)sender
 {
-    aValue.itemid = [itemIncluded.itemidInput stringValue];
-    console.log(aValue);
-    [super setObjectValue:aValue];
+    [[itemIncluded.popoverIncluded contentViewController] setView:itemIncluded.viewIncluded];
+    if (![itemIncluded.popoverIncluded isShown])
+    {
+        [itemIncluded.popoverIncluded close];
+        [itemIncluded.popoverIncluded showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
+        [itemIncluded.itemidInput setStringValue:[[self objectValue] itemid]];
+    } else {
+        var ov = [self objectValue];
+        ov.itemid = [itemIncluded.itemidInput stringValue];
+        [self setObjectValue:ov];
+        [itemIncluded.popoverIncluded close];
+    }
 }
+
+// - (void)setObjectValue:(id)aValue
+// {
+//     console.log("Included setObjectValue", aValue);
+//     // if ([itemIncluded.popoverIncluded isShown])
+//     // {
+//     //     [itemIncluded.itemidInput stringValue];
+//     // } else {
+//     //     aValue.itemid = (new Date).getTime();
+//     // }
+//     //aValue.itemid = (new Date).getTime(); //[itemIncluded.itemidInput stringValue];
+//     [super setObjectValue:aValue];
+// }
 @end
 
 @implementation DMServiceDefinition : COResource

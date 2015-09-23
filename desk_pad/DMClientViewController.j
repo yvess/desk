@@ -71,9 +71,6 @@
     [addServiceButton setAction:@selector(showService:)];
     [addServiceButton setTarget:self];
 
-    [addIncludedButton setAction:@selector(showIncluded:)];
-    [addIncludedButton setTarget:self];
-
     [addAddonButton setAction:@selector(showAddon:)];
     [addAddonButton setTarget:self];
 
@@ -102,6 +99,8 @@
     ];
     var itemidIncluded = [DMIncludedServiceItemCellView itemIncluded];
     itemidIncluded.itemidInput = itemidIncludedFieldInput;
+    itemidIncluded.viewIncluded = viewIncluded;
+    itemidIncluded.popoverIncluded = popoverIncluded;
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
@@ -182,18 +181,6 @@
         [popoverService close];
     }
 
-}
-
-- (void)showIncluded:(id)sender
-{
-    [[popoverIncluded contentViewController] setView:viewIncluded];
-    if (![popoverIncluded isShown])
-    {
-        [popoverAddon close];
-        [popoverIncluded showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
-    } else {
-        [popoverIncluded close];
-    }
 }
 
 - (void)showAddon:(id)sender
