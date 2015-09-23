@@ -3,7 +3,8 @@
 @import <CouchResource/COResource.j>
 
 var servicePropertyNamesArray = [[CPMutableArray alloc] init],
-    itemIncluded = {};
+    itemIncluded = {},
+    itemAddon = {};
 
 @implementation DMServicePackageProperty : CPObject
 {
@@ -65,6 +66,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 }
 @end
 
+// INCLUDED ITEM
+
 @implementation DMIncludedServiceItem : CPObject
 {
     CPString itemid   @accessors();
@@ -123,6 +126,69 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     }
 }
 @end
+
+// ADDON ITEM
+
+@implementation DMAddonServiceItem : CPObject
+{
+    CPString itemid   @accessors();
+}
+
+- (id)init
+{
+    self = [super init];
+    if (self)
+    {
+        [self setItemid:@"NEW"];
+    }
+    return self;
+}
+
+- (CPString)nameIdentifierString
+{
+    return @"itemid";
+}
+@end
+
+@implementation DMAddonServiceItemCellView : CPTableCellView
+{
+    @outlet CPTextField itemidField;
+    @outlet CPButton editButton;
+}
+
++ (id)itemAddon
+{
+    return itemAddon;
+}
+
+- (void)awakeFromCib
+{
+    [itemidField bind:@"value"
+       toObject:self
+    withKeyPath:@"objectValue.itemid"
+        options:nil];
+    [editButton setAction:@selector(showEditAddon:)];
+    [editButton setTarget:self];
+}
+
+- (void)showEditAddon:(id)sender
+{
+    [[itemAddon.popoverAddon contentViewController] setView:itemAddon.viewAddon];
+    if ([itemAddon.popoverAddon isShown])
+    {
+        var ov = [self objectValue];
+        ov.itemid = [itemAddon.itemidInput stringValue];
+        [self setObjectValue:ov];
+        [itemAddon.popoverAddon close];
+    } else {
+        [itemAddon.popoverAddon close];
+        [itemAddon.popoverAddon showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
+        [itemAddon.itemidInput setStringValue:[[self objectValue] itemid]];
+    }
+}
+@end
+
+// SERVICE DEFINITION
 
 @implementation DMServiceDefinition : COResource
 {

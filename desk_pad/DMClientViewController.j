@@ -24,6 +24,7 @@
     @outlet              CPPopUpButton includedTypePUB;
     @outlet              CPPopUpButton addonTypePUB;
     @outlet              CPTextField itemidIncludedFieldInput;
+    @outlet              CPTextField itemidAddonFieldInput;
     CPMutableArray       packagePropertiesItems @accessors();
     CPMutableArray       includedServiceItems @accessors();
     CPMutableArray       addonServiceItems @accessors();
@@ -71,11 +72,9 @@
     [addServiceButton setAction:@selector(showService:)];
     [addServiceButton setTarget:self];
 
-    [addAddonButton setAction:@selector(showAddon:)];
-    [addAddonButton setTarget:self];
-
     [popoverIncluded setAnimates:NO];
     [popoverAddon setAnimates:NO];
+
     [serviceDefinitions enumerateObjectsUsingBlock:function(item) {
         var menuItem = [[CPMenuItem alloc] init];
         [menuItem setTitle:item.serviceType];
@@ -101,6 +100,11 @@
     itemidIncluded.itemidInput = itemidIncludedFieldInput;
     itemidIncluded.viewIncluded = viewIncluded;
     itemidIncluded.popoverIncluded = popoverIncluded;
+
+    var itemidAddon = [DMAddonServiceItemCellView itemAddon];
+    itemidAddon.itemidInput = itemidAddonFieldInput;
+    itemidAddon.viewAddon = viewAddon;
+    itemidAddon.popoverAddon = popoverAddon;
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
@@ -181,18 +185,6 @@
         [popoverService close];
     }
 
-}
-
-- (void)showAddon:(id)sender
-{
-    [[popoverAddon contentViewController] setView:viewAddon];
-    if (![popoverAddon isShown])
-    {
-        [popoverIncluded close];
-        [popoverAddon showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
-    } else {
-        [popoverAddon close];
-    }
 }
 
 - (void)saveModel:(id)sender
