@@ -70,15 +70,15 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString itemid   @accessors();
 }
 
-// - (id)init
-// {
-//     self = [super init];
-//     if (self)
-//     {
-//         [self setItemid:@"test"];
-//     }
-//     return self;
-// }
+- (id)init
+{
+    self = [super init];
+    if (self)
+    {
+        [self setItemid:@"NEW"];
+    }
+    return self;
+}
 
 - (CPString)nameIdentifierString
 {
@@ -110,31 +110,18 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 - (void)showEditIncluded:(id)sender
 {
     [[itemIncluded.popoverIncluded contentViewController] setView:itemIncluded.viewIncluded];
-    if (![itemIncluded.popoverIncluded isShown])
+    if ([itemIncluded.popoverIncluded isShown])
     {
-        [itemIncluded.popoverIncluded close];
-        [itemIncluded.popoverIncluded showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
-        [itemIncluded.itemidInput setStringValue:[[self objectValue] itemid]];
-    } else {
         var ov = [self objectValue];
         ov.itemid = [itemIncluded.itemidInput stringValue];
         [self setObjectValue:ov];
         [itemIncluded.popoverIncluded close];
+    } else {
+        [itemIncluded.popoverIncluded close];
+        [itemIncluded.popoverIncluded showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
+        [itemIncluded.itemidInput setStringValue:[[self objectValue] itemid]];
     }
 }
-
-// - (void)setObjectValue:(id)aValue
-// {
-//     console.log("Included setObjectValue", aValue);
-//     // if ([itemIncluded.popoverIncluded isShown])
-//     // {
-//     //     [itemIncluded.itemidInput stringValue];
-//     // } else {
-//     //     aValue.itemid = (new Date).getTime();
-//     // }
-//     //aValue.itemid = (new Date).getTime(); //[itemIncluded.itemidInput stringValue];
-//     [super setObjectValue:aValue];
-// }
 @end
 
 @implementation DMServiceDefinition : COResource
