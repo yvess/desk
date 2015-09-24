@@ -70,7 +70,10 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 @implementation DMIncludedServiceItem : CPObject
 {
-    CPString itemid   @accessors();
+    CPString itemid @accessors();
+    CPString itemType @accessors();
+    CPString startDate @accessors();
+    CPString endDate @accessors();
 }
 
 - (id)init
@@ -79,6 +82,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     if (self)
     {
         [self setItemid:@"NEW"];
+        [self setItemType:@""];
+        [self setStartDate:@"x"];
+        [self setEndDate:@""];
     }
     return self;
 }
@@ -92,6 +98,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @implementation DMIncludedServiceItemCellView : CPTableCellView
 {
     @outlet CPTextField itemidField;
+    //@outlet CPTextField startDateField;
     @outlet CPButton editButton;
 }
 
@@ -117,12 +124,18 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     {
         var ov = [self objectValue];
         ov.itemid = [itemIncluded.itemidInput stringValue];
+        ov.itemType = [itemIncluded.itemType stringValue];
+        ov.startDate = [itemIncluded.startDate stringValue];
+        ov.endDate = [itemIncluded.endDate stringValue];
         [self setObjectValue:ov];
         [itemIncluded.popoverIncluded close];
     } else {
         [itemIncluded.popoverIncluded close];
         [itemIncluded.popoverIncluded showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [itemIncluded.itemidInput setStringValue:[[self objectValue] itemid]];
+        [itemIncluded.itemType setStringValue:[[self objectValue] itemType]];
+        [itemIncluded.startDate setStringValue:[[self objectValue] startDate]];
+        [itemIncluded.endDate setStringValue:[[self objectValue] endDate]];
     }
 }
 @end

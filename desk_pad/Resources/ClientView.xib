@@ -12,19 +12,27 @@
                 <outlet property="addServiceButton" destination="AxO-mf-8aS" id="dsH-DG-9W6"/>
                 <outlet property="addonTypePUB" destination="8ln-tD-xrA" id="jbi-i2-Se0"/>
                 <outlet property="arrayController" destination="90" id="122"/>
+                <outlet property="discountTextFieldInputAddon" destination="5DC-T0-GMg" id="GWn-yT-CFv"/>
+                <outlet property="endDateInputAddon" destination="Wjb-Xj-X7y" id="WN0-oF-eFn"/>
+                <outlet property="endDateInputIncluded" destination="HTu-XD-8pT" id="76R-hb-ueE"/>
                 <outlet property="includedTypePUB" destination="ldr-rv-4Fl" id="53z-At-Jde"/>
-                <outlet property="itemidAddonFieldInput" destination="LQa-ia-P05" id="SFI-5G-de5"/>
-                <outlet property="itemidIncludedFieldInput" destination="3bc-qD-pyY" id="6KP-b1-Wub"/>
+                <outlet property="itemTypeInputAddon" destination="8ln-tD-xrA" id="1EC-FX-i90"/>
+                <outlet property="itemTypeInputIncluded" destination="ldr-rv-4Fl" id="HMY-BO-CD1"/>
+                <outlet property="itemidFieldInputAddon" destination="LQa-ia-P05" id="ez2-to-1h0"/>
+                <outlet property="itemidFieldInputIncluded" destination="3bc-qD-pyY" id="9D5-i9-FuJ"/>
                 <outlet property="itemsTable" destination="56" id="123"/>
                 <outlet property="packageProperties" destination="ksZ-Zl-HR7" id="zyp-Kp-ffc"/>
                 <outlet property="packagePropertiesController" destination="Dzg-78-n2d" id="VPm-Cb-TbL"/>
                 <outlet property="popoverAddon" destination="ULh-z5-0Pf" id="E5G-q5-dgm"/>
                 <outlet property="popoverIncluded" destination="fqz-Bo-z0P" id="Nq0-Jj-Df9"/>
                 <outlet property="popoverService" destination="OEc-XT-j3a" id="p6e-k7-lka"/>
+                <outlet property="priceFieldInputAddon" destination="LF9-Fa-msP" id="0NB-1b-lfk"/>
                 <outlet property="removePropertyButton" destination="5iB-Ep-FKb" id="KkT-Yf-dSq"/>
                 <outlet property="saveModelButton" destination="68" id="124"/>
                 <outlet property="serviceDefinitionPackagePopUp" destination="23C-fi-fii" id="fer-XQ-a9v"/>
                 <outlet property="serviceDefinitionPopUp" destination="Vbn-2H-yrg" id="tyI-J2-kp0"/>
+                <outlet property="startDateInputAddon" destination="icL-rC-uFv" id="cbk-Qg-BV8"/>
+                <outlet property="startDateInputIncluded" destination="U4D-Sw-9GK" id="w5U-fg-PFo"/>
                 <outlet property="view" destination="47" id="96"/>
                 <outlet property="viewAddon" destination="j8V-da-N6J" id="g91-HK-dcg"/>
                 <outlet property="viewIncluded" destination="U6q-A6-Tjv" id="LNn-10-3c6"/>
@@ -653,6 +661,15 @@
                                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                         </textFieldCell>
                                                     </textField>
+                                                    <textField hidden="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="oku-Jj-pwq" userLabel="startDate Field">
+                                                        <rect key="frame" x="0.0" y="0.0" width="331" height="17"/>
+                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="aitemid" id="5QS-gS-lM6" userLabel="startdate">
+                                                            <font key="font" metaFont="system"/>
+                                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                                        </textFieldCell>
+                                                    </textField>
                                                     <button verticalHuggingPriority="750" id="CRL-L6-XIX" userLabel="edit button">
                                                         <rect key="frame" x="254" y="-9" width="80" height="28"/>
                                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
@@ -664,7 +681,9 @@
                                                 </subviews>
                                                 <connections>
                                                     <outlet property="editButton" destination="CRL-L6-XIX" id="IZI-0b-pZc"/>
+                                                    <outlet property="itemType" destination="ldr-rv-4Fl" id="h5p-hJ-j5f"/>
                                                     <outlet property="itemidField" destination="BcN-Vg-pTa" id="0Xr-CR-39f"/>
+                                                    <outlet property="startDateField" destination="oku-Jj-pwq" id="U9B-3i-FGS"/>
                                                 </connections>
                                             </tableCellView>
                                         </prototypeCellViews>
@@ -844,12 +863,12 @@
                 <popUpButton verticalHuggingPriority="750" id="8ln-tD-xrA">
                     <rect key="frame" x="85" y="241" width="160" height="26"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                    <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="cOC-pD-RMe" id="UEl-xG-Rvc">
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="UEl-xG-Rvc">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="menu"/>
                         <menu key="menu" id="2cr-Vu-l0c">
                             <items>
-                                <menuItem title="Item 1" state="on" id="cOC-pD-RMe"/>
+                                <menuItem title="Item 1" id="cOC-pD-RMe"/>
                                 <menuItem title="Item 2" id="BNK-qK-okr"/>
                                 <menuItem title="Item 3" id="3VF-Dh-2MG"/>
                             </items>
@@ -1050,6 +1069,15 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="p6r-DL-Gax">
+                    <rect key="frame" x="223" y="23" width="158" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="(Y-M-D, e.g. 2015-12-31)" id="IR3-5E-3fY">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
                 <textField verticalHuggingPriority="750" id="U4D-Sw-9GK" userLabel="start date field">
                     <rect key="frame" x="87" y="50" width="130" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1078,21 +1106,12 @@
                     </textFieldCell>
                 </textField>
                 <textField identifier="itemidFieldPopOver" verticalHuggingPriority="750" id="3bc-qD-pyY">
-                    <rect key="frame" x="87" y="81" width="293" height="22"/>
+                    <rect key="frame" x="87" y="84" width="293" height="22"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="roi-H2-ANy">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="p6r-DL-Gax">
-                    <rect key="frame" x="223" y="23" width="158" height="17"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="(Y-M-D, e.g. 2015-12-31)" id="IR3-5E-3fY">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
             </subviews>

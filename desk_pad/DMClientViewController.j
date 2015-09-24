@@ -22,9 +22,17 @@
     @outlet              CPPopUpButton serviceDefinitionPopUp;
     @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
     @outlet              CPPopUpButton includedTypePUB;
+    @outlet              CPTextField itemidFieldInputIncluded;
+    @outlet              CPPopUpButton itemTypeInputIncluded;
+    @outlet              CPTextField startDateInputIncluded;
+    @outlet              CPTextField endDateInputIncluded;
     @outlet              CPPopUpButton addonTypePUB;
-    @outlet              CPTextField itemidIncludedFieldInput;
-    @outlet              CPTextField itemidAddonFieldInput;
+    @outlet              CPTextField itemidFieldInputAddon;
+    @outlet              CPPopUpButton itemTypeInputAddon;
+    @outlet              CPTextField startDateInputAddon;
+    @outlet              CPTextField endDateInputAddon;
+    @outlet              CPTextField priceFieldInputAddon;
+    @outlet              CPTextField discountTextFieldInputAddon;
     CPMutableArray       packagePropertiesItems @accessors();
     CPMutableArray       includedServiceItems @accessors();
     CPMutableArray       addonServiceItems @accessors();
@@ -97,12 +105,15 @@
           object:nil
     ];
     var itemidIncluded = [DMIncludedServiceItemCellView itemIncluded];
-    itemidIncluded.itemidInput = itemidIncludedFieldInput;
+    itemidIncluded.itemidInput = itemidFieldInputIncluded;
+    itemidIncluded.itemType = itemTypeInputIncluded;
+    itemidIncluded.startDate = startDateInputIncluded;
+    itemidIncluded.endDate = endDateInputIncluded;
     itemidIncluded.viewIncluded = viewIncluded;
     itemidIncluded.popoverIncluded = popoverIncluded;
 
     var itemidAddon = [DMAddonServiceItemCellView itemAddon];
-    itemidAddon.itemidInput = itemidAddonFieldInput;
+    itemidAddon.itemidInput = itemidFieldInputAddon;
     itemidAddon.viewAddon = viewAddon;
     itemidAddon.popoverAddon = popoverAddon;
 }
