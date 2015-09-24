@@ -83,7 +83,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     {
         [self setItemid:@"NEW"];
         [self setItemType:@""];
-        [self setStartDate:@"x"];
+        [self setStartDate:@""];
         [self setEndDate:@""];
     }
     return self;
@@ -98,7 +98,6 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @implementation DMIncludedServiceItemCellView : CPTableCellView
 {
     @outlet CPTextField itemidField;
-    //@outlet CPTextField startDateField;
     @outlet CPButton editButton;
 }
 
@@ -145,6 +144,11 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @implementation DMAddonServiceItem : CPObject
 {
     CPString itemid   @accessors();
+    CPString itemType @accessors();
+    CPString startDate @accessors();
+    CPString endDate @accessors();
+    CPString price @accessors();
+    CPString discountText @accessors();
 }
 
 - (id)init
@@ -153,6 +157,11 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     if (self)
     {
         [self setItemid:@"NEW"];
+        [self setItemType:@""];
+        [self setStartDate:@""];
+        [self setEndDate:@""];
+        [self setPrice:@""];
+        [self setDiscountText:@""];
     }
     return self;
 }
@@ -191,12 +200,22 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     {
         var ov = [self objectValue];
         ov.itemid = [itemAddon.itemidInput stringValue];
+        ov.itemType = [itemAddon.itemType stringValue];
+        ov.startDate = [itemAddon.startDate stringValue];
+        ov.endDate = [itemAddon.endDate stringValue];
+        ov.price = [itemAddon.price stringValue];
+        ov.discountText = [itemAddon.discountText stringValue];
         [self setObjectValue:ov];
         [itemAddon.popoverAddon close];
     } else {
         [itemAddon.popoverAddon close];
         [itemAddon.popoverAddon showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [itemAddon.itemidInput setStringValue:[[self objectValue] itemid]];
+        [itemAddon.itemType setStringValue:[[self objectValue] itemType]];
+        [itemAddon.startDate setStringValue:[[self objectValue] startDate]];
+        [itemAddon.endDate setStringValue:[[self objectValue] endDate]];
+        [itemAddon.price setStringValue:[[self objectValue] price]];
+        [itemAddon.discountText setStringValue:[[self objectValue] discountText]];
     }
 }
 @end

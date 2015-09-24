@@ -12,7 +12,7 @@
                 <outlet property="addServiceButton" destination="AxO-mf-8aS" id="dsH-DG-9W6"/>
                 <outlet property="addonTypePUB" destination="8ln-tD-xrA" id="jbi-i2-Se0"/>
                 <outlet property="arrayController" destination="90" id="122"/>
-                <outlet property="discountTextFieldInputAddon" destination="5DC-T0-GMg" id="GWn-yT-CFv"/>
+                <outlet property="discountTextInputAddon" destination="5DC-T0-GMg" id="5vx-wL-fQY"/>
                 <outlet property="endDateInputAddon" destination="Wjb-Xj-X7y" id="WN0-oF-eFn"/>
                 <outlet property="endDateInputIncluded" destination="HTu-XD-8pT" id="76R-hb-ueE"/>
                 <outlet property="includedTypePUB" destination="ldr-rv-4Fl" id="53z-At-Jde"/>
@@ -20,13 +20,15 @@
                 <outlet property="itemTypeInputIncluded" destination="ldr-rv-4Fl" id="HMY-BO-CD1"/>
                 <outlet property="itemidFieldInputAddon" destination="LQa-ia-P05" id="ez2-to-1h0"/>
                 <outlet property="itemidFieldInputIncluded" destination="3bc-qD-pyY" id="9D5-i9-FuJ"/>
+                <outlet property="itemidInputAddon" destination="LQa-ia-P05" id="oEG-Af-LV7"/>
+                <outlet property="itemidInputIncluded" destination="3bc-qD-pyY" id="xwM-Lx-3rY"/>
                 <outlet property="itemsTable" destination="56" id="123"/>
                 <outlet property="packageProperties" destination="ksZ-Zl-HR7" id="zyp-Kp-ffc"/>
                 <outlet property="packagePropertiesController" destination="Dzg-78-n2d" id="VPm-Cb-TbL"/>
                 <outlet property="popoverAddon" destination="ULh-z5-0Pf" id="E5G-q5-dgm"/>
                 <outlet property="popoverIncluded" destination="fqz-Bo-z0P" id="Nq0-Jj-Df9"/>
                 <outlet property="popoverService" destination="OEc-XT-j3a" id="p6e-k7-lka"/>
-                <outlet property="priceFieldInputAddon" destination="LF9-Fa-msP" id="0NB-1b-lfk"/>
+                <outlet property="priceInputAddon" destination="LF9-Fa-msP" id="N17-Nc-1RS"/>
                 <outlet property="removePropertyButton" destination="5iB-Ep-FKb" id="KkT-Yf-dSq"/>
                 <outlet property="saveModelButton" destination="68" id="124"/>
                 <outlet property="serviceDefinitionPackagePopUp" destination="23C-fi-fii" id="fer-XQ-a9v"/>

@@ -21,18 +21,21 @@
     @outlet              COArrayController packagePropertiesController;
     @outlet              CPPopUpButton serviceDefinitionPopUp;
     @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
+
     @outlet              CPPopUpButton includedTypePUB;
-    @outlet              CPTextField itemidFieldInputIncluded;
+    @outlet              CPTextField itemidInputIncluded;
     @outlet              CPPopUpButton itemTypeInputIncluded;
     @outlet              CPTextField startDateInputIncluded;
     @outlet              CPTextField endDateInputIncluded;
+
     @outlet              CPPopUpButton addonTypePUB;
-    @outlet              CPTextField itemidFieldInputAddon;
+    @outlet              CPTextField itemidInputAddon;
     @outlet              CPPopUpButton itemTypeInputAddon;
     @outlet              CPTextField startDateInputAddon;
     @outlet              CPTextField endDateInputAddon;
-    @outlet              CPTextField priceFieldInputAddon;
-    @outlet              CPTextField discountTextFieldInputAddon;
+    @outlet              CPTextField priceInputAddon;
+    @outlet              CPTextField discountTextInputAddon;
+
     CPMutableArray       packagePropertiesItems @accessors();
     CPMutableArray       includedServiceItems @accessors();
     CPMutableArray       addonServiceItems @accessors();
@@ -105,7 +108,7 @@
           object:nil
     ];
     var itemidIncluded = [DMIncludedServiceItemCellView itemIncluded];
-    itemidIncluded.itemidInput = itemidFieldInputIncluded;
+    itemidIncluded.itemidInput = itemidInputIncluded;
     itemidIncluded.itemType = itemTypeInputIncluded;
     itemidIncluded.startDate = startDateInputIncluded;
     itemidIncluded.endDate = endDateInputIncluded;
@@ -113,7 +116,12 @@
     itemidIncluded.popoverIncluded = popoverIncluded;
 
     var itemidAddon = [DMAddonServiceItemCellView itemAddon];
-    itemidAddon.itemidInput = itemidFieldInputAddon;
+    itemidAddon.itemidInput = itemidInputAddon;
+    itemidAddon.itemType = itemTypeInputAddon;
+    itemidAddon.startDate = startDateInputAddon;
+    itemidAddon.endDate = endDateInputAddon;
+    itemidAddon.price = priceInputAddon;
+    itemidAddon.discountText = discountTextInputAddon;
     itemidAddon.viewAddon = viewAddon;
     itemidAddon.popoverAddon = popoverAddon;
 }
