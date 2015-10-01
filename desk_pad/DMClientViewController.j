@@ -6,28 +6,24 @@
 
 @implementation DMClientViewController : COViewController
 {
+    CPMutableArray       serviceItems @accessors();
     @outlet              CPButton addServiceButton;
-    @outlet              CPButton addIncludedButton;
-    @outlet              CPButton addAddonButton;
-    @outlet              CPButton addPropertyButton;
-    @outlet              CPButton removePropertyButton;
-    @outlet              CPView viewService;
-    @outlet              CPView viewIncluded;
-    @outlet              CPView viewAddon;
-    @outlet              CPPopover popoverService;
-    @outlet              CPPopover popoverIncluded;
-    @outlet              CPPopover popoverAddon;
-    @outlet              CPTableView packageProperties;
-    @outlet              COArrayController packagePropertiesController;
-    @outlet              CPPopUpButton serviceDefinitionPopUp;
-    @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
 
+
+    CPMutableArray       includedServiceItems @accessors();
+    @outlet              CPButton addIncludedButton;
+    @outlet              CPView viewIncluded;
+    @outlet              CPPopover popoverIncluded;
     @outlet              CPPopUpButton includedTypePUB;
     @outlet              CPTextField itemidInputIncluded;
     @outlet              CPPopUpButton itemTypeInputIncluded;
     @outlet              CPTextField startDateInputIncluded;
     @outlet              CPTextField endDateInputIncluded;
 
+    CPMutableArray       addonServiceItems @accessors();
+    @outlet              CPButton addAddonButton;
+    @outlet              CPView viewAddon;
+    @outlet              CPPopover popoverAddon;
     @outlet              CPPopUpButton addonTypePUB;
     @outlet              CPTextField itemidInputAddon;
     @outlet              CPPopUpButton itemTypeInputAddon;
@@ -36,12 +32,19 @@
     @outlet              CPTextField priceInputAddon;
     @outlet              CPTextField discountTextInputAddon;
 
-
-    CPMutableArray       serviceItems @accessors();
-    CPMutableArray       packagePropertiesItems @accessors();
-    CPMutableArray       includedServiceItems @accessors();
-    CPMutableArray       addonServiceItems @accessors();
     CPMutableArray       serviceDefinitions @accessors();
+    @outlet              CPButton addPropertyButton;
+    @outlet              CPButton removePropertyButton;
+    @outlet              CPView viewService;
+    @outlet              CPPopover popoverService;
+
+    CPMutableArray       packagePropertiesItems @accessors();
+    @outlet              CPTableView packageProperties;
+    @outlet              COArrayController packagePropertiesController;
+    @outlet              CPPopUpButton serviceDefinitionPopUp;
+    @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
+
+
     CPMutableDictionary  itemLookup @accessors();
 }
 
