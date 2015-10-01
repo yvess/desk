@@ -228,7 +228,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString coRev  @accessors();
 
     /* custom ivars */
-    CPString serviceType  @accessors();
+    CPString servicetype  @accessors();
     CPArray packages @accessors();
     CPDictionary addons @accessors();
     CPDictionary properties @accessors();
@@ -242,7 +242,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 - (CPString)nameIdentifierString
 {
-    return @"serviceType";
+    return @"servicetype";
 }
 @end
 
@@ -253,7 +253,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString coId @accessors();
     CPString coRev  @accessors();
 
-    CPString serviceType @accessors();
+    CPString servicetype @accessors();
     CPString startDate @accessors();
     CPString endDate @accessors();
     CPString price @accessors();
@@ -268,6 +268,20 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 - (CPString)nameIdentifierString
 {
-    return @"serviceType";
+    return @"servicetype";
+}
+@end
+
+@implementation DMServiceCellView : CPTableCellView
+{
+    @outlet CPTextField servicetypeField;
+}
+
+- (void)awakeFromCib
+{
+    [servicetypeField bind:@"value"
+               toObject:self
+            withKeyPath:@"objectValue.servicetype"
+                options:nil];
 }
 @end

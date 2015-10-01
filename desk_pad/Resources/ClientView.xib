@@ -9,7 +9,7 @@
                 <outlet property="addAddonButton" destination="oSW-wF-igT" id="MwL-m7-9s1"/>
                 <outlet property="addIncludedButton" destination="g9M-gh-UeA" id="s0s-Ud-gdQ"/>
                 <outlet property="addPropertyButton" destination="gpG-K6-toW" id="Tw0-V5-SdJ"/>
-                <outlet property="addServiceButton" destination="AxO-mf-8aS" id="dsH-DG-9W6"/>
+                <outlet property="addServiceButton" destination="QyP-Zh-GpZ" id="A4R-2X-Kad"/>
                 <outlet property="addonTypePUB" destination="8ln-tD-xrA" id="jbi-i2-Se0"/>
                 <outlet property="arrayController" destination="90" id="122"/>
                 <outlet property="discountTextInputAddon" destination="5DC-T0-GMg" id="5vx-wL-fQY"/>
@@ -21,6 +21,7 @@
                 <outlet property="itemidInputAddon" destination="LQa-ia-P05" id="oEG-Af-LV7"/>
                 <outlet property="itemidInputIncluded" destination="3bc-qD-pyY" id="xwM-Lx-3rY"/>
                 <outlet property="itemsTable" destination="56" id="123"/>
+                <outlet property="newServiceButton" destination="AxO-mf-8aS" id="JyW-Dl-cJo"/>
                 <outlet property="packageProperties" destination="ksZ-Zl-HR7" id="zyp-Kp-ffc"/>
                 <outlet property="packagePropertiesController" destination="Dzg-78-n2d" id="VPm-Cb-TbL"/>
                 <outlet property="popoverAddon" destination="ULh-z5-0Pf" id="E5G-q5-dgm"/>
@@ -31,6 +32,8 @@
                 <outlet property="saveModelButton" destination="68" id="124"/>
                 <outlet property="serviceDefinitionPackagePopUp" destination="23C-fi-fii" id="fer-XQ-a9v"/>
                 <outlet property="serviceDefinitionPopUp" destination="Vbn-2H-yrg" id="tyI-J2-kp0"/>
+                <outlet property="servicesAC" destination="YWu-oD-Kec" id="JVr-D4-O5D"/>
+                <outlet property="servicesTV" destination="4l0-Sl-FZ2" id="A1c-Mx-bmw"/>
                 <outlet property="startDateInputAddon" destination="icL-rC-uFv" id="cbk-Qg-BV8"/>
                 <outlet property="startDateInputIncluded" destination="U4D-Sw-9GK" id="w5U-fg-PFo"/>
                 <outlet property="view" destination="47" id="96"/>
@@ -243,7 +246,7 @@
                                         <font key="font" metaFont="system"/>
                                     </buttonCell>
                                 </button>
-                                <button verticalHuggingPriority="750" id="AxO-mf-8aS">
+                                <button verticalHuggingPriority="750" id="AxO-mf-8aS" userLabel="New Service Button">
                                     <rect key="frame" x="88" y="18" width="108" height="25"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <buttonCell key="cell" type="roundTextured" title="New Service" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="d7y-Zo-r6h">
@@ -251,52 +254,65 @@
                                         <font key="font" metaFont="system"/>
                                     </buttonCell>
                                 </button>
-                                <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="f9f-jB-1d7">
+                                <scrollView autohidesScrollers="YES" horizontalLineScroll="22" horizontalPageScroll="10" verticalLineScroll="22" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="f9f-jB-1d7">
                                     <rect key="frame" x="88" y="55" width="432" height="341"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <clipView key="contentView" id="XZ8-Ks-N8e">
                                         <rect key="frame" x="1" y="17" width="430" height="323"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="HwH-uq-2wS" viewBased="YES" id="4l0-Sl-FZ2" userLabel="Services TV">
+                                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowHeight="20" rowSizeStyle="automatic" headerView="HwH-uq-2wS" viewBased="YES" id="4l0-Sl-FZ2" userLabel="Services TV">
                                                 <rect key="frame" x="0.0" y="0.0" width="430" height="323"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                                 <size key="intercellSpacing" width="3" height="2"/>
                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                                 <tableColumns>
-                                                    <tableColumn width="364" minWidth="40" maxWidth="1000" id="PN3-bE-ggZ">
-                                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Services">
+                                                    <tableColumn identifier="" width="64" minWidth="10" maxWidth="3.4028234663852886e+38" id="iW3-FA-nSF" userLabel="service">
+                                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                                             <font key="font" metaFont="smallSystem"/>
                                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                             <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                         </tableHeaderCell>
-                                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="TlU-vr-PRb">
+                                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="FeX-ZZ-gSt">
                                                             <font key="font" metaFont="system"/>
                                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                         </textFieldCell>
                                                         <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                         <prototypeCellViews>
-                                                            <tableCellView id="MS4-Db-vYq">
-                                                                <rect key="frame" x="1" y="1" width="364" height="17"/>
+                                                            <tableCellView id="nNv-5j-Z45" customClass="DMServiceCellView">
+                                                                <rect key="frame" x="1" y="1" width="64" height="20"/>
                                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                 <subviews>
-                                                                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="obz-o6-mkB">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="364" height="17"/>
+                                                                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="fAJ-jy-pxp" userLabel="servicetype">
+                                                                        <rect key="frame" x="0.0" y="3" width="64" height="17"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                                                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="jJ4-NW-bP6">
+                                                                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="tal-6d-Mf7" userLabel="TextFieldCell">
                                                                             <font key="font" metaFont="system"/>
                                                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                                                            <connections>
+                                                                                <binding destination="nNv-5j-Z45" name="value" keyPath="objectValue" id="5Wh-E0-Tvh">
+                                                                                    <dictionary key="options">
+                                                                                        <bool key="NSConditionallySetsEditable" value="YES"/>
+                                                                                    </dictionary>
+                                                                                </binding>
+                                                                            </connections>
                                                                         </textFieldCell>
+                                                                        <connections>
+                                                                            <binding destination="nNv-5j-Z45" name="value" keyPath="objectValue" id="mao-sE-ois"/>
+                                                                        </connections>
                                                                     </textField>
                                                                 </subviews>
                                                                 <connections>
-                                                                    <outlet property="textField" destination="obz-o6-mkB" id="Fqu-mO-iM7"/>
+                                                                    <outlet property="servicetypeField" destination="fAJ-jy-pxp" id="j1c-c1-1wh"/>
                                                                 </connections>
                                                             </tableCellView>
                                                         </prototypeCellViews>
+                                                        <connections>
+                                                            <binding destination="YWu-oD-Kec" name="value" keyPath="arrangedObjects" id="emi-Dy-Mkb"/>
+                                                        </connections>
                                                     </tableColumn>
                                                 </tableColumns>
                                             </tableView>
@@ -417,7 +433,7 @@
                         <rect key="frame" x="1" y="1" width="336" height="87"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" multipleSelection="NO" emptySelection="NO" autosaveColumns="NO" typeSelect="NO" rowHeight="28" rowSizeStyle="automatic" viewBased="YES" id="ksZ-Zl-HR7" userLabel="PackageProperties">
+                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" multipleSelection="NO" emptySelection="NO" autosaveColumns="NO" typeSelect="NO" rowHeight="28" rowSizeStyle="automatic" viewBased="YES" id="ksZ-Zl-HR7" userLabel="PackageProperties TV">
                                 <rect key="frame" x="0.0" y="0.0" width="333" height="0.0"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="1"/>
@@ -755,7 +771,7 @@
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                     <connections>
-                        <action selector="add:" target="YWu-oD-Kec" id="a2T-NL-LT4"/>
+                        <action selector="add:" target="YWu-oD-Kec" id="Z61-jD-ILR"/>
                     </connections>
                 </button>
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="gFY-W9-ihK" userLabel="Included TV">
@@ -995,8 +1011,11 @@
             </connections>
         </arrayController>
         <arrayController objectClassName="DMService" id="YWu-oD-Kec" userLabel="Services AC" customClass="COArrayController">
+            <declaredKeys>
+                <string>servicetype</string>
+            </declaredKeys>
             <connections>
-                <binding destination="-2" name="contentArray" keyPath="serviceItems" id="Mcm-tI-nTD"/>
+                <binding destination="-2" name="contentArray" keyPath="serviceItems" id="KoE-g3-dZv"/>
             </connections>
         </arrayController>
         <viewController id="S51-TI-hQk" userLabel="PopoverService VC"/>
