@@ -36,6 +36,8 @@
     @outlet              CPTextField priceInputAddon;
     @outlet              CPTextField discountTextInputAddon;
 
+
+    CPMutableArray       serviceItems @accessors();
     CPMutableArray       packagePropertiesItems @accessors();
     CPMutableArray       includedServiceItems @accessors();
     CPMutableArray       addonServiceItems @accessors();
@@ -55,6 +57,7 @@
         includedServiceItems = [[CPMutableArray alloc] init];
         addonServiceItems = [[CPMutableArray alloc] init];
         serviceDefinitions = [DMServiceDefinition all];
+        serviceItems = [DMService all];
     }
     return self;
 }

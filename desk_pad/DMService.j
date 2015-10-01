@@ -221,7 +221,6 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @end
 
 // SERVICE DEFINITION
-
 @implementation DMServiceDefinition : COResource
 {
     /* default ivars for couchdb */
@@ -233,6 +232,32 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPArray packages @accessors();
     CPDictionary addons @accessors();
     CPDictionary properties @accessors();
+}
+
++ (id)couchId:(id)aItem
+{
+    var cType = [[self class] underscoreName];
+    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
+- (CPString)nameIdentifierString
+{
+    return @"serviceType";
+}
+@end
+
+// SERVICE
+@implementation DMService : COResource
+{
+    /* default ivars for couchdb */
+    CPString coId @accessors();
+    CPString coRev  @accessors();
+
+    CPString serviceType @accessors();
+    CPString startDate @accessors();
+    CPString endDate @accessors();
+    CPString price @accessors();
+    CPString discountText @accessors();
 }
 
 + (id)couchId:(id)aItem

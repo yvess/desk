@@ -9,6 +9,7 @@
     /* custom ivars */
     CPString name     @accessors();
     CPString extcrmId    @accessors();
+    CPString lastInvoiceEndDate @accessors();
     BOOL isBillable @accessors();
 }
 
