@@ -247,7 +247,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @end
 
 // SERVICE
-@implementation DMService : COResource
+@implementation DMServiceItem : COResource
 {
     /* default ivars for couchdb */
     CPString coId @accessors();
@@ -258,6 +258,16 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString endDate @accessors();
     CPString price @accessors();
     CPString discountText @accessors();
+}
+
+- (id)init
+{
+    self = [super init];
+    if (self)
+    {
+        [self setServicetype:@"NEW"];
+    }
+    return self;
 }
 
 + (id)couchId:(id)aItem
@@ -272,7 +282,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 }
 @end
 
-@implementation DMServiceCellView : CPTableCellView
+@implementation DMServiceItemCellView : CPTableCellView
 {
     @outlet CPTextField servicetypeField;
 }

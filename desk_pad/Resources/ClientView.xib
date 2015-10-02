@@ -9,7 +9,7 @@
                 <outlet property="addAddonButton" destination="oSW-wF-igT" id="MwL-m7-9s1"/>
                 <outlet property="addIncludedButton" destination="g9M-gh-UeA" id="s0s-Ud-gdQ"/>
                 <outlet property="addPropertyButton" destination="gpG-K6-toW" id="Tw0-V5-SdJ"/>
-                <outlet property="addServiceButton" destination="QyP-Zh-GpZ" id="A4R-2X-Kad"/>
+                <outlet property="addServiceButton" destination="QyP-Zh-GpZ" id="8wA-P8-MFy"/>
                 <outlet property="addonTypePUB" destination="8ln-tD-xrA" id="jbi-i2-Se0"/>
                 <outlet property="arrayController" destination="90" id="122"/>
                 <outlet property="discountTextInputAddon" destination="5DC-T0-GMg" id="5vx-wL-fQY"/>
@@ -21,7 +21,7 @@
                 <outlet property="itemidInputAddon" destination="LQa-ia-P05" id="oEG-Af-LV7"/>
                 <outlet property="itemidInputIncluded" destination="3bc-qD-pyY" id="xwM-Lx-3rY"/>
                 <outlet property="itemsTable" destination="56" id="123"/>
-                <outlet property="newServiceButton" destination="AxO-mf-8aS" id="JyW-Dl-cJo"/>
+                <outlet property="newServiceButton" destination="AxO-mf-8aS" id="JSZ-Ir-dzp"/>
                 <outlet property="packageProperties" destination="ksZ-Zl-HR7" id="zyp-Kp-ffc"/>
                 <outlet property="packagePropertiesController" destination="Dzg-78-n2d" id="VPm-Cb-TbL"/>
                 <outlet property="popoverAddon" destination="ULh-z5-0Pf" id="E5G-q5-dgm"/>
@@ -32,8 +32,8 @@
                 <outlet property="saveModelButton" destination="68" id="124"/>
                 <outlet property="serviceDefinitionPackagePopUp" destination="23C-fi-fii" id="fer-XQ-a9v"/>
                 <outlet property="serviceDefinitionPopUp" destination="Vbn-2H-yrg" id="tyI-J2-kp0"/>
-                <outlet property="servicesAC" destination="YWu-oD-Kec" id="JVr-D4-O5D"/>
-                <outlet property="servicesTV" destination="4l0-Sl-FZ2" id="A1c-Mx-bmw"/>
+                <outlet property="servicesAC" destination="yHE-sa-A1e" id="FM1-FI-Tpy"/>
+                <outlet property="servicesTV" destination="dwM-AS-622" id="X0P-L3-ZcM"/>
                 <outlet property="startDateInputAddon" destination="icL-rC-uFv" id="cbk-Qg-BV8"/>
                 <outlet property="startDateInputIncluded" destination="U4D-Sw-9GK" id="w5U-fg-PFo"/>
                 <outlet property="view" destination="47" id="96"/>
@@ -254,84 +254,6 @@
                                         <font key="font" metaFont="system"/>
                                     </buttonCell>
                                 </button>
-                                <scrollView autohidesScrollers="YES" horizontalLineScroll="22" horizontalPageScroll="10" verticalLineScroll="22" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="f9f-jB-1d7">
-                                    <rect key="frame" x="88" y="55" width="432" height="341"/>
-                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    <clipView key="contentView" id="XZ8-Ks-N8e">
-                                        <rect key="frame" x="1" y="17" width="430" height="323"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                        <subviews>
-                                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowHeight="20" rowSizeStyle="automatic" headerView="HwH-uq-2wS" viewBased="YES" id="4l0-Sl-FZ2" userLabel="Services TV">
-                                                <rect key="frame" x="0.0" y="0.0" width="430" height="323"/>
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <size key="intercellSpacing" width="3" height="2"/>
-                                                <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
-                                                <tableColumns>
-                                                    <tableColumn identifier="" width="64" minWidth="10" maxWidth="3.4028234663852886e+38" id="iW3-FA-nSF" userLabel="service">
-                                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
-                                                            <font key="font" metaFont="smallSystem"/>
-                                                            <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
-                                                            <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
-                                                        </tableHeaderCell>
-                                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" alignment="left" title="Text Cell" id="FeX-ZZ-gSt">
-                                                            <font key="font" metaFont="system"/>
-                                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                        </textFieldCell>
-                                                        <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
-                                                        <prototypeCellViews>
-                                                            <tableCellView id="nNv-5j-Z45" customClass="DMServiceCellView">
-                                                                <rect key="frame" x="1" y="1" width="64" height="20"/>
-                                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                                                <subviews>
-                                                                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="fAJ-jy-pxp" userLabel="servicetype">
-                                                                        <rect key="frame" x="0.0" y="3" width="64" height="17"/>
-                                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                                                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="tal-6d-Mf7" userLabel="TextFieldCell">
-                                                                            <font key="font" metaFont="system"/>
-                                                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                                                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                                                            <connections>
-                                                                                <binding destination="nNv-5j-Z45" name="value" keyPath="objectValue" id="5Wh-E0-Tvh">
-                                                                                    <dictionary key="options">
-                                                                                        <bool key="NSConditionallySetsEditable" value="YES"/>
-                                                                                    </dictionary>
-                                                                                </binding>
-                                                                            </connections>
-                                                                        </textFieldCell>
-                                                                        <connections>
-                                                                            <binding destination="nNv-5j-Z45" name="value" keyPath="objectValue" id="mao-sE-ois"/>
-                                                                        </connections>
-                                                                    </textField>
-                                                                </subviews>
-                                                                <connections>
-                                                                    <outlet property="servicetypeField" destination="fAJ-jy-pxp" id="j1c-c1-1wh"/>
-                                                                </connections>
-                                                            </tableCellView>
-                                                        </prototypeCellViews>
-                                                        <connections>
-                                                            <binding destination="YWu-oD-Kec" name="value" keyPath="arrangedObjects" id="emi-Dy-Mkb"/>
-                                                        </connections>
-                                                    </tableColumn>
-                                                </tableColumns>
-                                            </tableView>
-                                        </subviews>
-                                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    </clipView>
-                                    <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="1Yq-Ve-BbK">
-                                        <rect key="frame" x="1" y="324" width="430" height="16"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                    </scroller>
-                                    <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="tvs-JD-4H2">
-                                        <rect key="frame" x="224" y="17" width="15" height="102"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                    </scroller>
-                                    <tableHeaderView key="headerView" id="HwH-uq-2wS">
-                                        <rect key="frame" x="0.0" y="0.0" width="430" height="17"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                    </tableHeaderView>
-                                </scrollView>
                                 <textField verticalHuggingPriority="750" id="1Z8-mc-GFa" userLabel="LastInvoiceTest">
                                     <rect key="frame" x="88" y="432" width="432" height="22"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
@@ -364,6 +286,93 @@
                                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                     </textFieldCell>
                                 </textField>
+                                <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="9Ub-6u-1t7" userLabel="ServcieItem TV">
+                                    <rect key="frame" x="88" y="60" width="430" height="322"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <clipView key="contentView" id="wiv-ik-jJT">
+                                        <rect key="frame" x="1" y="17" width="428" height="304"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <subviews>
+                                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="kjg-g6-ZCB" viewBased="YES" id="dwM-AS-622" userLabel="ServiceItems">
+                                                <rect key="frame" x="0.0" y="0.0" width="422" height="0.0"/>
+                                                <autoresizingMask key="autoresizingMask"/>
+                                                <size key="intercellSpacing" width="3" height="2"/>
+                                                <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                                <tableColumns>
+                                                    <tableColumn width="419" minWidth="40" maxWidth="1000" id="La4-Fr-fe3" userLabel="servietype">
+                                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                                            <font key="font" metaFont="smallSystem"/>
+                                                            <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                            <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
+                                                        </tableHeaderCell>
+                                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="6Gr-Hj-7GH">
+                                                            <font key="font" metaFont="system"/>
+                                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                        </textFieldCell>
+                                                        <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                                        <prototypeCellViews>
+                                                            <tableCellView id="5vd-Tv-iXU" customClass="DMServiceItemCellView">
+                                                                <rect key="frame" x="1" y="1" width="419" height="17"/>
+                                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                                <subviews>
+                                                                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="c2Q-Ns-3nC" userLabel="servicetype Field">
+                                                                        <rect key="frame" x="0.0" y="-2" width="232" height="17"/>
+                                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                                        <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="servicetype" id="Ab6-Yb-sMJ">
+                                                                            <font key="font" metaFont="system"/>
+                                                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                                                        </textFieldCell>
+                                                                    </textField>
+                                                                    <button identifier="domainRecordEditButton" verticalHuggingPriority="750" tag="1000" id="mlN-8U-CrH">
+                                                                        <rect key="frame" x="358" y="-9" width="60" height="28"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                                                        <buttonCell key="cell" type="push" title="edit" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="HHN-yq-apP">
+                                                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                                            <font key="font" metaFont="smallSystem"/>
+                                                                        </buttonCell>
+                                                                    </button>
+                                                                </subviews>
+                                                                <connections>
+                                                                    <outlet property="servicetypeField" destination="c2Q-Ns-3nC" id="VxE-e6-yMn"/>
+                                                                </connections>
+                                                            </tableCellView>
+                                                        </prototypeCellViews>
+                                                        <connections>
+                                                            <binding destination="yHE-sa-A1e" name="value" keyPath="arrangedObjects" id="lxb-dz-Xhl"/>
+                                                        </connections>
+                                                    </tableColumn>
+                                                </tableColumns>
+                                            </tableView>
+                                        </subviews>
+                                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    </clipView>
+                                    <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="My8-db-rhI">
+                                        <rect key="frame" x="1" y="305" width="428" height="16"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                    </scroller>
+                                    <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="Tu0-KU-Coa">
+                                        <rect key="frame" x="224" y="17" width="15" height="102"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                    </scroller>
+                                    <tableHeaderView key="headerView" id="kjg-g6-ZCB">
+                                        <rect key="frame" x="0.0" y="0.0" width="428" height="17"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                    </tableHeaderView>
+                                </scrollView>
+                                <button verticalHuggingPriority="750" id="sO4-b3-Vyg" userLabel="New Service Button">
+                                    <rect key="frame" x="204" y="18" width="114" height="25"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <buttonCell key="cell" type="roundTextured" title="Remove Service" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="FMF-Jq-ANt">
+                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                        <font key="font" metaFont="system"/>
+                                    </buttonCell>
+                                    <connections>
+                                        <action selector="remove:" target="yHE-sa-A1e" id="LIe-oW-T6H"/>
+                                    </connections>
+                                </button>
                             </subviews>
                         </customView>
                     </subviews>
@@ -678,17 +687,6 @@
                         <action selector="remove:" target="n4H-TI-RjQ" id="ipJ-wo-csi"/>
                     </connections>
                 </button>
-                <button verticalHuggingPriority="750" id="g9M-gh-UeA">
-                    <rect key="frame" x="16" y="255" width="74" height="28"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <buttonCell key="cell" type="push" title="Add" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jIt-kN-LMa">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="smallSystem"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="add:" target="Tia-C6-EQa" id="JpG-PW-Z3a"/>
-                    </connections>
-                </button>
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="2t1-TM-LxB" userLabel="Addon TV">
                     <rect key="frame" x="114" y="58" width="338" height="156"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -770,9 +768,6 @@
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
-                    <connections>
-                        <action selector="add:" target="YWu-oD-Kec" id="Z61-jD-ILR"/>
-                    </connections>
                 </button>
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="gFY-W9-ihK" userLabel="Included TV">
                     <rect key="frame" x="114" y="232" width="338" height="156"/>
@@ -813,6 +808,9 @@
                                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                         </textFieldCell>
+                                                        <connections>
+                                                            <binding destination="Y9I-Y4-4kd" name="value" keyPath="objectValue" id="1Dv-AY-4bq"/>
+                                                        </connections>
                                                     </textField>
                                                     <textField hidden="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="oku-Jj-pwq" userLabel="startDate Field">
                                                         <rect key="frame" x="0.0" y="0.0" width="331" height="17"/>
@@ -858,6 +856,17 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
                 </scrollView>
+                <button verticalHuggingPriority="750" id="g9M-gh-UeA">
+                    <rect key="frame" x="16" y="255" width="74" height="28"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="push" title="Add" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jIt-kN-LMa">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="smallSystem"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="add:" target="Tia-C6-EQa" id="JpG-PW-Z3a"/>
+                    </connections>
+                </button>
             </subviews>
             <point key="canvasLocation" x="-168" y="369.5"/>
         </customView>
@@ -1010,12 +1019,9 @@
                 <binding destination="-2" name="contentArray" keyPath="addonServiceItems" id="c54-cs-B7k"/>
             </connections>
         </arrayController>
-        <arrayController objectClassName="DMService" id="YWu-oD-Kec" userLabel="Services AC" customClass="COArrayController">
-            <declaredKeys>
-                <string>servicetype</string>
-            </declaredKeys>
+        <arrayController objectClassName="DMServiceItem" id="yHE-sa-A1e" userLabel="Services AC">
             <connections>
-                <binding destination="-2" name="contentArray" keyPath="serviceItems" id="KoE-g3-dZv"/>
+                <binding destination="-2" name="contentArray" keyPath="serviceItems" id="ftZ-Gv-6X8"/>
             </connections>
         </arrayController>
         <viewController id="S51-TI-hQk" userLabel="PopoverService VC"/>

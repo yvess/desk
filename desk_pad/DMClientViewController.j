@@ -8,8 +8,8 @@
 {
     CPMutableArray       serviceItems @accessors();
     @outlet              CPButton addServiceButton;
-    @outlet              COArrayController servicesAC;
     @outlet              CPTableView servicesTV;
+    @outlet              CPArrayController servicesAC;
 
 
     CPMutableArray       includedServiceItems @accessors();
@@ -64,7 +64,7 @@
         addonServiceItems = [[CPMutableArray alloc] init];
         serviceDefinitions = [DMServiceDefinition all];
         serviceItems = [[CPMutableArray alloc] init];
-        [serviceItems addObject:[[DMService alloc] init]];
+        //serviceItems addObject:[[DMService alloc] init]];
     }
     return self;
 }
@@ -92,7 +92,7 @@
 
     [newServiceButton setAction:@selector(showService:)];
     [newServiceButton setTarget:self];
-    [addServiceButton setAction:@selector(hideService:)];
+    [addServiceButton setAction:@selector(hideAddService:)];
     [addServiceButton setTarget:self];
 
     [popoverIncluded setAnimates:NO];
@@ -217,14 +217,15 @@
     }
 }
 
-- (void)hideService:(id)sender
+- (void)hideAddService:(id)sender
 {
+    var newServiceItem = [[DMServiceItem alloc] init];
+    newServiceItem.servicetype = [serviceDefinitionPopUp titleOfSelectedItem];
+    [servicesAC addObject:newServiceItem];
     if ([popoverService isShown])
     {
         [popoverService close];
     }
-    [serviceItems addObject:[[DMService alloc] init]];
-    console.log(serviceItems);
 }
 
 - (void)saveModel:(id)sender
