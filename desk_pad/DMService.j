@@ -4,7 +4,10 @@
 
 var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     itemIncluded = {},
-    itemAddon = {};
+    itemAddon = {},
+    serviceItem = {};
+
+// Service Properties
 
 @implementation DMServicePackageProperty : CPObject
 {
@@ -261,44 +264,24 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 }
 @end
 
-// SERVICE DEFINITION
-@implementation DMServiceDefinition : COResource
-{
-    /* default ivars for couchdb */
-    CPString coId @accessors();
-    CPString coRev  @accessors();
-
-    /* custom ivars */
-    CPString servicetype  @accessors();
-    CPArray packages @accessors();
-    CPDictionary addons @accessors();
-    CPDictionary properties @accessors();
-}
-
-+ (id)couchId:(id)aItem
-{
-    var cType = [[self class] underscoreName];
-    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
-}
-
-- (CPString)nameIdentifierString
-{
-    return @"servicetype";
-}
-@end
-
 // SERVICE
 @implementation DMServiceItem : COResource
 {
     /* default ivars for couchdb */
     CPString coId @accessors();
     CPString coRev  @accessors();
+    CPString clientId @accessors();
 
     CPString servicetype @accessors();
+    CPString packageType @accessors();
     CPString startDate @accessors();
     CPString endDate @accessors();
     CPString price @accessors();
     CPString discountText @accessors();
+
+    CPMutableArray includedServiceItems @accessors();
+    CPMutableArray addonServiceItems @accessors();
+    CPMutableArray packagePropertiesItems @accessors();
 }
 
 - (id)init
@@ -326,6 +309,12 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @implementation DMServiceItemCellView : CPTableCellView
 {
     @outlet CPTextField servicetypeField;
+    @outlet CPButton editButton;
+}
+
++ (id)serviceItem
+{
+    return serviceItem;
 }
 
 - (void)awakeFromCib
@@ -334,5 +323,59 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
                toObject:self
             withKeyPath:@"objectValue.servicetype"
                 options:nil];
+    [editButton setAction:@selector(showEdit:)];
+    [editButton setTarget:self];
+}
+
+- (void)showEdit:(id)sender
+{
+    [[serviceItem.popoverService contentViewController] setView:serviceItem.view];
+    if ([serviceItem.popoverService isShown])
+    {
+        var ov = [self objectValue];
+        ov.servicetype = [serviceItem.servicetype titleOfSelectedItem];
+        ov.packageType = [serviceItem.packageType titleOfSelectedItem];
+        ov.startDate = [serviceItem.startDate stringValue];
+        ov.endDate = [serviceItem.endDate stringValue];
+        ov.price = [serviceItem.price stringValue];
+        ov.discountText = [serviceItem.discountText stringValue];
+        [self setObjectValue:ov];
+        [serviceItem.popoverService close];
+    } else {
+        [serviceItem.popoverService close];
+        [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
+        [serviceItem.servicetype setStringValue:[[self objectValue] servicetype]];
+        [serviceItem.packageType setStringValue:[[self objectValue] packageType]];
+        [serviceItem.startDate setStringValue:[[self objectValue] startDate]];
+        [serviceItem.endDate setStringValue:[[self objectValue] endDate]];
+        [serviceItem.price setStringValue:[[self objectValue] price]];
+        [serviceItem.discountText setStringValue:[[self objectValue] discountText]];
+    }
+}
+@end
+
+// SERVICE DEFINITION
+@implementation DMServiceDefinition : COResource
+{
+    /* default ivars for couchdb */
+    CPString coId @accessors();
+    CPString coRev  @accessors();
+
+    /* custom ivars */
+    CPString servicetype  @accessors();
+    CPArray packages @accessors();
+    CPDictionary addons @accessors();
+    CPDictionary properties @accessors();
+}
+
++ (id)couchId:(id)aItem
+{
+    var cType = [[self class] underscoreName];
+    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
+- (CPString)nameIdentifierString
+{
+    return @"servicetype";
 }
 @end

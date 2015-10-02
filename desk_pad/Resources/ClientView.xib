@@ -12,7 +12,9 @@
                 <outlet property="addServiceButton" destination="QyP-Zh-GpZ" id="8wA-P8-MFy"/>
                 <outlet property="addonTypePUB" destination="8ln-tD-xrA" id="jbi-i2-Se0"/>
                 <outlet property="arrayController" destination="90" id="122"/>
+                <outlet property="discountTextInput" destination="YCP-ST-ZAd" id="Fw8-kk-Log"/>
                 <outlet property="discountTextInputAddon" destination="5DC-T0-GMg" id="5vx-wL-fQY"/>
+                <outlet property="endDateInput" destination="RLg-le-Vra" id="2mC-Cx-QwN"/>
                 <outlet property="endDateInputAddon" destination="Wjb-Xj-X7y" id="WN0-oF-eFn"/>
                 <outlet property="endDateInputIncluded" destination="HTu-XD-8pT" id="76R-hb-ueE"/>
                 <outlet property="includedTypePUB" destination="ldr-rv-4Fl" id="53z-At-Jde"/>
@@ -27,6 +29,7 @@
                 <outlet property="popoverAddon" destination="ULh-z5-0Pf" id="E5G-q5-dgm"/>
                 <outlet property="popoverIncluded" destination="fqz-Bo-z0P" id="Nq0-Jj-Df9"/>
                 <outlet property="popoverService" destination="OEc-XT-j3a" id="p6e-k7-lka"/>
+                <outlet property="priceInput" destination="2kK-lp-tLw" id="cvf-ze-TRU"/>
                 <outlet property="priceInputAddon" destination="LF9-Fa-msP" id="N17-Nc-1RS"/>
                 <outlet property="removePropertyButton" destination="5iB-Ep-FKb" id="KkT-Yf-dSq"/>
                 <outlet property="saveModelButton" destination="68" id="124"/>
@@ -34,6 +37,7 @@
                 <outlet property="serviceDefinitionPopUp" destination="Vbn-2H-yrg" id="tyI-J2-kp0"/>
                 <outlet property="servicesAC" destination="yHE-sa-A1e" id="FM1-FI-Tpy"/>
                 <outlet property="servicesTV" destination="dwM-AS-622" id="X0P-L3-ZcM"/>
+                <outlet property="startDateInput" destination="O0X-p8-fT2" id="VzN-HH-yr6"/>
                 <outlet property="startDateInputAddon" destination="icL-rC-uFv" id="cbk-Qg-BV8"/>
                 <outlet property="startDateInputIncluded" destination="U4D-Sw-9GK" id="w5U-fg-PFo"/>
                 <outlet property="view" destination="47" id="96"/>
@@ -336,6 +340,7 @@
                                                                     </button>
                                                                 </subviews>
                                                                 <connections>
+                                                                    <outlet property="editButton" destination="mlN-8U-CrH" id="RdO-RM-gNx"/>
                                                                     <outlet property="servicetypeField" destination="c2Q-Ns-3nC" id="VxE-e6-yMn"/>
                                                                 </connections>
                                                             </tableCellView>

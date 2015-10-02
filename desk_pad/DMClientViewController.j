@@ -10,7 +10,12 @@
     @outlet              CPButton addServiceButton;
     @outlet              CPTableView servicesTV;
     @outlet              CPArrayController servicesAC;
-
+    @outlet              CPTextField startDateInput;
+    @outlet              CPTextField endDateInput;
+    @outlet              CPTextField priceInput;
+    @outlet              CPTextField discountTextInput;
+    @outlet              CPView viewService;
+    @outlet              CPPopover popoverService;
 
     CPMutableArray       includedServiceItems @accessors();
     @outlet              CPButton addIncludedButton;
@@ -35,18 +40,15 @@
     @outlet              CPTextField discountTextInputAddon;
 
     CPMutableArray       serviceDefinitions @accessors();
+    @outlet              CPPopUpButton serviceDefinitionPopUp;
+    @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
     @outlet              CPButton newServiceButton;
     @outlet              CPButton addPropertyButton;
     @outlet              CPButton removePropertyButton;
-    @outlet              CPView viewService;
-    @outlet              CPPopover popoverService;
 
     CPMutableArray       packagePropertiesItems @accessors();
     @outlet              CPTableView packageProperties;
     @outlet              COArrayController packagePropertiesController;
-    @outlet              CPPopUpButton serviceDefinitionPopUp;
-    @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
-
 
     CPMutableDictionary  itemLookup @accessors();
 }
@@ -137,6 +139,17 @@
     itemAddon.discountText = discountTextInputAddon;
     itemAddon.viewAddon = viewAddon;
     itemAddon.popoverAddon = popoverAddon;
+    itemAddon.view = viewService;
+
+    var serviceItem = [DMServiceItemCellView serviceItem];
+    serviceItem.view = viewService;
+    serviceItem.popoverService = popoverService;
+    serviceItem.servicetype = serviceDefinitionPopUp;
+    serviceItem.packageType = serviceDefinitionPackagePopUp;
+    serviceItem.startDate = startDateInput;
+    serviceItem.endDate = endDateInput;
+    serviceItem.price = priceInput;
+    serviceItem.discountText = discountTextInput;
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
@@ -222,6 +235,13 @@
 {
     var newServiceItem = [[DMServiceItem alloc] init];
     newServiceItem.servicetype = [serviceDefinitionPopUp titleOfSelectedItem];
+    newServiceItem.startDate = [startDateInput stringValue];
+    newServiceItem.endDate = [endDateInput stringValue];
+    newServiceItem.price = [priceInput stringValue];
+    newServiceItem.discountText = [discountTextInput stringValue];
+    newServiceItem.includedServiceItems = includedServiceItems;
+    newServiceItem.addonServiceItems = addonServiceItems;
+
     [servicesAC addObject:newServiceItem];
     if ([popoverService isShown])
     {
