@@ -72,6 +72,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     CPString itemid @accessors();
     CPString itemType @accessors();
+    CPString rowtitle @accessors();
     CPString startDate @accessors();
     CPString endDate @accessors();
 }
@@ -93,6 +94,21 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     return @"itemid";
 }
+
+
+- (CPString)rowtitle
+{
+    var title = @"";
+    if ([self itemType] && [self itemType] != @"NEW")
+    {
+        title += [self itemType] + @": ";
+    }
+    if ([self itemid] != @"")
+    {
+        title += [self itemid];
+    }
+    return title;
+}
 @end
 
 @implementation DMIncludedServiceItemCellView : CPTableCellView
@@ -110,7 +126,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     [itemidField bind:@"value"
        toObject:self
-    withKeyPath:@"objectValue.itemid"
+    withKeyPath:@"objectValue.rowtitle"
         options:nil];
     [editButton setAction:@selector(showEditIncluded:)];
     [editButton setTarget:self];
