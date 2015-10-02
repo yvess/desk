@@ -123,7 +123,11 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     {
         var ov = [self objectValue];
         ov.itemid = [itemIncluded.itemidInput stringValue];
-        ov.itemType = [itemIncluded.itemType stringValue];
+        if (ov.itemid == @"NEW")
+        {
+            ov.itemid = @"";
+        }
+        ov.itemType = [itemIncluded.itemType titleOfSelectedItem];
         ov.startDate = [itemIncluded.startDate stringValue];
         ov.endDate = [itemIncluded.endDate stringValue];
         [self setObjectValue:ov];
@@ -132,7 +136,10 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [itemIncluded.popoverIncluded close];
         [itemIncluded.popoverIncluded showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [itemIncluded.itemidInput setStringValue:[[self objectValue] itemid]];
-        [itemIncluded.itemType setStringValue:[[self objectValue] itemType]];
+        if ([[self objectValue] itemType])
+        {
+            [itemIncluded.itemType setTitle:[[self objectValue] itemType]];
+        }
         [itemIncluded.startDate setStringValue:[[self objectValue] startDate]];
         [itemIncluded.endDate setStringValue:[[self objectValue] endDate]];
     }
@@ -145,6 +152,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     CPString itemid   @accessors();
     CPString itemType @accessors();
+    CPString rowtitle @accessors();
     CPString startDate @accessors();
     CPString endDate @accessors();
     CPString price @accessors();
@@ -170,6 +178,20 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     return @"itemid";
 }
+
+- (CPString)rowtitle
+{
+    var title = @"";
+    if ([self itemType] && [self itemType] != @"NEW")
+    {
+        title += [self itemType] + @": ";
+    }
+    if ([self itemid] != @"")
+    {
+        title += [self itemid];
+    }
+    return title;
+}
 @end
 
 @implementation DMAddonServiceItemCellView : CPTableCellView
@@ -187,7 +209,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     [itemidField bind:@"value"
        toObject:self
-    withKeyPath:@"objectValue.itemid"
+    withKeyPath:@"objectValue.rowtitle"
         options:nil];
     [editButton setAction:@selector(showEditAddon:)];
     [editButton setTarget:self];
@@ -200,7 +222,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     {
         var ov = [self objectValue];
         ov.itemid = [itemAddon.itemidInput stringValue];
-        ov.itemType = [itemAddon.itemType stringValue];
+        ov.itemType = [itemAddon.itemType titleOfSelectedItem];
         ov.startDate = [itemAddon.startDate stringValue];
         ov.endDate = [itemAddon.endDate stringValue];
         ov.price = [itemAddon.price stringValue];
@@ -211,7 +233,10 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [itemAddon.popoverAddon close];
         [itemAddon.popoverAddon showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [itemAddon.itemidInput setStringValue:[[self objectValue] itemid]];
-        [itemAddon.itemType setStringValue:[[self objectValue] itemType]];
+        if ([[self objectValue] itemType])
+        {
+            [itemAddon.itemType setTitle:[[self objectValue] itemType]];
+        }
         [itemAddon.startDate setStringValue:[[self objectValue] startDate]];
         [itemAddon.endDate setStringValue:[[self objectValue] endDate]];
         [itemAddon.price setStringValue:[[self objectValue] price]];

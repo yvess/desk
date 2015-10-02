@@ -104,6 +104,7 @@
         [menuItem setRepresentedObject:item];
         [serviceDefinitionPopUp addItem:menuItem];
     }];
+
     [[CPNotificationCenter defaultCenter] addObserver:self
         selector:@selector(servicePopUpSelectionChanged:)
             name:CPMenuDidChangeItemNotification
@@ -119,23 +120,23 @@
             name:CPMenuDidChangeItemNotification
           object:nil
     ];
-    var itemidIncluded = [DMIncludedServiceItemCellView itemIncluded];
-    itemidIncluded.itemidInput = itemidInputIncluded;
-    itemidIncluded.itemType = itemTypeInputIncluded;
-    itemidIncluded.startDate = startDateInputIncluded;
-    itemidIncluded.endDate = endDateInputIncluded;
-    itemidIncluded.viewIncluded = viewIncluded;
-    itemidIncluded.popoverIncluded = popoverIncluded;
+    var itemIncluded = [DMIncludedServiceItemCellView itemIncluded];
+    itemIncluded.itemidInput = itemidInputIncluded;
+    itemIncluded.itemType = itemTypeInputIncluded;
+    itemIncluded.startDate = startDateInputIncluded;
+    itemIncluded.endDate = endDateInputIncluded;
+    itemIncluded.viewIncluded = viewIncluded;
+    itemIncluded.popoverIncluded = popoverIncluded;
 
-    var itemidAddon = [DMAddonServiceItemCellView itemAddon];
-    itemidAddon.itemidInput = itemidInputAddon;
-    itemidAddon.itemType = itemTypeInputAddon;
-    itemidAddon.startDate = startDateInputAddon;
-    itemidAddon.endDate = endDateInputAddon;
-    itemidAddon.price = priceInputAddon;
-    itemidAddon.discountText = discountTextInputAddon;
-    itemidAddon.viewAddon = viewAddon;
-    itemidAddon.popoverAddon = popoverAddon;
+    var itemAddon = [DMAddonServiceItemCellView itemAddon];
+    itemAddon.itemidInput = itemidInputAddon;
+    itemAddon.itemType = itemTypeInputAddon;
+    itemAddon.startDate = startDateInputAddon;
+    itemAddon.endDate = endDateInputAddon;
+    itemAddon.price = priceInputAddon;
+    itemAddon.discountText = discountTextInputAddon;
+    itemAddon.viewAddon = viewAddon;
+    itemAddon.popoverAddon = popoverAddon;
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
