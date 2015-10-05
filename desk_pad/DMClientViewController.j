@@ -201,6 +201,7 @@
     [self buildMenu:serviceDefinitionPackagePopUp items:currentServiceDefinition.packages];
     if (currentServiceDefinition.hasOwnProperty("properties"))
     {
+        [[DMPropertyCellView namesArray] removeAllObjects];
         [self buildMenu:[DMPropertyCellView namesArray] items:currentServiceDefinition.properties];
         [addPropertyButton setEnabled:YES];
         [removePropertyButton setEnabled:YES];
