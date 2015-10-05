@@ -92,7 +92,7 @@
 {
     [super viewDidLoad];
 
-    [newServiceButton setAction:@selector(showService:)];
+    [newServiceButton setAction:@selector(showNewService:)];
     [newServiceButton setTarget:self];
     [addServiceButton setAction:@selector(hideAddService:)];
     [addServiceButton setTarget:self];
@@ -217,7 +217,7 @@
     }
 }
 
-- (void)showService:(id)sender
+- (void)showNewService:(id)sender
 {
     [popoverService setAnimates:NO];
     [[popoverService contentViewController] setView:viewService];
