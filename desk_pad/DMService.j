@@ -289,7 +289,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     self = [super init];
     if (self)
     {
-        [self setserviceType:@"NEW"];
+        [self setServiceType:@"NEW"];
     }
     return self;
 }
@@ -342,10 +342,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [self setObjectValue:ov];
         [serviceItem.popoverService close];
     } else {
-        [serviceItem.popoverService close];
         [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
-        [serviceItem.serviceType setStringValue:[[self objectValue] serviceType]];
-        [serviceItem.packageType setStringValue:[[self objectValue] packageType]];
+        [serviceItem.serviceType selectItemWithTitle:[[self objectValue] serviceType]];
+        [serviceItem.packageType selectItemWithTitle:[[self objectValue] packageType]];
         [serviceItem.startDate setStringValue:[[self objectValue] startDate]];
         [serviceItem.endDate setStringValue:[[self objectValue] endDate]];
         [serviceItem.price setStringValue:[[self objectValue] price]];

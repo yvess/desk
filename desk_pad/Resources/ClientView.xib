@@ -321,7 +321,7 @@
                                                                 <rect key="frame" x="1" y="1" width="419" height="17"/>
                                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                 <subviews>
-                                                                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="c2Q-Ns-3nC" userLabel="servicetype Field">
+                                                                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" id="c2Q-Ns-3nC" userLabel="serviceType Field">
                                                                         <rect key="frame" x="0.0" y="-2" width="232" height="17"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                                         <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="service type" id="Ab6-Yb-sMJ">
