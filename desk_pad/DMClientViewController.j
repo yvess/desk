@@ -157,6 +157,9 @@
     serviceItem.includedServiceAC = includedServiceAC;
     serviceItem.addonServiceAC = addonServiceAC;
     serviceItem.clientViewController = self;
+
+    [self updateServiceDefinition];
+    [self updateServicePackageDefinition];
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
