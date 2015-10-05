@@ -284,6 +284,12 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPMutableArray addonServiceItems @accessors();
 }
 
++ (id)couchId
+{
+    var cType = [[self class] underscoreName];
+    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
 - (id)init
 {
     self = [super init];
@@ -294,15 +300,82 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     return self;
 }
 
-+ (id)couchId
-{
-    var cType = [[self class] underscoreName];
-    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
-}
-
 - (CPString)nameIdentifierString
 {
     return @"serviceType";
+}
+
+- (JSObject)attributes
+{
+    var json = {},
+        classIvars = class_copyIvarList([self class]);
+    var addObjectToArray = function (keys, item, array)
+        {
+            var object = {};
+            keys.forEach(function(key){
+                var value = item[key];
+                if (value)
+                {
+                    object[key] = value;
+                }
+            });
+            if (object != {})
+            {
+                array.push(object);
+            }
+        };
+    [classIvars enumerateObjectsUsingBlock:function(ivar) {
+        var attr = [[CPString stringWithFormat:@"%@", ivar.name] underscoreString],
+            value = [self performSelector:CPSelectorFromString(ivar.name)];
+
+        switch (ivar.name)
+        {
+            case 'coId':
+                attr = "_id";
+                break;
+            case 'coRev':
+                attr = "_rev"
+                break;
+            case 'packagePropertiesItems':
+                var propertyArray = [];
+                [value enumerateObjectsUsingBlock:function(item) {
+                    addObjectToArray(
+                        ['name', 'property', 'value'],
+                         item, propertyArray
+                    );
+                }];
+                value = propertyArray;
+                break;
+            case 'includedServiceItems':
+                var includedArray = [];
+                [value enumerateObjectsUsingBlock:function(item) {
+                    addObjectToArray(
+                        ['itemid', 'itemType', 'startDate', 'endDate'],
+                         item, includedArray
+                    );
+                }];
+                value = includedArray;
+                break;
+            case 'addonServiceItems':
+                var addonArray = [];
+                [value enumerateObjectsUsingBlock:function(item) {
+                    addObjectToArray(
+                        ['itemid', 'itemType', 'startDate', 'endDate', 'price',
+                         'discountText'], item, addonArray
+                    );
+                }];
+                value = addonArray;
+                break;
+        }
+
+        if (value != null)
+        {
+            console.log(attr, value);
+            json[attr] = value;
+        }
+    }];
+    json['type'] = [[self class] underscoreName];
+    return json;
 }
 @end
 

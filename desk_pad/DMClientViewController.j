@@ -280,6 +280,9 @@
 {
     [super saveModel:sender];
     var item = [[arrayController selectedObjects] lastObject];
+    [serviceItems enumerateObjectsUsingBlock:function(item) {
+        var serviceSaved = [item save];
+    }];
     if (![itemLookup valueForKey:[item coId]])
     {
         //[clientsForProjectsPopUp addItemWithTitle:[client name]];
