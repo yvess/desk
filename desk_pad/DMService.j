@@ -272,7 +272,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString coRev  @accessors();
     CPString clientId @accessors();
 
-    CPString servicetype @accessors();
+    CPString serviceType @accessors();
     CPString packageType @accessors();
     CPString startDate @accessors();
     CPString endDate @accessors();
@@ -289,7 +289,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     self = [super init];
     if (self)
     {
-        [self setServicetype:@"NEW"];
+        [self setserviceType:@"NEW"];
     }
     return self;
 }
@@ -302,13 +302,13 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 - (CPString)nameIdentifierString
 {
-    return @"servicetype";
+    return @"serviceType";
 }
 @end
 
 @implementation DMServiceItemCellView : CPTableCellView
 {
-    @outlet CPTextField servicetypeField;
+    @outlet CPTextField serviceTypeField;
     @outlet CPButton editButton;
 }
 
@@ -319,9 +319,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 - (void)awakeFromCib
 {
-    [servicetypeField bind:@"value"
+    [serviceTypeField bind:@"value"
                toObject:self
-            withKeyPath:@"objectValue.servicetype"
+            withKeyPath:@"objectValue.serviceType"
                 options:nil];
     [editButton setAction:@selector(showEdit:)];
     [editButton setTarget:self];
@@ -333,7 +333,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     if ([serviceItem.popoverService isShown])
     {
         var ov = [self objectValue];
-        ov.servicetype = [serviceItem.servicetype titleOfSelectedItem];
+        ov.serviceType = [serviceItem.serviceType titleOfSelectedItem];
         ov.packageType = [serviceItem.packageType titleOfSelectedItem];
         ov.startDate = [serviceItem.startDate stringValue];
         ov.endDate = [serviceItem.endDate stringValue];
@@ -344,7 +344,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     } else {
         [serviceItem.popoverService close];
         [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
-        [serviceItem.servicetype setStringValue:[[self objectValue] servicetype]];
+        [serviceItem.serviceType setStringValue:[[self objectValue] serviceType]];
         [serviceItem.packageType setStringValue:[[self objectValue] packageType]];
         [serviceItem.startDate setStringValue:[[self objectValue] startDate]];
         [serviceItem.endDate setStringValue:[[self objectValue] endDate]];
@@ -362,7 +362,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString coRev  @accessors();
 
     /* custom ivars */
-    CPString servicetype  @accessors();
+    CPString serviceType  @accessors();
     CPArray packages @accessors();
     CPDictionary addons @accessors();
     CPDictionary properties @accessors();
@@ -376,6 +376,6 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 - (CPString)nameIdentifierString
 {
-    return @"servicetype";
+    return @"serviceType";
 }
 @end

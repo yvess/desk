@@ -102,7 +102,7 @@
 
     [serviceDefinitions enumerateObjectsUsingBlock:function(item) {
         var menuItem = [[CPMenuItem alloc] init];
-        [menuItem setTitle:item.servicetype];
+        [menuItem setTitle:item.serviceType];
         [menuItem setRepresentedObject:item];
         [serviceDefinitionPopUp addItem:menuItem];
     }];
@@ -144,7 +144,7 @@
     var serviceItem = [DMServiceItemCellView serviceItem];
     serviceItem.view = viewService;
     serviceItem.popoverService = popoverService;
-    serviceItem.servicetype = serviceDefinitionPopUp;
+    serviceItem.serviceType = serviceDefinitionPopUp;
     serviceItem.packageType = serviceDefinitionPackagePopUp;
     serviceItem.startDate = startDateInput;
     serviceItem.endDate = endDateInput;
@@ -234,7 +234,7 @@
 - (void)hideAddService:(id)sender
 {
     var newServiceItem = [[DMServiceItem alloc] init];
-    newServiceItem.servicetype = [serviceDefinitionPopUp titleOfSelectedItem];
+    newServiceItem.serviceType = [serviceDefinitionPopUp titleOfSelectedItem];
     newServiceItem.startDate = [startDateInput stringValue];
     newServiceItem.endDate = [endDateInput stringValue];
     newServiceItem.price = [priceInput stringValue];
