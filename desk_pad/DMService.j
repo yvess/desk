@@ -329,6 +329,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 - (void)showEdit:(id)sender
 {
+    [serviceItem.addServiceButton setHidden:YES];
     [[serviceItem.popoverService contentViewController] setView:serviceItem.view];
     if ([serviceItem.popoverService isShown])
     {

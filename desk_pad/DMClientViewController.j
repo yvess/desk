@@ -146,6 +146,7 @@
     var serviceItem = [DMServiceItemCellView serviceItem];
     serviceItem.view = viewService;
     serviceItem.popoverService = popoverService;
+    serviceItem.addServiceButton = addServiceButton;
     serviceItem.serviceType = serviceDefinitionPopUp;
     serviceItem.packageType = serviceDefinitionPackagePopUp;
     serviceItem.startDate = startDateInput;
@@ -225,6 +226,7 @@
 
 - (void)showNewService:(id)sender
 {
+    [addServiceButton setHidden:NO];
     [popoverService setAnimates:NO];
     [[popoverService contentViewController] setView:viewService];
     if (![popoverService isShown])
