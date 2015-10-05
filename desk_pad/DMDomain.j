@@ -139,6 +139,12 @@
     return json;
 }
 
++ (id)couchId
+{
+    var cType = [[self class] underscoreName];
+    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
 - (id)init
 {
     self = [super init];

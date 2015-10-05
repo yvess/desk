@@ -13,7 +13,7 @@
     BOOL isBillable @accessors();
 }
 
-+ (id)couchId:(id)aItem
++ (id)couchId
 {
     var cType = [[self class] underscoreName];
     return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];

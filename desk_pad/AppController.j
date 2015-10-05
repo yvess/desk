@@ -54,7 +54,7 @@
     var order = [DMOrder new];
     //[order setDate:[CPString stringWithFormat:@"%@", [[CPDate date] description]]]; // [CPDate date]
     [order setDate:[CPString stringWithFormat:@"%@", Date.now()]];
-    [order setCoId:[DMOrder couchId:order]];
+    [order setCoId:[DMOrder couchId]];
     [order setSender:@"pad"];
     [order setState:@"new_pre"];
     [order save];
