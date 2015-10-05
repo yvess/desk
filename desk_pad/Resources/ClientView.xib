@@ -410,6 +410,9 @@
                         <font key="font" metaFont="menu"/>
                         <menu key="menu" id="XLw-DZ-n8o"/>
                     </popUpButtonCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="23C-fi-fii" id="fKo-Ie-JlO"/>
+                    </connections>
                 </popUpButton>
                 <popUpButton verticalHuggingPriority="750" id="23C-fi-fii">
                     <rect key="frame" x="288" y="640" width="165" height="26"/>
@@ -419,6 +422,9 @@
                         <font key="font" metaFont="menu"/>
                         <menu key="menu" id="Ycx-FI-k0i"/>
                     </popUpButtonCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="GC4-lV-czA" id="wje-Qe-hsw"/>
+                    </connections>
                 </popUpButton>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="uoN-GC-0I1">
                     <rect key="frame" x="18" y="618" width="68" height="17"/>
@@ -517,6 +523,7 @@
                                                 </subviews>
                                                 <connections>
                                                     <outlet property="namePUB" destination="GC4-lV-czA" id="nMY-jO-SyM"/>
+                                                    <outlet property="nextKeyView" destination="KKt-ra-XTF" id="WSa-6g-7yR"/>
                                                     <outlet property="propertyPUB" destination="KKt-ra-XTF" id="pcJ-Hh-X4w"/>
                                                     <outlet property="valueText" destination="Bc4-De-LiX" id="fRj-bg-Qzr"/>
                                                 </connections>
@@ -568,6 +575,9 @@
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="YCP-ST-ZAd" id="7DE-zT-6pt"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="YCP-ST-ZAd">
                     <rect key="frame" x="115" y="412" width="335" height="40"/>
@@ -604,6 +614,9 @@
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="RLg-le-Vra" id="qhi-fD-7FK"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="RLg-le-Vra" userLabel="end date field">
                     <rect key="frame" x="114" y="488" width="130" height="22"/>
@@ -613,6 +626,9 @@
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="2kK-lp-tLw" id="Rz2-sb-gNd"/>
+                    </connections>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="igc-zk-ZZg">
                     <rect key="frame" x="18" y="490" width="61" height="17"/>
