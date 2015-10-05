@@ -31,6 +31,7 @@
     CPMutableArray       includedServiceItems @accessors();
     @outlet              CPArrayController includedServiceAC;
     @outlet              CPButton addIncludedButton;
+    @outlet              CPButton removeIncludedButton;
     @outlet              CPView viewIncluded;
     @outlet              CPPopover popoverIncluded;
     @outlet              CPPopUpButton includedTypePUB;
@@ -42,6 +43,7 @@
     CPMutableArray       addonServiceItems @accessors();
     @outlet              CPArrayController addonServiceAC;
     @outlet              CPButton addAddonButton;
+    @outlet              CPButton removeAddonButton;
     @outlet              CPView viewAddon;
     @outlet              CPPopover popoverAddon;
     @outlet              CPPopUpButton addonTypePUB;
@@ -221,10 +223,20 @@
     if (currentDefinitionPackages.hasOwnProperty("included"))
     {
         [self buildMenu:includedTypePUB items:currentDefinitionPackages.included];
+        [addIncludedButton setEnabled:YES];
+        [removeIncludedButton setEnabled:YES];
+    } else {
+        [addIncludedButton setEnabled:NO];
+        [removeIncludedButton setEnabled:NO];
     }
     if (currentDefinitionPackages.hasOwnProperty("allowed_addons"))
     {
         [self buildMenu:addonTypePUB items:currentDefinitionPackages.allowed_addons];
+        [addAddonButton setEnabled:YES];
+        [removeAddonButton setEnabled:YES];
+    } else {
+        [addAddonButton setEnabled:NO];
+        [removeAddonButton setEnabled:NO];
     }
 }
 

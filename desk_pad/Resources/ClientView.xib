@@ -33,6 +33,8 @@
                 <outlet property="popoverService" destination="OEc-XT-j3a" id="p6e-k7-lka"/>
                 <outlet property="priceInput" destination="2kK-lp-tLw" id="cvf-ze-TRU"/>
                 <outlet property="priceInputAddon" destination="LF9-Fa-msP" id="N17-Nc-1RS"/>
+                <outlet property="removeAddonButton" destination="lSd-aZ-TBX" id="0J0-Ct-TFb"/>
+                <outlet property="removeIncludedButton" destination="aYp-Ri-3Q6" id="1xW-Rk-VqZ"/>
                 <outlet property="removePropertyButton" destination="5iB-Ep-FKb" id="KkT-Yf-dSq"/>
                 <outlet property="saveModelButton" destination="68" id="124"/>
                 <outlet property="serviceDefinitionPackagePopUp" destination="23C-fi-fii" id="fer-XQ-a9v"/>
