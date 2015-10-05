@@ -17,7 +17,19 @@
     @outlet              CPView viewService;
     @outlet              CPPopover popoverService;
 
+    CPMutableArray       serviceDefinitions @accessors();
+    @outlet              CPPopUpButton serviceDefinitionPopUp;
+    @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
+    @outlet              CPButton newServiceButton;
+    @outlet              CPButton addPropertyButton;
+    @outlet              CPButton removePropertyButton;
+
+    CPMutableArray       packagePropertiesItems @accessors();
+    @outlet              CPArrayController packagePropertiesAC;
+    @outlet              CPTableView packageProperties;
+
     CPMutableArray       includedServiceItems @accessors();
+    @outlet              CPArrayController includedServiceAC;
     @outlet              CPButton addIncludedButton;
     @outlet              CPView viewIncluded;
     @outlet              CPPopover popoverIncluded;
@@ -28,6 +40,7 @@
     @outlet              CPTextField endDateInputIncluded;
 
     CPMutableArray       addonServiceItems @accessors();
+    @outlet              CPArrayController addonServiceAC;
     @outlet              CPButton addAddonButton;
     @outlet              CPView viewAddon;
     @outlet              CPPopover popoverAddon;
@@ -38,17 +51,6 @@
     @outlet              CPTextField endDateInputAddon;
     @outlet              CPTextField priceInputAddon;
     @outlet              CPTextField discountTextInputAddon;
-
-    CPMutableArray       serviceDefinitions @accessors();
-    @outlet              CPPopUpButton serviceDefinitionPopUp;
-    @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
-    @outlet              CPButton newServiceButton;
-    @outlet              CPButton addPropertyButton;
-    @outlet              CPButton removePropertyButton;
-
-    CPMutableArray       packagePropertiesItems @accessors();
-    @outlet              CPTableView packageProperties;
-    @outlet              COArrayController packagePropertiesController;
 
     CPMutableDictionary  itemLookup @accessors();
 }
@@ -150,6 +152,10 @@
     serviceItem.endDate = endDateInput;
     serviceItem.price = priceInput;
     serviceItem.discountText = discountTextInput;
+    serviceItem.packagePropertiesAC = packagePropertiesAC;
+    serviceItem.includedServiceAC = includedServiceAC;
+    serviceItem.addonServiceAC = addonServiceAC;
+    serviceItem.clientViewController = self;
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
@@ -226,9 +232,23 @@
         [popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [self updateServiceDefinition];
         [self updateServicePackageDefinition];
+        [self resetServiceView];
     } else {
         [popoverService close];
     }
+}
+
+- (void)resetServiceView
+{
+    [[packagePropertiesAC contentArray] removeAllObjects];
+    [[includedServiceAC contentArray] removeAllObjects];
+    [[addonServiceAC contentArray] removeAllObjects];
+    [startDateInput setStringValue:@""];
+    [endDateInput setStringValue:@""];
+    [priceInput setStringValue:@""];
+    [discountTextInput setStringValue:@""];
+    [serviceDefinitionPopUp selectItemAtIndex:0];
+    [serviceDefinitionPackagePopUp selectItemAtIndex:0];
 }
 
 - (void)hideAddService:(id)sender
@@ -239,7 +259,7 @@
     newServiceItem.endDate = [endDateInput stringValue];
     newServiceItem.price = [priceInput stringValue];
     newServiceItem.discountText = [discountTextInput stringValue];
-    newServiceItem.includedServiceItems = includedServiceItems;
+    newServiceItem.includedServiceItems = [[CPMutableArray alloc] initWithArray:[includedServiceAC contentArray] copyItems:YES];
     newServiceItem.addonServiceItems = addonServiceItems;
 
     [servicesAC addObject:newServiceItem];

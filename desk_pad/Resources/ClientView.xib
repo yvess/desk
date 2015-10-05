@@ -10,6 +10,7 @@
                 <outlet property="addIncludedButton" destination="g9M-gh-UeA" id="s0s-Ud-gdQ"/>
                 <outlet property="addPropertyButton" destination="gpG-K6-toW" id="Tw0-V5-SdJ"/>
                 <outlet property="addServiceButton" destination="QyP-Zh-GpZ" id="8wA-P8-MFy"/>
+                <outlet property="addonServiceAC" destination="n4H-TI-RjQ" id="Sad-JT-Dvu"/>
                 <outlet property="addonTypePUB" destination="8ln-tD-xrA" id="jbi-i2-Se0"/>
                 <outlet property="arrayController" destination="90" id="122"/>
                 <outlet property="discountTextInput" destination="YCP-ST-ZAd" id="Fw8-kk-Log"/>
@@ -17,6 +18,7 @@
                 <outlet property="endDateInput" destination="RLg-le-Vra" id="2mC-Cx-QwN"/>
                 <outlet property="endDateInputAddon" destination="Wjb-Xj-X7y" id="WN0-oF-eFn"/>
                 <outlet property="endDateInputIncluded" destination="HTu-XD-8pT" id="76R-hb-ueE"/>
+                <outlet property="includedServiceAC" destination="Tia-C6-EQa" id="E2A-HI-ej1"/>
                 <outlet property="includedTypePUB" destination="ldr-rv-4Fl" id="53z-At-Jde"/>
                 <outlet property="itemTypeInputAddon" destination="8ln-tD-xrA" id="1EC-FX-i90"/>
                 <outlet property="itemTypeInputIncluded" destination="ldr-rv-4Fl" id="HMY-BO-CD1"/>
@@ -25,7 +27,7 @@
                 <outlet property="itemsTable" destination="56" id="123"/>
                 <outlet property="newServiceButton" destination="AxO-mf-8aS" id="JSZ-Ir-dzp"/>
                 <outlet property="packageProperties" destination="ksZ-Zl-HR7" id="zyp-Kp-ffc"/>
-                <outlet property="packagePropertiesController" destination="Dzg-78-n2d" id="VPm-Cb-TbL"/>
+                <outlet property="packagePropertiesAC" destination="Dzg-78-n2d" id="4DA-2t-YVt"/>
                 <outlet property="popoverAddon" destination="ULh-z5-0Pf" id="E5G-q5-dgm"/>
                 <outlet property="popoverIncluded" destination="fqz-Bo-z0P" id="Nq0-Jj-Df9"/>
                 <outlet property="popoverService" destination="OEc-XT-j3a" id="p6e-k7-lka"/>
@@ -46,14 +48,6 @@
                 <outlet property="viewService" destination="EB3-vO-OPi" id="MOv-ne-4NR"/>
             </connections>
         </customObject>
-        <arrayController objectClassName="DMServicePackageProperty" id="Dzg-78-n2d" userLabel="PackageProperties AC">
-            <declaredKeys>
-                <string>name</string>
-            </declaredKeys>
-            <connections>
-                <binding destination="-2" name="contentArray" keyPath="packagePropertiesItems" id="lnp-FW-Ydr"/>
-            </connections>
-        </arrayController>
         <arrayController objectClassName="DMClient" id="90" userLabel="Clients AC" customClass="COArrayController">
             <declaredKeys>
                 <string>name</string>
@@ -61,6 +55,14 @@
             </declaredKeys>
             <connections>
                 <binding destination="-2" name="contentArray" keyPath="items" id="125"/>
+            </connections>
+        </arrayController>
+        <arrayController objectClassName="DMServicePackageProperty" id="Dzg-78-n2d" userLabel="PackageProperties AC">
+            <declaredKeys>
+                <string>name</string>
+            </declaredKeys>
+            <connections>
+                <binding destination="-2" name="contentArray" keyPath="packagePropertiesItems" id="lnp-FW-Ydr"/>
             </connections>
         </arrayController>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>

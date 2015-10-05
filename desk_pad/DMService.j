@@ -279,9 +279,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString price @accessors();
     CPString discountText @accessors();
 
+    CPMutableArray packagePropertiesItems @accessors();
     CPMutableArray includedServiceItems @accessors();
     CPMutableArray addonServiceItems @accessors();
-    CPMutableArray packagePropertiesItems @accessors();
 }
 
 - (id)init
@@ -335,6 +335,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         var ov = [self objectValue];
         ov.serviceType = [serviceItem.serviceType titleOfSelectedItem];
         ov.packageType = [serviceItem.packageType titleOfSelectedItem];
+        ov.packagePropertiesItems = [[CPMutableArray alloc] initWithArray:[serviceItem.packagePropertiesAC contentArray] copyItems:YES];
+        ov.includedServiceItems = [[CPMutableArray alloc] initWithArray:[serviceItem.includedServiceAC contentArray] copyItems:YES];
+        ov.addonServiceItems = [[CPMutableArray alloc] initWithArray:[serviceItem.addonServiceAC contentArray] copyItems:YES];
         ov.startDate = [serviceItem.startDate stringValue];
         ov.endDate = [serviceItem.endDate stringValue];
         ov.price = [serviceItem.price stringValue];
@@ -345,6 +348,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [serviceItem.serviceType selectItemWithTitle:[[self objectValue] serviceType]];
         [serviceItem.packageType selectItemWithTitle:[[self objectValue] packageType]];
+        [serviceItem.packagePropertiesAC setContent:[[self objectValue] packagePropertiesItems]];
+        [serviceItem.includedServiceAC setContent:[[self objectValue] includedServiceItems]];
+        [serviceItem.addonServiceAC setContent:[[self objectValue] addonServiceItems]];
         [serviceItem.startDate setStringValue:[[self objectValue] startDate]];
         [serviceItem.endDate setStringValue:[[self objectValue] endDate]];
         [serviceItem.price setStringValue:[[self objectValue] price]];
