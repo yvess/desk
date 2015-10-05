@@ -345,6 +345,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [self setObjectValue:ov];
         [serviceItem.popoverService close];
     } else {
+        [serviceItem.clientViewController updateServiceDefinition];
         [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [serviceItem.serviceType selectItemWithTitle:[[self objectValue] serviceType]];
         [serviceItem.packageType selectItemWithTitle:[[self objectValue] packageType]];

@@ -231,7 +231,6 @@
     {
         [popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [self updateServiceDefinition];
-        [self updateServicePackageDefinition];
         [self resetServiceView];
     } else {
         [popoverService close];
@@ -254,13 +253,16 @@
 - (void)hideAddService:(id)sender
 {
     var newServiceItem = [[DMServiceItem alloc] init];
+    newServiceItem.clientId = [[self lastSelectedObject] identifier];
     newServiceItem.serviceType = [serviceDefinitionPopUp titleOfSelectedItem];
+    newServiceItem.packageType = [serviceDefinitionPackagePopUp titleOfSelectedItem];
     newServiceItem.startDate = [startDateInput stringValue];
     newServiceItem.endDate = [endDateInput stringValue];
     newServiceItem.price = [priceInput stringValue];
     newServiceItem.discountText = [discountTextInput stringValue];
+    newServiceItem.packagePropertiesItems = [[CPMutableArray alloc] initWithArray:[packagePropertiesAC contentArray] copyItems:YES];
     newServiceItem.includedServiceItems = [[CPMutableArray alloc] initWithArray:[includedServiceAC contentArray] copyItems:YES];
-    newServiceItem.addonServiceItems = addonServiceItems;
+    newServiceItem.addonServiceItems = [[CPMutableArray alloc] initWithArray:[addonServiceAC contentArray] copyItems:YES];
 
     [servicesAC addObject:newServiceItem];
     if ([popoverService isShown])
