@@ -45,6 +45,20 @@
     "to": "../../*",
     "from": "/service_definitions/*"
 }, {
+    "to": "_list/list_docs/service",
+    "from": "/services",
+    "method": "GET",
+    "query": {
+        "include_docs": "true"
+    }
+}, {
+    "to": "../../*",
+    "from": "/services",
+    "method": "POST"
+}, {
+    "to": "../../*",
+    "from": "/services/*"
+}, {
     "to": "_list/list_docs/domain",
     "from": "/domains",
     "method": "GET",

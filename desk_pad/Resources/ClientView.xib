@@ -319,7 +319,7 @@
                                                         </textFieldCell>
                                                         <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                         <prototypeCellViews>
-                                                            <tableCellView id="5vd-Tv-iXU" customClass="DMServiceItemCellView">
+                                                            <tableCellView id="5vd-Tv-iXU" customClass="DMServiceCellView">
                                                                 <rect key="frame" x="1" y="1" width="419" height="17"/>
                                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                 <subviews>
@@ -1040,7 +1040,7 @@
                 <binding destination="-2" name="contentArray" keyPath="addonServiceItems" id="c54-cs-B7k"/>
             </connections>
         </arrayController>
-        <arrayController objectClassName="DMServiceItem" id="yHE-sa-A1e" userLabel="Services AC">
+        <arrayController objectClassName="DMService" id="yHE-sa-A1e" userLabel="Services AC">
             <connections>
                 <binding destination="-2" name="contentArray" keyPath="serviceItems" id="ftZ-Gv-6X8"/>
             </connections>
