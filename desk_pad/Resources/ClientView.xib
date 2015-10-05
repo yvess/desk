@@ -837,9 +837,7 @@
                                                 </subviews>
                                                 <connections>
                                                     <outlet property="editButton" destination="CRL-L6-XIX" id="IZI-0b-pZc"/>
-                                                    <outlet property="itemType" destination="ldr-rv-4Fl" id="h5p-hJ-j5f"/>
                                                     <outlet property="itemidField" destination="BcN-Vg-pTa" id="0Xr-CR-39f"/>
-                                                    <outlet property="startDateField" destination="oku-Jj-pwq" id="U9B-3i-FGS"/>
                                                 </connections>
                                             </tableCellView>
                                         </prototypeCellViews>
