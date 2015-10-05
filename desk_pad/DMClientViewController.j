@@ -143,7 +143,7 @@
     itemAddon.popoverAddon = popoverAddon;
     itemAddon.view = viewService;
 
-    var serviceItem = [DMServiceItemCellView serviceItem];
+    var serviceItem = [DMServiceCellView serviceItem];
     serviceItem.view = viewService;
     serviceItem.popoverService = popoverService;
     serviceItem.addServiceButton = addServiceButton;
@@ -257,7 +257,7 @@
 
 - (void)hideAddService:(id)sender
 {
-    var newServiceItem = [[DMServiceItem alloc] init];
+    var newServiceItem = [[DMService alloc] init];
     newServiceItem.clientId = [[self lastSelectedObject] identifier];
     newServiceItem.serviceType = [serviceDefinitionPopUp titleOfSelectedItem];
     newServiceItem.packageType = [serviceDefinitionPackagePopUp titleOfSelectedItem];
