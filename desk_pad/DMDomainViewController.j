@@ -28,7 +28,7 @@
     CPMutableArray        clients;
     CPMutableArray        domainRecordTemplates @accessors;
     CPMutableDictionary   clientLookup;
-    CPMutableDictionary   itemLookup @accessors();
+    CPMutableDictionary   itemLookup @accessors;
     DMDomain              currentDomain @accessors;
 }
 
