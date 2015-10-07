@@ -3,14 +3,14 @@
 @implementation DMOrder : COResource
 {
     /* default ivars for couchdb */
-    CPString coId      @accessors();
-    CPString coRev     @accessors();
+    CPString coId      @accessors;
+    CPString coRev     @accessors;
 
     /* custom ivars */
-    CPString date     @accessors();
-    CPString user     @accessors();
-    CPString sender   @accessors();
-    CPString state    @accessors();
+    CPString date     @accessors;
+    CPString user     @accessors;
+    CPString sender   @accessors;
+    CPString state    @accessors;
 }
 
 - (CPString)nameIdentifierString

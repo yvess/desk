@@ -8,8 +8,8 @@
 
 @implementation DMDomainA : COSubItem
 {
-    CPString host @accessors();
-    CPString ip @accessors();
+    CPString host @accessors;
+    CPString ip @accessors;
 }
 
 - (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
@@ -21,8 +21,8 @@
 
 @implementation DMDomainCname : COSubItem
 {
-    CPString alias @accessors();
-    CPString host @accessors();
+    CPString alias @accessors;
+    CPString host @accessors;
 }
 
 - (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
@@ -34,8 +34,8 @@
 
 @implementation DMDomainMx : COSubItem
 {
-    CPString host @accessors();
-    CPString priority @accessors();
+    CPString host @accessors;
+    CPString priority @accessors;
 }
 
 - (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
@@ -47,24 +47,24 @@
 
 @implementation DMDomain : COResourceVersioned
 {
-    CPString coId          @accessors();
-    CPString coRev         @accessors();
-    CPString coAttachments @accessors();
-    CPString prevActiveRev @accessors();
-    CPString state         @accessors();
+    CPString coId          @accessors;
+    CPString coRev         @accessors;
+    CPString coAttachments @accessors;
+    CPString prevActiveRev @accessors;
+    CPString state         @accessors;
 
-    CPString domain        @accessors();
-    CPString nameservers   @accessors();
+    CPString domain        @accessors;
+    CPString nameservers   @accessors;
     // SOA
-    CPString hostmaster    @accessors();
-    CPString refresh       @accessors();
-    CPString retry         @accessors();
-    CPString expire        @accessors();
-    CPString ttl           @accessors();
+    CPString hostmaster    @accessors;
+    CPString refresh       @accessors;
+    CPString retry         @accessors;
+    CPString expire        @accessors;
+    CPString ttl           @accessors;
 
-    //CPString client_id   @accessors();
-    CPString clientId      @accessors();
-    CPString templateId    @accessors();
+    //CPString client_id   @accessors;
+    CPString clientId      @accessors;
+    CPString templateId    @accessors;
     COItemsParent a        @accessors(readonly);
     COItemsParent cname    @accessors(readonly);
     COItemsParent mx       @accessors;

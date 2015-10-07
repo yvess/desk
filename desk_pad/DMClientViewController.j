@@ -6,7 +6,7 @@
 
 @implementation DMClientViewController : COViewController
 {
-    CPMutableArray       serviceItems @accessors();
+    CPMutableArray       serviceItems @accessors;
     @outlet              CPButton addServiceButton;
     @outlet              CPTableView servicesTV;
     @outlet              CPArrayController servicesAC;
@@ -17,18 +17,18 @@
     @outlet              CPView viewService;
     @outlet              CPPopover popoverService;
 
-    CPMutableArray       serviceDefinitions @accessors();
+    CPMutableArray       serviceDefinitions @accessors;
     @outlet              CPPopUpButton serviceDefinitionPopUp;
     @outlet              CPPopUpButton serviceDefinitionPackagePopUp;
     @outlet              CPButton newServiceButton;
     @outlet              CPButton addPropertyButton;
     @outlet              CPButton removePropertyButton;
 
-    CPMutableArray       packagePropertiesItems @accessors();
+    CPMutableArray       packagePropertiesItems @accessors;
     @outlet              CPArrayController packagePropertiesAC;
     @outlet              CPTableView packageProperties;
 
-    CPMutableArray       includedServiceItems @accessors();
+    CPMutableArray       includedServiceItems @accessors;
     @outlet              CPArrayController includedServiceAC;
     @outlet              CPButton addIncludedButton;
     @outlet              CPButton removeIncludedButton;
@@ -40,7 +40,7 @@
     @outlet              CPTextField startDateInputIncluded;
     @outlet              CPTextField endDateInputIncluded;
 
-    CPMutableArray       addonServiceItems @accessors();
+    CPMutableArray       addonServiceItems @accessors;
     @outlet              CPArrayController addonServiceAC;
     @outlet              CPButton addAddonButton;
     @outlet              CPButton removeAddonButton;
@@ -54,7 +54,7 @@
     @outlet              CPTextField priceInputAddon;
     @outlet              CPTextField discountTextInputAddon;
 
-    CPMutableDictionary  itemLookup @accessors();
+    CPMutableDictionary  itemLookup @accessors;
 }
 
 - (id)initWithCibName:(CPString) aCibNameOrNil

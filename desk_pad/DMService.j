@@ -11,9 +11,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 @implementation DMServicePackageProperty : CPObject
 {
-    CPString name     @accessors();
-    CPString property @accessors();
-    CPString value    @accessors();
+    CPString name     @accessors;
+    CPString property @accessors;
+    CPString value    @accessors;
 }
 
 - (CPString)nameIdentifierString
@@ -73,11 +73,11 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 @implementation DMIncludedServiceItem : CPObject
 {
-    CPString itemid @accessors();
-    CPString itemType @accessors();
-    CPString rowtitle @accessors();
-    CPString startDate @accessors();
-    CPString endDate @accessors();
+    CPString itemid @accessors;
+    CPString itemType @accessors;
+    CPString rowtitle @accessors(readonly);
+    CPString startDate @accessors;
+    CPString endDate @accessors;
 }
 
 - (id)init
@@ -169,13 +169,13 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 @implementation DMAddonServiceItem : CPObject
 {
-    CPString itemid   @accessors();
-    CPString itemType @accessors();
-    CPString rowtitle @accessors();
-    CPString startDate @accessors();
-    CPString endDate @accessors();
-    CPString price @accessors();
-    CPString discountText @accessors();
+    CPString itemid   @accessors;
+    CPString itemType @accessors;
+    CPString rowtitle @accessors;
+    CPString startDate @accessors;
+    CPString endDate @accessors;
+    CPString price @accessors;
+    CPString discountText @accessors;
 }
 
 - (id)init
@@ -268,20 +268,20 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @implementation DMService : COResource
 {
     /* default ivars for couchdb */
-    CPString coId @accessors();
-    CPString coRev  @accessors();
-    CPString clientId @accessors();
+    CPString coId @accessors;
+    CPString coRev  @accessors;
+    CPString clientId @accessors;
 
-    CPString serviceType @accessors();
-    CPString packageType @accessors();
-    CPString startDate @accessors();
-    CPString endDate @accessors();
-    CPString price @accessors();
-    CPString discountText @accessors();
+    CPString serviceType @accessors;
+    CPString packageType @accessors;
+    CPString startDate @accessors;
+    CPString endDate @accessors;
+    CPString price @accessors;
+    CPString discountText @accessors;
 
-    CPMutableArray packagePropertiesItems @accessors();
-    CPMutableArray includedServiceItems @accessors();
-    CPMutableArray addonServiceItems @accessors();
+    CPMutableArray packagePropertiesItems @accessors;
+    CPMutableArray includedServiceItems @accessors;
+    CPMutableArray addonServiceItems @accessors;
 }
 
 + (id)couchId
@@ -438,14 +438,14 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 @implementation DMServiceDefinition : COResource
 {
     /* default ivars for couchdb */
-    CPString coId @accessors();
-    CPString coRev  @accessors();
+    CPString coId @accessors;
+    CPString coRev  @accessors;
 
     /* custom ivars */
-    CPString serviceType  @accessors();
-    CPArray packages @accessors();
-    CPDictionary addons @accessors();
-    CPDictionary properties @accessors();
+    CPString serviceType  @accessors;
+    CPArray packages @accessors;
+    CPDictionary addons @accessors;
+    CPDictionary properties @accessors;
 }
 
 + (id)couchId
