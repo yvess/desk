@@ -130,9 +130,16 @@
     }
 }
 
+- (void)awakeFromCib
+{
+    [window.popovers addObject:popoverDomain];
+    [window.popovers addObject:popoverTpl];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
     [clients enumerateObjectsUsingBlock:function(item) {
         [clientsForDomainPopUp addItemWithTitle:[item name]];
         var menuItem = [clientsForDomainPopUp itemWithTitle:[item name]];

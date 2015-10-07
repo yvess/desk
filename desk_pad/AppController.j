@@ -7,6 +7,7 @@
  */
 
 @import <Foundation/CPObject.j>
+@import <Foundation/CPSet.j>
 @import <AppKit/CPTableView.j>
 @import <AppKit/CPTextField.j>
 @import <AppKit/CPPopUpButton.j>
@@ -32,11 +33,12 @@
 
     DMClientViewController clientViewController;
     DMDomainViewController domainViewController;
-
+    CPSet                popovers;
 }
 
 - (void)switchTabFromButton:(id)sender
 {
+    [window.popovers makeObjectsPerformSelector:@selector(close)];
     var activeTab = [sender class] == [CPString class] ? sender : [sender title];
     switch (activeTab)
     {
@@ -73,6 +75,8 @@
 - (void)awakeFromCib
 {
     [theWindow setFullPlatformWindow:YES];
+    popovers = [[CPSet alloc] init];
+    window.popovers = popovers;
 
     var clientVC = [[DMClientViewController alloc]
                     initWithCibName:@"ClientView" bundle:nil modelClass:[DMClient class]],

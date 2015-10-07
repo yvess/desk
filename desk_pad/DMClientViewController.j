@@ -115,6 +115,14 @@
     }
 }
 
+- (void)awakeFromCib
+{
+    [window.popovers addObject:popoverService];
+    [window.popovers addObject:popoverIncluded];
+    [window.popovers addObject:popoverAddon];
+    [window.popovers addObject:popoverService];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];

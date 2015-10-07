@@ -33,6 +33,11 @@
     return self;
 }
 
+- (void)awakeFromCib
+{
+    [window.popovers addObject:popover];
+}
+
 - (CPMutableDictionary)setLookupForDomainEntries
 {
     lookupDomainEntries = [[CPMutableDictionary alloc] init];
