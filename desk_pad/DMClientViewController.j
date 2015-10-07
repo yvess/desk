@@ -3,6 +3,7 @@
 @import <CouchResource/COArrayController.j>
 @import <CouchResource/COViewController.j>
 @import "DMService.j"
+@import "DMClient.j"
 
 @implementation DMClientViewController : COViewController
 {
@@ -70,16 +71,20 @@
         addonServiceItems = [[CPMutableArray alloc] init];
         serviceDefinitions = [DMServiceDefinition all];
         serviceItems = [[CPMutableArray alloc] init];
-        var firstClient = [items objectAtIndex:0],
-            startkey = '"' + firstClient.coId + '"',
-            endkey = '"' + firstClient.coId + '"',
-            serviceItemsCouch = [DMService allWithParams:@{ @"startkey": startkey, @"endkey": endkey } withPath:@"/services_by_client"];
-        if (serviceItemsCouch)
-        {
-            serviceItems = serviceItemsCouch;
-        }
     }
     return self;
+}
+
+- (void)loadServicesByClient:(DMClient)aClient
+{
+    [self resetServiceView];
+    var clientkey = '"' + aClient.coId + '"',
+        serviceItemsCouch = [
+        DMService allWithParams:@{ @"startkey": clientkey, @"endkey": clientkey }
+                  withPath:@"/services_by_client"];
+    [serviceItems removeAllObjects];
+    [serviceItems addObjectsFromArray:serviceItemsCouch];
+    [servicesAC setContent:serviceItems];
 }
 
 - (void)servicePopUpSelectionChanged:(CPNotification)notification
@@ -98,6 +103,17 @@
     //console.log("servicePropertyNameSelectionChanged", notification);
 }
 
+- (void)observeValueForKeyPath:(CPString) aKeyPath
+        ofObject:(id) anObject
+        change:(CPDictionary) aChange
+        context:(id) aContext
+{
+    if (aContext == @"client")
+    {
+        var selectedClient = [[anObject selectedObjects] lastObject];
+        [self loadServicesByClient:selectedClient];
+    }
+}
 
 - (void)viewDidLoad
 {
@@ -135,6 +151,9 @@
             name:CPMenuDidChangeItemNotification
           object:nil
     ];
+
+    [arrayController addObserver:self forKeyPath:@"selection.client" options:nil context:@"client"];
+
     var itemIncluded = [DMIncludedServiceItemCellView itemIncluded];
     itemIncluded.itemidInput = itemidInputIncluded;
     itemIncluded.itemType = itemTypeInputIncluded;
@@ -171,6 +190,8 @@
 
     [self updateServiceDefinition];
     [self updateServicePackageDefinition];
+    [self loadServicesByClient:[items objectAtIndex:0]]; // first client
+
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
