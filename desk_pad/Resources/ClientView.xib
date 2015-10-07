@@ -377,17 +377,6 @@
                                         <autoresizingMask key="autoresizingMask"/>
                                     </tableHeaderView>
                                 </scrollView>
-                                <button verticalHuggingPriority="750" id="sO4-b3-Vyg" userLabel="New Service Button">
-                                    <rect key="frame" x="204" y="18" width="114" height="25"/>
-                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    <buttonCell key="cell" type="roundTextured" title="Remove Service" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="FMF-Jq-ANt">
-                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="system"/>
-                                    </buttonCell>
-                                    <connections>
-                                        <action selector="remove:" target="yHE-sa-A1e" id="LIe-oW-T6H"/>
-                                    </connections>
-                                </button>
                             </subviews>
                         </customView>
                     </subviews>
