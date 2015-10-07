@@ -426,9 +426,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 - (void)showEdit:(id)sender
 {
     [serviceItem.addServiceButton setHidden:YES];
+    var ov = [self objectValue];
     if ([serviceItem.popoverService isShown])
     {
-        var ov = [self objectValue];
         ov.serviceType = [serviceItem.serviceType titleOfSelectedItem];
         ov.packageType = [serviceItem.packageType titleOfSelectedItem];
         ov.packagePropertiesItems = [[CPMutableArray alloc] initWithArray:[serviceItem.packagePropertiesAC contentArray] copyItems:YES];
@@ -442,15 +442,15 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [serviceItem.popoverService close];
     } else {
         [serviceItem.clientViewController updateServiceDefinition];
-        [serviceItem.serviceType selectItemWithTitle:[[self objectValue] serviceType]];
-        [serviceItem.packageType selectItemWithTitle:[[self objectValue] packageType]];
-        [serviceItem.packagePropertiesAC setContent:[[self objectValue] packagePropertiesItems]];
-        [serviceItem.includedServiceAC setContent:[[self objectValue] includedServiceItems]];
-        [serviceItem.addonServiceAC setContent:[[self objectValue] addonServiceItems]];
-        [serviceItem.startDate setStringValue:[[self objectValue] startDate]];
-        [serviceItem.endDate setStringValue:[[self objectValue] endDate]];
-        [serviceItem.price setStringValue:[[self objectValue] price]];
-        [serviceItem.discountText setStringValue:[[self objectValue] discountText]];
+        [serviceItem.serviceType selectItemWithTitle:ov.serviceType];
+        [serviceItem.packageType selectItemWithTitle:ov.packageType];
+        [serviceItem.packagePropertiesAC setContent:ov.packagePropertiesItems];
+        [serviceItem.includedServiceAC setContent:ov.includedServiceItems];
+        [serviceItem.addonServiceAC setContent:ov.addonServiceItems];
+        [serviceItem.startDate setStringValue:ov.startDate ? ov.startDate : @""];
+        [serviceItem.endDate setStringValue:ov.endDate ? ov.endDate : @""];
+        [serviceItem.price setStringValue:ov.price ? ov.price : @""];
+        [serviceItem.discountText setStringValue:ov.discountText ? ov.discountText : @""];
 
         [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
     }
