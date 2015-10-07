@@ -175,6 +175,7 @@
 
     var serviceItem = [DMServiceCellView serviceItem];
     serviceItem.view = viewService;
+    serviceItem.servicesAC = servicesAC;
     serviceItem.popoverService = popoverService;
     serviceItem.addServiceButton = addServiceButton;
     serviceItem.serviceType = serviceDefinitionPopUp;

@@ -332,15 +332,24 @@
                                                                         </textFieldCell>
                                                                     </textField>
                                                                     <button identifier="domainRecordEditButton" verticalHuggingPriority="750" tag="1000" id="mlN-8U-CrH">
-                                                                        <rect key="frame" x="358" y="-9" width="60" height="28"/>
+                                                                        <rect key="frame" x="297" y="-8" width="60" height="28"/>
                                                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                                                         <buttonCell key="cell" type="push" title="edit" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="HHN-yq-apP">
                                                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                                             <font key="font" metaFont="smallSystem"/>
                                                                         </buttonCell>
                                                                     </button>
+                                                                    <button identifier="domainRecordEditButton" verticalHuggingPriority="750" tag="1000" id="lWY-fi-Y4Z" userLabel="Delete Button">
+                                                                        <rect key="frame" x="359" y="-8" width="60" height="28"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                                                        <buttonCell key="cell" type="push" title="del" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="p2U-JN-vFj">
+                                                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                                            <font key="font" metaFont="smallSystem"/>
+                                                                        </buttonCell>
+                                                                    </button>
                                                                 </subviews>
                                                                 <connections>
+                                                                    <outlet property="delButton" destination="lWY-fi-Y4Z" id="s9E-gt-qn0"/>
                                                                     <outlet property="editButton" destination="mlN-8U-CrH" id="RdO-RM-gNx"/>
                                                                     <outlet property="serviceTypeField" destination="c2Q-Ns-3nC" id="hy5-3E-HOL"/>
                                                                 </connections>

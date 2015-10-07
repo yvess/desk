@@ -406,6 +406,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     @outlet CPTextField serviceTypeField;
     @outlet CPButton editButton;
+    @outlet CPButton delButton;
 }
 
 + (id)serviceItem
@@ -421,6 +422,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
                 options:nil];
     [editButton setAction:@selector(showEdit:)];
     [editButton setTarget:self];
+    [delButton setAction:@selector(removeService:)];
+    [delButton setTarget:self];
 }
 
 - (void)showEdit:(id)sender
@@ -454,6 +457,14 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
         [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
     }
+}
+
+- (void)removeService:(id)sender
+{
+    var item = [self objectValue];
+    [serviceItem.servicesAC removeObject:item];
+    [item destroy];
+    item = nil;
 }
 @end
 
