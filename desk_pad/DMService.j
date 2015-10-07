@@ -305,26 +305,6 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     return @"serviceType";
 }
 
-- (CPMutableArray)arrayForObjects:(id)items withClass:(id)aClass
-{
-    var objectArray = [[CPMutableArray alloc] init],
-        classIvars = class_copyIvarList(aClass);
-    [items enumerateObjectsUsingBlock:function(item) {
-        var newInstance = [[aClass alloc] init];
-        [classIvars enumerateObjectsUsingBlock:function(ivar) {
-            var setterString = "set" + ivar.name.slice(0,1).toUpperCase() + ivar.name.slice(1) + ":",
-                setterSelector = CPSelectorFromString(setterString);
-            if ([newInstance respondsToSelector:setterSelector])
-            {
-                var itemValue = item[ivar.name] ? item[ivar.name] : @"";
-                [newInstance performSelector:setterSelector withObject:itemValue];
-            }
-        }];
-        [objectArray addObject:newInstance];
-    }];
-    return objectArray;
-}
-
 - (id)valueForObject:(id)value withName:(CPString)attributeName
 {
     if ([value className] == @"_CPJavaScriptArray")
