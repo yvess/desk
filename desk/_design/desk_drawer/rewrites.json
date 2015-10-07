@@ -52,6 +52,13 @@
         "include_docs": "true"
     }
 }, {
+    "to": "_list/list_docs/service_by_client",
+    "from": "/services_by_client",
+    "method": "GET",
+    "query": {
+        "include_docs": "true"
+    }
+}, {
     "to": "../../*",
     "from": "/services",
     "method": "POST"
