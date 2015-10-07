@@ -27,7 +27,7 @@
                 <outlet property="itemsTable" destination="56" id="123"/>
                 <outlet property="newServiceButton" destination="AxO-mf-8aS" id="JSZ-Ir-dzp"/>
                 <outlet property="packageProperties" destination="ksZ-Zl-HR7" id="zyp-Kp-ffc"/>
-                <outlet property="packagePropertiesAC" destination="Dzg-78-n2d" id="4DA-2t-YVt"/>
+                <outlet property="packagePropertiesAC" destination="Dzg-78-n2d" id="r5F-ON-ElS"/>
                 <outlet property="popoverAddon" destination="ULh-z5-0Pf" id="E5G-q5-dgm"/>
                 <outlet property="popoverIncluded" destination="fqz-Bo-z0P" id="Nq0-Jj-Df9"/>
                 <outlet property="popoverService" destination="OEc-XT-j3a" id="p6e-k7-lka"/>
@@ -60,9 +60,6 @@
             </connections>
         </arrayController>
         <arrayController objectClassName="DMServicePackageProperty" id="Dzg-78-n2d" userLabel="PackageProperties AC">
-            <declaredKeys>
-                <string>name</string>
-            </declaredKeys>
             <connections>
                 <binding destination="-2" name="contentArray" keyPath="packagePropertiesItems" id="lnp-FW-Ydr"/>
             </connections>
@@ -1047,7 +1044,11 @@
                 <binding destination="-2" name="contentArray" keyPath="serviceItems" id="ftZ-Gv-6X8"/>
             </connections>
         </arrayController>
-        <viewController id="S51-TI-hQk" userLabel="PopoverService VC"/>
+        <viewController id="S51-TI-hQk" userLabel="PopoverService VC">
+            <connections>
+                <outlet property="sourceItemView" destination="EB3-vO-OPi" id="Mhz-nc-ry7"/>
+            </connections>
+        </viewController>
         <popover id="OEc-XT-j3a" userLabel="PopoverService">
             <connections>
                 <outlet property="contentViewController" destination="S51-TI-hQk" id="1Yg-8c-94v"/>

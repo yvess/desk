@@ -110,6 +110,8 @@
 
     [popoverIncluded setAnimates:NO];
     [popoverAddon setAnimates:NO];
+    [popoverService setAnimates:NO];
+    [[popoverService contentViewController] setView:viewService];
 
     [serviceDefinitions enumerateObjectsUsingBlock:function(item) {
         var menuItem = [[CPMenuItem alloc] init];
@@ -250,8 +252,8 @@
 - (void)showNewService:(id)sender
 {
     [addServiceButton setHidden:NO];
-    [popoverService setAnimates:NO];
-    [[popoverService contentViewController] setView:viewService];
+    [viewService setNeedsDisplay:YES];
+
     if (![popoverService isShown])
     {
         [popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
@@ -264,15 +266,17 @@
 
 - (void)resetServiceView
 {
-    [[packagePropertiesAC contentArray] removeAllObjects];
-    [[includedServiceAC contentArray] removeAllObjects];
-    [[addonServiceAC contentArray] removeAllObjects];
+    [self updateServiceDefinition];
+    [serviceDefinitionPopUp selectItemAtIndex:0];
+    [serviceDefinitionPackagePopUp selectItemAtIndex:0];
+
+    [packagePropertiesAC setContent:[[CPMutableArray alloc] init]];
+    [includedServiceAC setContent:[[CPMutableArray alloc] init]];
+    [addonServiceAC setContent:[[CPMutableArray alloc] init]];
     [startDateInput setStringValue:@""];
     [endDateInput setStringValue:@""];
     [priceInput setStringValue:@""];
     [discountTextInput setStringValue:@""];
-    [serviceDefinitionPopUp selectItemAtIndex:0];
-    [serviceDefinitionPackagePopUp selectItemAtIndex:0];
 }
 
 - (void)hideAddService:(id)sender

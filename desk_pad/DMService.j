@@ -426,7 +426,6 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 - (void)showEdit:(id)sender
 {
     [serviceItem.addServiceButton setHidden:YES];
-    [[serviceItem.popoverService contentViewController] setView:serviceItem.view];
     if ([serviceItem.popoverService isShown])
     {
         var ov = [self objectValue];
@@ -443,7 +442,6 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [serviceItem.popoverService close];
     } else {
         [serviceItem.clientViewController updateServiceDefinition];
-        [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
         [serviceItem.serviceType selectItemWithTitle:[[self objectValue] serviceType]];
         [serviceItem.packageType selectItemWithTitle:[[self objectValue] packageType]];
         [serviceItem.packagePropertiesAC setContent:[[self objectValue] packagePropertiesItems]];
@@ -453,6 +451,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [serviceItem.endDate setStringValue:[[self objectValue] endDate]];
         [serviceItem.price setStringValue:[[self objectValue] price]];
         [serviceItem.discountText setStringValue:[[self objectValue] discountText]];
+
+        [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];
     }
 }
 @end
