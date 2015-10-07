@@ -171,7 +171,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     CPString itemid   @accessors;
     CPString itemType @accessors;
-    CPString rowtitle @accessors;
+    CPString rowtitle @accessors(readonly);
     CPString startDate @accessors;
     CPString endDate @accessors;
     CPString price @accessors;
@@ -305,6 +305,50 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     return @"serviceType";
 }
 
+- (CPMutableArray)arrayForObjects:(id)items withClass:(id)aClass
+{
+    var objectArray = [[CPMutableArray alloc] init],
+        classIvars = class_copyIvarList(aClass);
+    [items enumerateObjectsUsingBlock:function(item) {
+        var newInstance = [[aClass alloc] init];
+        [classIvars enumerateObjectsUsingBlock:function(ivar) {
+            var setterString = "set" + ivar.name.slice(0,1).toUpperCase() + ivar.name.slice(1) + ":",
+                setterSelector = CPSelectorFromString(setterString);
+            if ([newInstance respondsToSelector:setterSelector])
+            {
+                var itemValue = item[ivar.name] ? item[ivar.name] : @"";
+                [newInstance performSelector:setterSelector withObject:itemValue];
+            }
+        }];
+        [objectArray addObject:newInstance];
+    }];
+    return objectArray;
+}
+
+- (id)valueForObject:(id)value withName:(CPString)attributeName
+{
+    if ([value className] == @"_CPJavaScriptArray")
+    {
+        switch (attributeName)
+        {
+            case "addonServiceItems":
+                var valueObjectArray = [self arrayForObjects:value withClass:DMAddonServiceItem];
+                break;
+            case "includedServiceItems":
+                var valueObjectArray = [self arrayForObjects:value withClass:DMIncludedServiceItem];
+                break;
+            case "packagePropertiesItems":
+                var valueObjectArray = [self arrayForObjects:value withClass:DMServicePackageProperty];
+                break;
+            default:
+                console.log("### no match found", attributeName);
+        }
+        return valueObjectArray;
+    } else {
+        //console.log([value className]);
+    }
+}
+
 - (JSObject)attributes
 {
     var json = {},
@@ -368,9 +412,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
                 break;
         }
 
-        if (value != null)
+        if (value != null && value != "" && value != [])
         {
-            console.log(attr, value);
             json[attr] = value;
         }
     }];

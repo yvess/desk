@@ -70,7 +70,14 @@
         addonServiceItems = [[CPMutableArray alloc] init];
         serviceDefinitions = [DMServiceDefinition all];
         serviceItems = [[CPMutableArray alloc] init];
-        //serviceItems addObject:[[DMService alloc] init]];
+        var firstClient = [items objectAtIndex:0],
+            startkey = '"' + firstClient.coId + '"',
+            endkey = '"' + firstClient.coId + '"',
+            serviceItemsCouch = [DMService allWithParams:@{ @"startkey": startkey, @"endkey": endkey } withPath:@"/services_by_client"];
+        if (serviceItemsCouch)
+        {
+            serviceItems = serviceItemsCouch;
+        }
     }
     return self;
 }
