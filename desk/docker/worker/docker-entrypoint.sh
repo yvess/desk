@@ -34,7 +34,7 @@ if [ "$1" = 'worker' ]; then
     echo "* setup foreman"
     wget -q --retry-connrefused -t 10 http://cdb:5984/ # wait for couchdb to get up
     # creating desk_drawer database
-    curl -Is -u admin:admin http://cdb:5984/desk_drawer|cat|grep -q -E "HTTP.*200|HTTP.*401"
+    curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://cdb:5984/desk_drawer|cat|grep -q -E "HTTP.*200|HTTP.*401"
     if [ $? -ne 0 ]; then # db desk_drawer does not exist
         cd /opt/app/desk && python ./dworker install-db
         echo "* created desk_drawer database"
