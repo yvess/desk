@@ -199,8 +199,10 @@
 
     [self updateServiceDefinition];
     [self updateServicePackageDefinition];
-    [self loadServicesByClient:[items objectAtIndex:0]]; // first client
-
+    if ([items count] > 0) // no clients
+    {
+        [self loadServicesByClient:[items objectAtIndex:0]]; // first client
+    }
 }
 
 - (void)buildMenu:(id)aMenuHolder items:(id)someItems
