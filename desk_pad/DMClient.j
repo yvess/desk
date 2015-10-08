@@ -11,6 +11,7 @@
     CPString extcrmId    @accessors;
     CPString lastInvoiceEndDate @accessors;
     BOOL isBillable @accessors;
+    CPString notes @accessors;
 }
 
 + (id)couchId
