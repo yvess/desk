@@ -3,6 +3,8 @@ cdb:
   hostname: cdb
   environment:
     - TERM=xterm-256color
+    - COUCHDB_ADMIN=admin
+    - COUCHDB_ADMINPASS=admin
   volumes:
     - ../:/opt/app/
     - ~/src:/opt/src
@@ -17,6 +19,8 @@ dnsa:
   hostname: dnsa.test
   environment:
     - TERM=xterm-256color
+    - COUCHDB_ADMIN=admin
+    - COUCHDB_ADMINPASS=admin
   volumes:
     - ../:/opt/app/
   volumes_from:
@@ -32,6 +36,8 @@ dnsb:
   hostname: dnsb.test
   environment:
     - TERM=xterm-256color
+    - COUCHDB_ADMIN=admin
+    - COUCHDB_ADMINPASS=admin
   volumes:
     - ../:/opt/app/
   volumes_from:
@@ -47,6 +53,8 @@ foreman:
   hostname: foreman
   environment:
     - TERM=xterm-256color
+    - COUCHDB_ADMIN=admin
+    - COUCHDB_ADMINPASS=admin
   volumes:
     - ../:/opt/app/
   volumes_from:
