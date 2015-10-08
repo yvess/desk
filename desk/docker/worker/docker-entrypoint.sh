@@ -58,11 +58,11 @@ if [ "$1" = 'worker' ]; then
 
     # REGISTER WORKER
     # wait for db created
-    until $(curl -Is -u admin:admin http://cdb:5984/desk_drawer|cat|grep -q -E "HTTP.*200"); do
+    until $(curl -Is -u $coucHdb_admin:$couchdb_adminpass http://cdb:5984/desk_drawer|cat|grep -q -E "HTTP.*200"); do
       sleep 1
       echo "* wait desk_drawer db"
     done
-    curl -Is -u admin:admin http://cdb:5984/desk_drawer/worker-`hostname`|cat|grep -q -E "HTTP.*404"
+    curl -Is -u $coucHdb_admin:$couchdb_adminpass http://cdb:5984/desk_drawer/worker-`hostname`|cat|grep -q -E "HTTP.*404"
     if [ $? -eq 0 ]; then # worker doesn't exist
       cd /opt/app/desk && python ./dworker install-worker
       echo "* registred worker"
