@@ -4,6 +4,7 @@
 @import <CouchResource/COViewController.j>
 @import "DMService.j"
 @import "DMClient.j"
+@import "DMDomain.j"
 
 @implementation DMClientViewController : COViewController
 {
@@ -56,6 +57,10 @@
     @outlet              CPTextField discountTextInputAddon;
 
     CPMutableDictionary  itemLookup @accessors;
+
+    CPMutableArray       domainItems @accessors;
+    @outlet              CPTableView domainsTV;
+    @outlet              CPArrayController domainsAC;
 }
 
 - (id)initWithCibName:(CPString) aCibNameOrNil
@@ -71,6 +76,7 @@
         addonServiceItems = [[CPMutableArray alloc] init];
         serviceDefinitions = [DMServiceDefinition all];
         serviceItems = [[CPMutableArray alloc] init];
+        domainItems = [[CPMutableArray alloc] init];
     }
     return self;
 }
@@ -85,6 +91,18 @@
     [serviceItems removeAllObjects];
     [serviceItems addObjectsFromArray:serviceItemsCouch];
     [servicesAC setContent:serviceItems];
+}
+
+- (void)loadDomainsByClient:(DMClient)aClient
+{
+    var clientkey = '"' + aClient.coId + '"',
+        domainItemsCouch = [
+        DMDomain allWithParams:@{ @"startkey": clientkey, @"endkey": clientkey }
+                 withPath:@"/domains_by_client"];
+    [domainItems removeAllObjects];
+    [domainItems addObjectsFromArray:domainItemsCouch];
+    [domainsAC setContent:domainItems];
+    console.log(domainItemsCouch)
 }
 
 - (void)servicePopUpSelectionChanged:(CPNotification)notification
@@ -112,6 +130,7 @@
     {
         var selectedClient = [[anObject selectedObjects] lastObject];
         [self loadServicesByClient:selectedClient];
+        [self loadDomainsByClient:selectedClient];
     }
 }
 
@@ -202,6 +221,7 @@
     if ([items count] > 0) // no clients
     {
         [self loadServicesByClient:[items objectAtIndex:0]]; // first client
+        [self loadDomainsByClient:[items objectAtIndex:0]];
     }
 }
 

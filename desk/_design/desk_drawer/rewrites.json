@@ -73,6 +73,13 @@
         "include_docs": "true"
     }
 }, {
+    "to": "_list/list_docs/domain_by_client",
+    "from": "/domains_by_client",
+    "method": "GET",
+    "query": {
+        "include_docs": "true"
+    }
+}, {
     "to": "../../*",
     "from": "/domains",
     "method": "POST"
