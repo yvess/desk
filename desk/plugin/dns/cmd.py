@@ -78,12 +78,12 @@ class ImportDnsCommand(SettingsCommand):
             json_files = FilesForCouch(data, dest)
             json_files.create()
             dns_ldif = IspmanDnsLDIF(
-                open(src, 'r'), sys.stdout,
+                open(src, 'r'), sys.stdout, self.settings,
                 clients_ldif=client_ldif, editor=auth[0]
             )
         else:
             dns_ldif = IspmanDnsLDIF(
-                open(src, 'r'), sys.stdout, editor=auth[0]
+                open(src, 'r'), sys.stdout, self.settings, editor=auth[0]
             )
         dns_ldif.parse()
         if self.settings.show_ips:
@@ -97,7 +97,7 @@ class ImportDnsCommand(SettingsCommand):
         data = [[k, v] for k, v in dns_ldif.domains.iteritems()]
         docs_processor = DnsDocsProcessor(self.settings, data)
         docs_processor.process()
-        json_files = FilesForCouch(data, dest, prefix="domain")
+        json_files = FilesForCouch(data, dest, use_id_in_data=True)
         json_files.create()
 
     def run(self):

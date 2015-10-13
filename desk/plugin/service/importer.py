@@ -35,7 +35,6 @@ class ImportServices(object):
             if row[service_type]:
                 service_doc = self.service_tpl.copy()
                 service_doc['_id'] = "service-%s" % self.server.next_uuid()
-                service_doc['extcrm_id'] = row['todoyu']
                 if row['todoyu'] not in self.clients_extcrm_ids:
                     client_id = self.get_or_create_client(row)
                     self.clients_extcrm_ids[row['todoyu']] = client_id
@@ -43,9 +42,6 @@ class ImportServices(object):
                     client_id = self.clients_extcrm_ids[row['todoyu']]
                 service_doc['service_type'] = service_type
                 service_doc['start_date'] = row['start_date']
-                service_doc['last_invoice_end_date'] = row[
-                    'last_invoice_end_date'
-                ]
                 service_doc['client_id'] = client_id
                 if isinstance(row[service_type], dict):
                     service_doc.update(row[service_type])
@@ -87,27 +83,27 @@ class ImportServices(object):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def get_or_create_client(self, row):
+        if row['org_name']:
+            name = row['org_name']
+        else:
+            name = "%s %s" % (row['n_given'], row['n_family'])
         query_results = self.db.view(
-            self._cmd("client_extcrm_id"), key=row['todoyu'],
+            self._cmd("client_by_name"), key=name,
             include_docs=False
         )
         if query_results.count() == 1:
-            return query_results.first()['value']
+            client_doc = query_results.first()['value']
         elif query_results.count() == 0:
-            if row['org_name']:
-                name = row['org_name']
-            else:
-                name = "%s %s" % (row['n_given'], row['n_family'])
-            client_doc = {
-                '_id':  'client-%s' % self.server.next_uuid(),
-                'type': 'client', 'is_billable': 1,
-                'extcrm_id': row['todoyu'],
-                'name': name
-            }
-            self.docs.append((client_doc['_id'], client_doc))
-            return client_doc['_id']
+            client_doc = {'type': 'client'}
+            client_doc['_id'] = 'client-%s' % self.server.next_uuid()
         else:
             raise
+        client_doc['is_billable'] = 1
+        client_doc['extcrm_id'] = row['todoyu']
+        client_doc['name'] = name
+        self.docs.append((client_doc['_id'], client_doc))
+
+        return client_doc['_id']
 
     def create_docs(self):
         self.rows = self.process_sheet()

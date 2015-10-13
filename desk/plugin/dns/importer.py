@@ -3,11 +3,12 @@ from __future__ import absolute_import, print_function
 from __future__ import division, unicode_literals
 from ldif import LDIFParser
 import hashlib
+from couchdbkit import Server
 from desk.command import DocsProcessor
 
 
 class IspmanDnsLDIF(LDIFParser):
-    def __init__(self, input, output, clients_ldif=None, editor=None):
+    def __init__(self, input, output, settings, clients_ldif=None, editor=None):
         LDIFParser.__init__(self, input)
         self.domains = {}
         self.domains_lookup = (
@@ -16,6 +17,8 @@ class IspmanDnsLDIF(LDIFParser):
         self.editor = editor
         self.a_record_ips = set([])
         self.a_record_hosts = {}
+        self.server = Server(settings.couchdb_uri)
+        self.db = self.server.get_db(settings.couchdb_db)
 
     def handle(self, dn, entry):
         if dn.startswith('relativeDomainName='):
@@ -70,8 +73,9 @@ class IspmanDnsLDIF(LDIFParser):
 
     def add_domain(self, domain):
         if domain not in self.domains:
+            next_uuid = self.server.next_uuid()
             self.domains[domain] = {
-                '_id': 'domain-{}'.format(domain),
+                '_id': 'domain-%s' % next_uuid,
                 'state': 'new',
                 'type': 'domain',
                 'domain': domain,

@@ -60,15 +60,19 @@ class CouchdbUploader(object):
 
 
 class FilesForCouch(object):
-    def __init__(self, data, directory, prefix=""):
+    def __init__(self, data, directory, prefix="", use_id_in_data=False):
         self.data = data
         self.directory = directory
         self.prefix = "{}-".format(prefix) if prefix else ""
+        self.use_id_in_data = use_id_in_data
 
     def create(self):
         for filename, content in self.data:
-            with open('{}/{}{}.json'.format(
-                      self.directory, self.prefix, filename), 'w') as outfile:
+            if self.use_id_in_data:
+                file_parts = self.directory, self.prefix, content['_id']
+            else:
+                file_parts = self.directory, self.prefix, filename
+            with open('{}/{}{}.json'.format(*file_parts), 'w') as outfile:
                 json.dump(content, outfile, indent=4)
 
 

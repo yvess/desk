@@ -227,7 +227,8 @@ class DocsProcessor(SettingsCommand):
 
     def replace_with_template(self, doc, template):
         for key in template.keys():
-            del doc[key]
+            if key != '_id':
+                del doc[key]
         doc['template_id'] = template['_id']
 
     def process_doc(self, doc):
