@@ -81,14 +81,14 @@
                             <autoresizingMask key="autoresizingMask"/>
                             <subviews>
                                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="51">
-                                    <rect key="frame" x="20" y="61" width="200" height="455"/>
+                                    <rect key="frame" x="20" y="50" width="200" height="466"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <clipView key="contentView" id="0FP-KW-5y6">
-                                        <rect key="frame" x="1" y="17" width="198" height="437"/>
+                                        <rect key="frame" x="1" y="0.0" width="198" height="465"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" headerView="58" id="56">
-                                                <rect key="frame" x="0.0" y="0.0" width="198" height="437"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="198" height="448"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                                 <animations/>
                                                 <size key="intercellSpacing" width="3" height="2"/>
