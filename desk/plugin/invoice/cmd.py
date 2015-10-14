@@ -47,7 +47,7 @@ class CreateInvoicesCommand(SettingsCommand):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def run(self):
-        crm = Dummy
+        crm = Dummy()
         if 'worker_extcrm' in self.settings:
             crm_classname = self.settings.worker_extcrm.split(':')[0].title()
             Crm = import_module(".%s" % crm_classname, package="desk.plugin.extcrm")
