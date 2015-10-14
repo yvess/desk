@@ -2,6 +2,7 @@
 # python3
 from __future__ import absolute_import, print_function, unicode_literals, division
 import codecs
+import os
 from datetime import date
 from couchdbkit import Server
 from weasyprint import HTML
@@ -12,6 +13,17 @@ from jinja2 import Environment, FileSystemLoader
 
 
 class Invoice(object):
+    service_definitons = {}
+
+    @classmethod
+    def load_service_definitions(cls, db):
+        service_definitons_results = db.view(
+            "%s/%s" % (db.dbname, "service_definition"),
+            include_docs=True
+        )
+        for sd in service_definitons_results:
+            cls.service_definitons[sd['doc']['service_type']] = sd['doc']
+
     """Invoice for generating HTML and PDF"""
     def __init__(self, settings, crm, client_doc, invoice_cycle):
         self.invoice_template_dir = settings.invoice_template_dir
@@ -30,6 +42,8 @@ class Invoice(object):
         self.invoice_nr = invoice_cycle.current_nr
         server = Server(self.settings.couchdb_uri)
         self.db = server.get_db(self.settings.couchdb_db)
+        if not Invoice.service_definitons:
+            Invoice.load_service_definitions(self.db)
         self.setup_invoice()
 
     def _cmd(self, cmd):
@@ -51,7 +65,7 @@ class Invoice(object):
         }
         self.doc['services'] = self.get_services()
         self.doc['address'] = self.crm.get_address(self.extcrm_id)
-        main_domain = self.doc['services']['web']['items'][0]
+        main_domain = self.doc['services']['web']['included_service_items'][0]['itemid']
         if isinstance(main_domain, dict) and 'name' in main_domain:
             main_domain = main_domain['name']
         self.doc['main_domain'] = main_domain
@@ -68,6 +82,10 @@ class Invoice(object):
             nr=self.doc['nr'],
             domain=self.doc['main_domain']
         )
+        for file_format in ['html', 'pdf']:
+            path = "%s/%s" % (self.output_dir, file_format)
+            if not os.path.exists(path):
+                os.mkdir(path)
         with codecs.open(
             '%s/html/%s.html' % (self.output_dir, self.invoice_fname),
             'w+', encoding="utf-8"
@@ -84,34 +102,30 @@ class Invoice(object):
                 self._cmd("service_by_client"),
                 key=self.client_id, include_docs=True):
             service_doc = MergedDoc(self.db, result['doc']).doc
+            service_def = Invoice.service_definitons[service_doc['service_type']]
             invoice_start_date = parse_date(service_doc['start_date'])
             if invoice_start_date < self.invoice_cycle.doc['start_date']:
                 invoice_start_date = self.invoice_cycle.doc['start_date']
             service_doc['start_date'] = invoice_start_date
-            self.add_package(service_doc)
-            service_doc['addons'] = self.add_addons(service_doc)
+            self.add_package(service_doc, service_def)
+            service_doc['addons'] = self.add_addons(service_doc, service_def['addons'])
             service_doc.update(self.add_amount(
                 service_doc['price'], service_doc['start_date'])
             )
             services[service_doc['service_type']] = service_doc
         return services
 
-    def add_package(self, service):
-        if 'package' in service:
-            price_attr = "service_{}_package_{}_price".format(
-                service['service_type'], service['package']
-            )
-            service['price'] = float(getattr(self.settings, price_attr))
-            title_attr = "service_{}_package_{}_title".format(
-                service['service_type'], service['package']
-            )
-            if hasattr(self.settings, title_attr):
-                service['title'] = getattr(self.settings, title_attr)
+    def add_package(self, doc, sd):
+        if 'service_type' in doc:
+            if 'price' not in doc:
+                doc['price'] = float(sd['packages'][doc['package_type']]['price'])
+            # if hasattr(self.settings, title_attr): # TODO YS check if neded
+            #     doc['title'] = getattr(self.settings, title_attr)
 
-    def add_addons(self, service):
+    def add_addons(self, service, sd_addons):
         if 'addons' in service:
             addons = []
-            for addon in service['addons']:
+            for addon in service['addon_service_items']:
                 if isinstance(addon, basestring):
                     addon = {'name': addon}
                 elif isinstance(addon, dict):
@@ -119,16 +133,9 @@ class Invoice(object):
                 else:
                     raise
                 if 'price' not in addon:
-                    price_attr = "service_{}_addon_{}_price".format(
-                        service['service_type'], addon['name']
-                    )
-                    addon['price'] = float(getattr(self.settings, price_attr))
-                title_attr = "service_{}_addon_{}_title".format(
-                    service['service_type'], addon['name']
-                )
-                if hasattr(self.settings, title_attr) and not 'title' in addon:
-                    title = getattr(self.settings, title_attr)
-                    addon['title'] = title
+                    addon['price'] = float(sd_addons[addon['itemType']]['price'])
+                if 'title' not in addon:
+                    addon['title'] = float(sd_addons[addon['itemType']]['title'])
                 if 'start_date' not in addon:
                     addon['start_date'] = service['start_date']
                 else:
