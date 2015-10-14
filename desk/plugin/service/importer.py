@@ -47,13 +47,14 @@ class ImportServices(object):
                     service_doc.update(row[service_type])
                 else:
                     service_doc['package'] = row[service_type]
-                if row['%s_addons' % service_type]:
-                    addons_key = '%s_addons' % service_type
-                    service_doc['addons'] = row[addons_key]
-                items_key = '%s_items' % service_type
+
+                addons_key = '%s_addon_items' % service_type
+                if addons_key in row and row[addons_key]:
+                    service_doc['addon_service_items'] = row[addons_key]
+
+                items_key = '%s_included_items' % service_type
                 if items_key in row and row[items_key]:
-                    items_key = '%s_items' % service_type
-                    service_doc['items'] = row[items_key]
+                    service_doc['included_service_items'] = row[items_key]
                 self.docs.append((service_doc['_id'], service_doc))
 
     def process_sheet(self):
