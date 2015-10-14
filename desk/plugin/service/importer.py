@@ -46,15 +46,15 @@ class ImportServices(object):
                 if isinstance(row[service_type], dict):
                     service_doc.update(row[service_type])
                 else:
-                    service_doc['package'] = row[service_type]
+                    service_doc['package_type'] = row[service_type]
 
-                addons_key = '%s_addon_items' % service_type
-                if addons_key in row and row[addons_key]:
-                    service_doc['addon_service_items'] = row[addons_key]
+                addon_key = '%s_addon_items' % service_type
+                if addon_key in row and row[addon_key]:
+                    service_doc['addon_service_items'] = row[addon_key]
 
-                items_key = '%s_included_items' % service_type
-                if items_key in row and row[items_key]:
-                    service_doc['included_service_items'] = row[items_key]
+                included_key = '%s_included_items' % service_type
+                if included_key in row and row[included_key]:
+                    service_doc['included_service_items'] = row[included_key]
                 self.docs.append((service_doc['_id'], service_doc))
 
     def process_sheet(self):
