@@ -2,11 +2,11 @@
 # python3
 from __future__ import absolute_import, print_function
 from __future__ import unicode_literals, division
-
+from importlib import import_module
 from datetime import date
 from couchdbkit import Server
 from desk.command import SettingsCommand
-from desk.plugin.extcrm.todoyu import Todoyu
+from desk.plugin.extcrm import Dummy
 from desk.plugin.invoice.invoice import Invoice, InvoiceCycle
 
 
@@ -47,7 +47,11 @@ class CreateInvoicesCommand(SettingsCommand):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def run(self):
-        todoyu = Todoyu(self.settings)
+        crm = Dummy
+        if 'worker_extcrm' in self.settings:
+            crm_classname = self.settings.worker_extcrm.split(':')[0].title()
+            Crm = import_module(".%s" % crm_classname, package="desk.plugin.extcrm")
+            crm = Crm(self.settings)
         server = Server(self.settings.couchdb_uri)
         db = server.get_db(self.settings.couchdb_db)
 
@@ -58,7 +62,7 @@ class CreateInvoicesCommand(SettingsCommand):
         counter = 0
         for result in clients:
             invoice = Invoice(
-                self.settings, crm=todoyu,
+                self.settings, crm=crm,
                 client_doc=result['doc'],
                 invoice_cycle=invoice_cycle
             )
