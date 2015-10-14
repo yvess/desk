@@ -102,7 +102,6 @@
     [domainItems removeAllObjects];
     [domainItems addObjectsFromArray:domainItemsCouch];
     [domainsAC setContent:domainItems];
-    console.log(domainItemsCouch)
 }
 
 - (void)servicePopUpSelectionChanged:(CPNotification)notification
