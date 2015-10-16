@@ -45,6 +45,12 @@ if [ "$1" = 'worker' ]; then
       echo "* configure worker.conf"
       cp /root/build/worker.conf /etc/desk/worker.conf
     fi
+
+    # Setup Fonts for invoices
+    if [ -d "/root/.fonts" ] && [ -d "/root/build" ]; then
+      echo "* cleaning font cache"
+      /usr/bin/fc-cache -f
+    fi
   fi
 
   # RUN IN TEST CASE
