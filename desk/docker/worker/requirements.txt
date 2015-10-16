@@ -6,7 +6,7 @@ Jinja2==2.7.3
 MarkupSafe==0.23
 PyMySQL==0.6.2
 Pyphen==0.9.1
-WeasyPrint==0.23
+WeasyPrint==0.24
 argparse==1.2.1
 cairocffi==0.6
 cffi==0.8.6
