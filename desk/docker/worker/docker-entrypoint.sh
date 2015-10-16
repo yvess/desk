@@ -31,7 +31,6 @@ if [ "$1" = 'worker' ]; then
 
   # RUN STUFF FOR FOREMAN, CREATE DATABASE
   if [ $WORKER_TYPE = "foreman" ]; then
-    echo "* setup foreman"
     wget -q --retry-connrefused -t 10 http://cdb:5984/ # wait for couchdb to get up
     # creating desk_drawer database
     curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://cdb:5984/desk_drawer|cat|grep -q -E "HTTP.*200|HTTP.*401"
@@ -41,7 +40,7 @@ if [ "$1" = 'worker' ]; then
     fi
 
     # COPY worker.conf for foreman
-    if [ ! -f "/etc/desk/worker.conf" ]; then
+    if [ ! -f "/etc/desk/worker.conf" ] && [ -d "/root/build" ]; then
       echo "* configure worker.conf"
       cp /root/build/worker.conf /etc/desk/worker.conf
     fi
@@ -75,13 +74,13 @@ if [ "$1" = 'worker' ]; then
     fi
 
     # CONFIGURE RUNIT WORKER
-    if [ ! -f "/etc/service/worker" ]; then
+    if [ ! -f "/etc/service/worker" ] && [ -d "/root/build" ]; then
       sed -i -e "s#-WORKER_LOG-#${WORKER_LOG}#" \
         /root/build/service/worker/run
     fi
 
     # ACTIVATE RUNIT WORKER SERVICE
-    if [ "$START_WORKER" == true ]; then
+    if [ "$START_WORKER" == true ] && [ -d "/root/build" ]; then
       echo "* started runit worker"
       [ ! -d "/etc/service/worker" ] && cp -R /root/build/service/worker /etc/service/
     fi
