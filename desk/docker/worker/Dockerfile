@@ -13,6 +13,7 @@ RUN sed -i -e "s#dl-4\.#nl\.#" /etc/apk/repositories && \
         cairo \
         pango-dev \
         bind-tools \
+        ttf-freefont \
         runit@testing && \
     cat /tmp/requirements.txt |grep -v "^#"| xargs -n 1 pip install && \
     apk del gcc g++ openssl-dev readline-dev libxml2-dev libxslt-dev openldap-dev libffi-dev pango-dev && \
