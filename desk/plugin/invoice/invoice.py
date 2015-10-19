@@ -4,6 +4,7 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 import codecs
 import os
 from datetime import date
+from unicodedata import normalize
 from couchdbkit import Server
 from weasyprint import HTML
 from desk.plugin.invoice import filters
@@ -36,6 +37,7 @@ class Invoice(object):
         self.jinja_env.filters['format_date'] = filters.format_date
         self.crm = crm
         self.client_id = client_doc['_id']
+        self.client_name = client_doc['name']
         self.extcrm_id = client_doc['extcrm_id']
         self.settings = settings
         self.invoice_cycle = invoice_cycle
@@ -45,6 +47,11 @@ class Invoice(object):
         if not Invoice.service_definitons:
             Invoice.load_service_definitions(self.db)
         self.setup_invoice()
+
+    def client_name_normalized(self):
+        fname = normalize('NFKD', self.client_name).encode('ASCII', 'ignore').lower()
+        fname = fname.replace(" ", "-")
+        return fname
 
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
@@ -64,11 +71,9 @@ class Invoice(object):
             'total': 0.0
         }
         self.doc['services'] = self.get_services()
+        self.doc['services_list'] = sorted([k for k in self.doc['services'].iterkeys()])
         self.doc['address'] = self.crm.get_address(self.extcrm_id)
-        main_domain = self.doc['services']['web']['included_service_items'][0]['itemid']
-        if isinstance(main_domain, dict) and 'name' in main_domain:
-            main_domain = main_domain['name']
-        self.doc['main_domain'] = main_domain
+        self.doc['client_name'] = self.client_name
         if 'last_invoice_end_date' in self.doc:
             self.doc['last_invoice_end_date'] = (
                 parse_date(self.doc['last_invoice_end_date'])
@@ -76,11 +81,11 @@ class Invoice(object):
 
     def render_pdf(self):
         tpl = self.jinja_env.get_template('invoice_tpl.html')
-        self.invoice_fname = "{date}_CHF{total:.2f}_Nr{nr}_hosting-{domain}_ta".format(
+        self.invoice_fname = "{date}_CHF{total:.2f}_Nr{nr}_hosting-{name}_ta".format(
             date=self.doc['date'].strftime("%Y-%m-%d"),
             total=self.doc['total'],
             nr=self.doc['nr'],
-            domain=self.doc['main_domain']
+            name=self.client_name_normalized()
         )
         for file_format in ['html', 'pdf']:
             path = "%s/%s" % (self.output_dir, file_format)
