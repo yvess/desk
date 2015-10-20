@@ -6,7 +6,6 @@ from importlib import import_module
 from datetime import date
 from couchdbkit import Server
 from desk.command import SettingsCommand
-from desk.plugin.extcrm import Dummy
 from desk.plugin.invoice.invoice import Invoice, InvoiceCycle
 
 
@@ -47,11 +46,14 @@ class CreateInvoicesCommand(SettingsCommand):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def run(self):
-        crm = Dummy()
+        crm_module = import_module('.extcrm', package='desk.plugin')
         if 'worker_extcrm' in self.settings:
             crm_classname = self.settings.worker_extcrm.split(':')[0].title()
-            Crm = import_module(".%s" % crm_classname, package="desk.plugin.extcrm")
+            Crm = getattr(crm_module, crm_classname)
             crm = Crm(self.settings)
+        else:
+            Crm = getattr(crm_module, 'Dummy')
+            crm = Crm()
         server = Server(self.settings.couchdb_uri)
         db = server.get_db(self.settings.couchdb_db)
 
