@@ -68,7 +68,10 @@ class CreateInvoicesCommand(SettingsCommand):
                 client_doc=result['doc'],
                 invoice_cycle=invoice_cycle
             )
-            if invoice.doc['services']['web']['start_date'] < invoice_cycle.doc['end_date']:
+            invoice_start_date = min(
+                [d['start_date'] for d in invoice.doc['services'].itervalues()]
+            )
+            if invoice_start_date < invoice_cycle.doc['end_date']:
                 invoice.render_pdf()
                 invoice_cycle.add_invoice(invoice)
                 counter += 1
