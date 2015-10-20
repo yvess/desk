@@ -44,6 +44,7 @@
         clients = aClientsArray;
         clientLookup = aClientLookup;
         itemLookup = [self createLookup];
+        items = [modelClass allWithParams:@{} withPath:@"/domains_by_name"];
     }
     return self;
 }
