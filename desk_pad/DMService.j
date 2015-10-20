@@ -277,6 +277,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString startDate @accessors;
     CPString endDate @accessors;
     CPString price @accessors;
+    CPString packageTitle @accessors;
     CPString discountText @accessors;
 
     CPMutableArray packagePropertiesItems @accessors;
@@ -440,6 +441,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         ov.startDate = [serviceItem.startDate stringValue];
         ov.endDate = [serviceItem.endDate stringValue];
         ov.price = [serviceItem.price stringValue];
+        ov.packageTitle = [serviceItem.packageTitle stringValue];
         ov.discountText = [serviceItem.discountText stringValue];
         [self setObjectValue:ov];
         [serviceItem.popoverService close];
@@ -453,6 +455,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [serviceItem.startDate setStringValue:ov.startDate ? ov.startDate : @""];
         [serviceItem.endDate setStringValue:ov.endDate ? ov.endDate : @""];
         [serviceItem.price setStringValue:ov.price ? ov.price : @""];
+        [serviceItem.packageTitle setStringValue:ov.packageTitle ? ov.packageTitle : @""];
         [serviceItem.discountText setStringValue:ov.discountText ? ov.discountText : @""];
 
         [serviceItem.popoverService showRelativeToRect:nil ofView:sender preferredEdge:CPMinYEdge];

@@ -15,6 +15,7 @@
     @outlet              CPTextField startDateInput;
     @outlet              CPTextField endDateInput;
     @outlet              CPTextField priceInput;
+    @outlet              CPTextField packageTitleInput;
     @outlet              CPTextField discountTextInput;
     @outlet              CPView viewService;
     @outlet              CPPopover popoverService;
@@ -209,6 +210,7 @@
     serviceItem.startDate = startDateInput;
     serviceItem.endDate = endDateInput;
     serviceItem.price = priceInput;
+    serviceItem.packageTitle = packageTitleInput;
     serviceItem.discountText = discountTextInput;
     serviceItem.packagePropertiesAC = packagePropertiesAC;
     serviceItem.includedServiceAC = includedServiceAC;
@@ -327,6 +329,7 @@
     [startDateInput setStringValue:@""];
     [endDateInput setStringValue:@""];
     [priceInput setStringValue:@""];
+    [packageTitleInput setStringValue:@""];
     [discountTextInput setStringValue:@""];
 }
 
@@ -339,6 +342,7 @@
     newServiceItem.startDate = [startDateInput stringValue];
     newServiceItem.endDate = [endDateInput stringValue];
     newServiceItem.price = [priceInput stringValue];
+    newServiceItem.packageTitle = [packageTitleInput stringValue];
     newServiceItem.discountText = [discountTextInput stringValue];
     newServiceItem.packagePropertiesItems = [[CPMutableArray alloc] initWithArray:[packagePropertiesAC contentArray] copyItems:YES];
     newServiceItem.includedServiceItems = [[CPMutableArray alloc] initWithArray:[includedServiceAC contentArray] copyItems:YES];

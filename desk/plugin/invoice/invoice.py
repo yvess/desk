@@ -13,8 +13,10 @@ from desk.utils import parse_date, calc_esr_checksum
 from jinja2 import Environment, FileSystemLoader
 
 
-def get_default(attribute, part, defaults):
-    if attribute not in part:
+def get_default(attribute, part, defaults, special_attribute=None):
+    if special_attribute in part:
+        value = part[special_attribute]
+    elif attribute not in part:
         value = defaults[attribute]
     else:
         value = part[attribute]
@@ -122,7 +124,9 @@ class Invoice(object):
             service_def = Invoice.service_definitons[service_doc['service_type']]
             package = service_def['packages'][service_doc['package_type']]
             service_doc['price'] = get_default('price', service_doc, package)
-            service_doc['package_title'] = get_default('title', service_doc, package)
+            service_doc['package_title'] = get_default(
+                'title', service_doc, package, special_attribute='package_title'
+            )
             service_doc['title'] = get_default('title', service_doc, service_def)
             invoice_start_date = parse_date(service_doc['start_date'])
             if invoice_start_date < self.invoice_cycle.doc['start_date']:
@@ -147,7 +151,9 @@ class Invoice(object):
                     raise
                 addon['price'] = get_default('price', addon, sd_addons[addon['itemType']])
                 addon['title'] = get_default('title', addon, sd_addons[addon['itemType']])
-                addon['start_date'] = get_default('start_date', addon, service)
+                addon['start_date'] = get_default(
+                    'start_date', addon, service, special_attribute='startDate'
+                )
                 addon.update(
                     self.add_amount(
                         addon['price'], addon['start_date']
