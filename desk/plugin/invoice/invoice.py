@@ -120,24 +120,20 @@ class Invoice(object):
                 key=self.client_id, include_docs=True):
             service_doc = MergedDoc(self.db, result['doc']).doc
             service_def = Invoice.service_definitons[service_doc['service_type']]
+            package = service_def['packages'][service_doc['package_type']]
+            service_doc['price'] = get_default('price', service_doc, package)
+            service_doc['package_title'] = get_default('title', service_doc, package)
             service_doc['title'] = get_default('title', service_doc, service_def)
             invoice_start_date = parse_date(service_doc['start_date'])
             if invoice_start_date < self.invoice_cycle.doc['start_date']:
                 invoice_start_date = self.invoice_cycle.doc['start_date']
             service_doc['start_date'] = invoice_start_date
-            self.add_package(service_doc, service_def)
             service_doc['addons'] = self.add_addons(service_doc, service_def['addons'])
             service_doc.update(self.add_amount(
                 service_doc['price'], service_doc['start_date'])
             )
             services[service_doc['service_type']] = service_doc
         return services
-
-    def add_package(self, doc, sd):
-        if 'service_type' in doc:
-            doc['price'] = get_default('price', doc, sd['packages'][doc['package_type']])
-            # if hasattr(self.settings, title_attr): # TODO YS check if neded
-            #     doc['title'] = getattr(self.settings, title_attr)
 
     def add_addons(self, service, sd_addons):
         if 'addon_service_items' in service:
@@ -159,6 +155,7 @@ class Invoice(object):
                 )
                 if not addon['start_date'] > self.invoice_cycle.doc['end_date']:
                     addons.append(addon)
+            del(service['addon_service_items'])
             return addons
 
     def add_amount(self, price, start_date):
