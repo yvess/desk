@@ -53,7 +53,7 @@
 - (void)pushUpdate
 {
     //console.log([CPDate date]);
-    var order = [DMOrder new];
+    var order = [[DMOrder alloc] init];
     //[order setDate:[CPString stringWithFormat:@"%@", [[CPDate date] description]]]; // [CPDate date]
     [order setDate:[CPString stringWithFormat:@"%@", Date.now()]];
     [order setCoId:[DMOrder couchId]];

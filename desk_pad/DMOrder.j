@@ -13,6 +13,12 @@
     CPString state    @accessors;
 }
 
++ (id)couchId
+{
+    var cType = [[self class] underscoreName];
+    return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
 - (CPString)nameIdentifierString
 {
     return @"date";
