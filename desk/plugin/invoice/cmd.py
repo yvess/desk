@@ -63,6 +63,7 @@ class CreateInvoicesCommand(SettingsCommand):
         )
         counter = 0
         for result in clients:
+            # print(result['doc']['name'])
             invoice = Invoice(
                 self.settings, crm=crm,
                 client_doc=result['doc'],

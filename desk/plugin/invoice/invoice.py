@@ -13,6 +13,18 @@ from desk.utils import parse_date, calc_esr_checksum
 from jinja2 import Environment, FileSystemLoader
 
 
+def get_default(attribute, part, defaults):
+    if attribute not in part:
+        value = defaults[attribute]
+    else:
+        value = part[attribute]
+    if attribute == 'price':
+        value = float(value)
+    if '_date' in attribute and not hasattr(value, 'year'):
+        value = parse_date(value)
+    return value
+
+
 class Invoice(object):
     service_definitons = {}
 
@@ -108,6 +120,7 @@ class Invoice(object):
                 key=self.client_id, include_docs=True):
             service_doc = MergedDoc(self.db, result['doc']).doc
             service_def = Invoice.service_definitons[service_doc['service_type']]
+            service_doc['title'] = get_default('title', service_doc, service_def)
             invoice_start_date = parse_date(service_doc['start_date'])
             if invoice_start_date < self.invoice_cycle.doc['start_date']:
                 invoice_start_date = self.invoice_cycle.doc['start_date']
@@ -122,15 +135,12 @@ class Invoice(object):
 
     def add_package(self, doc, sd):
         if 'service_type' in doc:
-            if 'price' not in doc:
-                doc['price'] = float(sd['packages'][doc['package_type']]['price'])
-            else:
-                doc['price'] = float(doc['price'])
+            doc['price'] = get_default('price', doc, sd['packages'][doc['package_type']])
             # if hasattr(self.settings, title_attr): # TODO YS check if neded
             #     doc['title'] = getattr(self.settings, title_attr)
 
     def add_addons(self, service, sd_addons):
-        if 'addons' in service:
+        if 'addon_service_items' in service:
             addons = []
             for addon in service['addon_service_items']:
                 if isinstance(addon, basestring):
@@ -139,14 +149,9 @@ class Invoice(object):
                     pass
                 else:
                     raise
-                if 'price' not in addon:
-                    addon['price'] = float(sd_addons[addon['itemType']]['price'])
-                if 'title' not in addon:
-                    addon['title'] = float(sd_addons[addon['itemType']]['title'])
-                if 'start_date' not in addon:
-                    addon['start_date'] = service['start_date']
-                else:
-                    addon['start_date'] = parse_date(addon['start_date'])
+                addon['price'] = get_default('price', addon, sd_addons[addon['itemType']])
+                addon['title'] = get_default('title', addon, sd_addons[addon['itemType']])
+                addon['start_date'] = get_default('start_date', addon, service)
                 addon.update(
                     self.add_amount(
                         addon['price'], addon['start_date']
