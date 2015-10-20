@@ -124,6 +124,8 @@ class Invoice(object):
         if 'service_type' in doc:
             if 'price' not in doc:
                 doc['price'] = float(sd['packages'][doc['package_type']]['price'])
+            else:
+                doc['price'] = float(doc['price'])
             # if hasattr(self.settings, title_attr): # TODO YS check if neded
             #     doc['title'] = getattr(self.settings, title_attr)
 
