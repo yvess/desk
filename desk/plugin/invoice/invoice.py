@@ -3,7 +3,7 @@
 from __future__ import absolute_import, print_function, unicode_literals, division
 import codecs
 import os
-from datetime import date
+from datetime import date, datetime
 from unicodedata import normalize
 from couchdbkit import Server
 from weasyprint import HTML
@@ -184,9 +184,10 @@ class InvoiceCycle(object):
         self.start_nr = invoice_nr
         self.current_nr = self.start_nr
         self.invoices = []
+        current_year = datetime.now().year  # TODO create setting
         self.doc = {
-            'start_date': date(2014, 1, 1), # TODO not hardcode
-            'end_date': date(2014, 12, 31), # TODO not hardcode
+            'start_date': date(current_year, 1, 1),
+            'end_date': date(current_year, 12, 31),
         }
 
     def add_invoice(self, invoice):
