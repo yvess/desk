@@ -84,7 +84,7 @@ class Invoice(object):
             'tax': 0.0,
             'total': 0.0
         }
-        self.doc['services'] = self.get_services()
+        self.doc['services'] = self.get_services(self.invoice_cycle.doc['start_date'])
         self.doc['services_list'] = sorted([k for k in self.doc['services'].iterkeys()])
         self.doc['address'] = self.crm.get_address(self.extcrm_id)
         self.doc['client_name'] = self.client_name
@@ -115,7 +115,7 @@ class Invoice(object):
             html = HTML(invoice_html, base_url=base_url)
             html.write_pdf('%s/pdf/%s.pdf' % (self.output_dir, self.invoice_fname))
 
-    def get_services(self):
+    def get_services(self, start_date):
         services = {}
         for result in self.db.view(
                 self._cmd("service_by_client"),
@@ -128,7 +128,10 @@ class Invoice(object):
                 'title', service_doc, package, special_attribute='package_title'
             )
             service_doc['title'] = get_default('title', service_doc, service_def)
-            invoice_start_date = parse_date(service_doc['start_date'])
+            if 'start_date' in service_doc:
+                invoice_start_date = parse_date(service_doc['start_date'])
+            else:
+                invoice_start_date = start_date
             if invoice_start_date < self.invoice_cycle.doc['start_date']:
                 invoice_start_date = self.invoice_cycle.doc['start_date']
             service_doc['start_date'] = invoice_start_date
