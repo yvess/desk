@@ -144,14 +144,14 @@ class Invoice(object):
             services[service_doc['service_type']] = service_doc
         if hasattr(self.settings, 'invoice_service_order'):
             servicesOrdered = OrderedDict()
-            service_order = [s.strip for s in self.settings.invoice_service_order.split(',')]
+            service_order = [s.strip() for s in self.settings.invoice_service_order.split(',')]
             for name in service_order:
                 if name in services:
                     servicesOrdered[name] = services[name]
                     del services[name]
-                if services:
-                    for k, v in services.iteritems():
-                        servicesOrdered[k] = v
+            if services:
+                for k, v in services.iteritems():
+                    servicesOrdered[k] = v
             return servicesOrdered
         return services
 
