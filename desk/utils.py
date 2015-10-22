@@ -121,8 +121,11 @@ def create_order_doc(uploader):
     return order_id
 
 
-def parse_date(date_string):
-    return date(*[int(item) for item in date_string.split("-")])
+def parse_date(date_string, force_day=None):
+    year, month, day = [int(item) for item in date_string.split("-")]
+    if force_day == 'start':
+        day = 1
+    return date(year, month, day)
 
 
 def calc_esr_checksum(ref_number):

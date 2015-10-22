@@ -13,7 +13,7 @@ from desk.utils import parse_date, calc_esr_checksum
 from jinja2 import Environment, FileSystemLoader
 
 
-def get_default(attribute, part, defaults, special_attribute=None):
+def get_default(attribute, part, defaults, special_attribute=None, date_force_day=None):
     if special_attribute in part:
         value = part[special_attribute]
     elif attribute not in part:
@@ -23,7 +23,7 @@ def get_default(attribute, part, defaults, special_attribute=None):
     if attribute == 'price':
         value = float(value)
     if '_date' in attribute and not hasattr(value, 'year'):
-        value = parse_date(value)
+        value = parse_date(value, force_day=date_force_day)
     return value
 
 
@@ -90,7 +90,7 @@ class Invoice(object):
         self.doc['client_name'] = self.client_name
         if 'last_invoice_end_date' in self.doc:
             self.doc['last_invoice_end_date'] = (
-                parse_date(self.doc['last_invoice_end_date'])
+                parse_date(self.doc['last_invoice_end_date'], force_day='end')
             )
 
     def render_pdf(self):
@@ -129,7 +129,7 @@ class Invoice(object):
             )
             service_doc['title'] = get_default('title', service_doc, service_def)
             if 'start_date' in service_doc:
-                invoice_start_date = parse_date(service_doc['start_date'])
+                invoice_start_date = parse_date(service_doc['start_date'], force_day='start')
             else:
                 invoice_start_date = start_date
             if invoice_start_date < self.invoice_cycle.doc['start_date']:
@@ -156,7 +156,8 @@ class Invoice(object):
                 addon['price'] = get_default('price', addon, sd_addons[addon['itemType']])
                 addon['title'] = get_default('title', addon, sd_addons[addon['itemType']])
                 addon['start_date'] = get_default(
-                    'start_date', addon, service, special_attribute='startDate'
+                    'start_date', addon, service,
+                    special_attribute='startDate', date_force_day='start'
                 )
                 addon.update(
                     self.add_amount(
