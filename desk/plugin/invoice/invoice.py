@@ -136,6 +136,7 @@ class Invoice(object):
                 invoice_start_date = self.invoice_cycle.doc['start_date']
             service_doc['start_date'] = invoice_start_date
             service_doc['addons'] = self.add_addons(service_doc, service_def['addons'])
+            service_doc['included'] = self.add_included(service_doc, package)
             service_doc.update(self.add_amount(
                 service_doc['price'], service_doc['start_date'])
             )
@@ -143,8 +144,8 @@ class Invoice(object):
         return services
 
     def add_addons(self, service, sd_addons):
+        addons = []
         if 'addon_service_items' in service:
-            addons = []
             for addon in service['addon_service_items']:
                 if isinstance(addon, basestring):
                     addon = {'name': addon}
@@ -165,7 +166,18 @@ class Invoice(object):
                 if not addon['start_date'] > self.invoice_cycle.doc['end_date']:
                     addons.append(addon)
             del(service['addon_service_items'])
-            return addons
+        return addons
+
+    def add_included(self, service, sd_package):
+        included = []
+        if 'included_service_items' in service:
+            for item in service['included_service_items']:
+                item['title'] = get_default(
+                    'title', item, sd_package["included"][item['itemType']]
+                )
+                included.append(item)
+            del(service['included_service_items'])
+        return included
 
     def add_amount(self, price, start_date):
         end_date = self.doc['end_date']
