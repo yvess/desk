@@ -3,6 +3,7 @@
 from __future__ import absolute_import, print_function, unicode_literals, division
 import codecs
 import os
+from collections import OrderedDict
 from datetime import date, datetime
 from unicodedata import normalize
 from couchdbkit import Server
@@ -141,6 +142,17 @@ class Invoice(object):
                 service_doc['price'], service_doc['start_date'])
             )
             services[service_doc['service_type']] = service_doc
+        if hasattr(self.settings, 'invoice_service_order'):
+            servicesOrdered = OrderedDict()
+            service_order = [s.strip for s in self.settings.invoice_service_order.split(',')]
+            for name in service_order:
+                if name in services:
+                    servicesOrdered[name] = services[name]
+                    del services[name]
+                if services:
+                    for k, v in services.iteritems():
+                        servicesOrdered[k] = v
+            return servicesOrdered
         return services
 
     def add_addons(self, service, sd_addons):
@@ -160,9 +172,7 @@ class Invoice(object):
                     special_attribute='startDate', date_force_day='start'
                 )
                 addon.update(
-                    self.add_amount(
-                        addon['price'], addon['start_date']
-                    )
+                    self.add_amount(addon['price'], addon['start_date'])
                 )
                 if not addon['start_date'] > self.invoice_cycle.doc['end_date']:
                     addons.append(addon)
