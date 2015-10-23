@@ -42,6 +42,7 @@
     @outlet              CPPopUpButton itemTypeInputIncluded;
     @outlet              CPTextField startDateInputIncluded;
     @outlet              CPTextField endDateInputIncluded;
+    @outlet              CPTextField notesInputIncluded;
 
     CPMutableArray       addonServiceItems @accessors;
     @outlet              CPArrayController addonServiceAC;
@@ -56,6 +57,7 @@
     @outlet              CPTextField endDateInputAddon;
     @outlet              CPTextField priceInputAddon;
     @outlet              CPTextField discountTextInputAddon;
+    @outlet              CPTextField notesInputAddon;
 
     CPMutableDictionary  itemLookup @accessors;
 
@@ -186,6 +188,7 @@
     itemIncluded.itemType = itemTypeInputIncluded;
     itemIncluded.startDate = startDateInputIncluded;
     itemIncluded.endDate = endDateInputIncluded;
+    itemIncluded.notes = notesInputIncluded;
     itemIncluded.viewIncluded = viewIncluded;
     itemIncluded.popoverIncluded = popoverIncluded;
 
@@ -196,6 +199,7 @@
     itemAddon.endDate = endDateInputAddon;
     itemAddon.price = priceInputAddon;
     itemAddon.discountText = discountTextInputAddon;
+    itemAddon.notes = notesInputAddon;
     itemAddon.viewAddon = viewAddon;
     itemAddon.popoverAddon = popoverAddon;
     itemAddon.view = viewService;

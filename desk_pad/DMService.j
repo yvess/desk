@@ -78,6 +78,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString rowtitle @accessors(readonly);
     CPString startDate @accessors;
     CPString endDate @accessors;
+    CPString notes @accessors;
 }
 
 - (id)init
@@ -89,6 +90,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [self setItemType:@""];
         [self setStartDate:@""];
         [self setEndDate:@""];
+        [self setNotes:@""];
     }
     return self;
 }
@@ -149,6 +151,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         ov.itemType = [itemIncluded.itemType titleOfSelectedItem];
         ov.startDate = [itemIncluded.startDate stringValue];
         ov.endDate = [itemIncluded.endDate stringValue];
+        ov.notes = [itemIncluded.notes stringValue];
         [self setObjectValue:ov];
         [itemIncluded.popoverIncluded close];
     } else {
@@ -161,6 +164,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         }
         [itemIncluded.startDate setStringValue:[[self objectValue] startDate]];
         [itemIncluded.endDate setStringValue:[[self objectValue] endDate]];
+        [itemIncluded.notes setStringValue:[[self objectValue] notes]];
     }
 }
 @end
@@ -176,6 +180,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString endDate @accessors;
     CPString price @accessors;
     CPString discountText @accessors;
+    CPString notes @accessors;
 }
 
 - (id)init
@@ -189,6 +194,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [self setEndDate:@""];
         [self setPrice:@""];
         [self setDiscountText:@""];
+        [self setNotes:@""];
     }
     return self;
 }
@@ -246,6 +252,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         ov.endDate = [itemAddon.endDate stringValue];
         ov.price = [itemAddon.price stringValue];
         ov.discountText = [itemAddon.discountText stringValue];
+        ov.notes = [itemAddon.notes stringValue];
         [self setObjectValue:ov];
         [itemAddon.popoverAddon close];
     } else {
@@ -260,6 +267,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [itemAddon.endDate setStringValue:[[self objectValue] endDate]];
         [itemAddon.price setStringValue:[[self objectValue] price]];
         [itemAddon.discountText setStringValue:[[self objectValue] discountText]];
+        [itemAddon.notes setStringValue:[[self objectValue] notes]];
     }
 }
 @end
@@ -375,7 +383,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
                 var includedArray = [];
                 [value enumerateObjectsUsingBlock:function(item) {
                     addObjectToArray(
-                        ['itemid', 'itemType', 'startDate', 'endDate'],
+                        ['itemid', 'itemType', 'startDate', 'endDate', 'notes'],
                          item, includedArray
                     );
                 }];
@@ -386,7 +394,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
                 [value enumerateObjectsUsingBlock:function(item) {
                     addObjectToArray(
                         ['itemid', 'itemType', 'startDate', 'endDate', 'price',
-                         'discountText'], item, addonArray
+                         'discountText', 'notes'], item, addonArray
                     );
                 }];
                 value = addonArray;
