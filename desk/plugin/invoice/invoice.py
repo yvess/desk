@@ -138,8 +138,11 @@ class Invoice(object):
             service_doc['start_date'] = invoice_start_date
             service_doc['addons'] = self.add_addons(service_doc, service_def['addons'])
             service_doc['included'] = self.add_included(service_doc, package)
+            service_end_date = get_default(
+                'end_date', service_doc, self.doc,
+            )
             service_doc.update(self.add_amount(
-                service_doc['price'], service_doc['start_date'])
+                service_doc['price'], service_doc['start_date'], service_end_date)
             )
             services[service_doc['service_type']] = service_doc
         if hasattr(self.settings, 'invoice_service_order'):
@@ -167,12 +170,21 @@ class Invoice(object):
                     raise
                 addon['price'] = get_default('price', addon, sd_addons[addon['itemType']])
                 addon['title'] = get_default('title', addon, sd_addons[addon['itemType']])
-                addon['start_date'] = get_default(
+                addon_start_date = get_default(
                     'start_date', addon, service,
                     special_attribute='startDate', date_force_day='start'
                 )
+                if addon_start_date < self.doc['start_date']:
+                    addon['start_date'] = self.doc['start_date']
+                else:
+                    addon['start_date'] = addon_start_date
+
+                addon['end_date'] = get_default(
+                    'end_date', addon, self.doc,
+                    special_attribute='endDate',
+                )
                 addon.update(
-                    self.add_amount(addon['price'], addon['start_date'])
+                    self.add_amount(addon['price'], addon['start_date'], addon['end_date'])
                 )
                 if not addon['start_date'] > self.invoice_cycle.doc['end_date']:
                     addons.append(addon)
@@ -190,8 +202,7 @@ class Invoice(object):
             del(service['included_service_items'])
         return included
 
-    def add_amount(self, price, start_date):
-        end_date = self.doc['end_date']
+    def add_amount(self, price, start_date, end_date):
         item = {}
         if ('last_invoice_end_date' in self.doc
            and start_date < self.doc['start_date']):
