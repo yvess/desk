@@ -130,12 +130,13 @@ class Invoice(object):
             )
             service_doc['title'] = get_default('title', service_doc, service_def)
             if 'start_date' in service_doc:
-                invoice_start_date = parse_date(service_doc['start_date'], force_day='start')
+                service_start_date = parse_date(service_doc['start_date'], force_day='start')
             else:
-                invoice_start_date = start_date
-            if invoice_start_date < self.invoice_cycle.doc['start_date']:
-                invoice_start_date = self.invoice_cycle.doc['start_date']
-            service_doc['start_date'] = invoice_start_date
+                service_start_date = start_date
+            if service_start_date < self.invoice_cycle.doc['start_date']:
+                service_start_date = self.invoice_cycle.doc['start_date']
+
+            service_doc['start_date'] = service_start_date
             service_doc['addons'] = self.add_addons(service_doc, service_def['addons'])
             service_doc['included'] = self.add_included(service_doc, package)
             service_end_date = get_default(
