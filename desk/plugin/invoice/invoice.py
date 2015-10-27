@@ -146,8 +146,8 @@ class Invoice(object):
                 service_doc['price'], service_doc['start_date'], service_end_date)
             )
             if service_doc['total'] == 0.0 \
-               and 'addons' not in service_doc \
-               and 'included' not in service_doc:
+               and not service_doc['addons'] \
+               and not service_doc['included']:
                 pass
             else:
                 services[service_doc['service_type']] = service_doc
