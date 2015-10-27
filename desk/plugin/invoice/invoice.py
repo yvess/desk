@@ -52,8 +52,8 @@ class Invoice(object):
         self.jinja_env.filters['format_date'] = filters.format_date
         self.crm = crm
         self.client_id = client_doc['_id']
-        self.client_name = client_doc['name']
         self.extcrm_id = client_doc['extcrm_id']
+        self.client_doc = client_doc
         self.settings = settings
         self.invoice_cycle = invoice_cycle
         self.invoice_nr = invoice_cycle.current_nr
@@ -64,7 +64,7 @@ class Invoice(object):
         self.setup_invoice()
 
     def client_name_normalized(self):
-        fname = normalize('NFKD', self.client_name).encode('ASCII', 'ignore').lower()
+        fname = normalize('NFKD', self.client_doc['name']).encode('ASCII', 'ignore').lower()
         fname = fname.replace(" ", "-")
         return fname
 
@@ -85,14 +85,14 @@ class Invoice(object):
             'tax': 0.0,
             'total': 0.0
         }
-        self.doc['services'] = self.get_services(self.invoice_cycle.doc['start_date'])
+        if 'last_invoice_end_date' in self.client_doc:
+            self.doc['last_invoice_end_date'] = parse_date(
+                self.client_doc['last_invoice_end_date'], force_day='end')
+        self.doc['services'] = self.get_services()
         self.doc['services_list'] = sorted([k for k in self.doc['services'].iterkeys()])
         self.doc['address'] = self.crm.get_address(self.extcrm_id)
-        self.doc['client_name'] = self.client_name
-        if 'last_invoice_end_date' in self.doc:
-            self.doc['last_invoice_end_date'] = (
-                parse_date(self.doc['last_invoice_end_date'], force_day='end')
-            )
+        self.doc['client_name'] = self.client_doc['name']
+        # import ipdb; ipdb.set_trace()
 
     def render_pdf(self):
         tpl = self.jinja_env.get_template('invoice_tpl.html')
@@ -116,8 +116,9 @@ class Invoice(object):
             html = HTML(invoice_html, base_url=base_url)
             html.write_pdf('%s/pdf/%s.pdf' % (self.output_dir, self.invoice_fname))
 
-    def get_services(self, start_date):
+    def get_services(self):
         services = {}
+        cycle_start_date = self.invoice_cycle.doc['start_date']
         for result in self.db.view(
                 self._cmd("service_by_client"),
                 key=self.client_id, include_docs=True):
@@ -132,19 +133,18 @@ class Invoice(object):
             if 'start_date' in service_doc:
                 service_start_date = parse_date(service_doc['start_date'], force_day='start')
             else:
-                service_start_date = start_date
-            if service_start_date < self.invoice_cycle.doc['start_date']:
-                service_start_date = self.invoice_cycle.doc['start_date']
-
+                service_start_date = cycle_start_date
+            if 'last_invoice_end_date' in self.doc:
+                if service_start_date < self.doc['last_invoice_end_date']:
+                    service_start_date = cycle_start_date
             service_doc['start_date'] = service_start_date
             service_doc['addons'] = self.add_addons(service_doc, service_def['addons'])
             service_doc['included'] = self.add_included(service_doc, package)
             service_end_date = get_default(
-                'end_date', service_doc, self.doc,
-            )
-            service_doc.update(self.add_amount(
+                'end_date', service_doc, self.doc)
+            doc_amount = self.add_amount(
                 service_doc['price'], service_doc['start_date'], service_end_date)
-            )
+            service_doc.update(doc_amount)
             if service_doc['total'] == 0.0 \
                and not service_doc['addons'] \
                and not service_doc['included']:
@@ -166,6 +166,7 @@ class Invoice(object):
 
     def add_addons(self, service, sd_addons):
         addons = []
+        cycle_start_date = self.invoice_cycle.doc['start_date']
         if 'addon_service_items' in service:
             for addon in service['addon_service_items']:
                 if isinstance(addon, basestring):
@@ -176,15 +177,16 @@ class Invoice(object):
                     raise
                 addon['price'] = get_default('price', addon, sd_addons[addon['itemType']])
                 addon['title'] = get_default('title', addon, sd_addons[addon['itemType']])
-                addon_start_date = get_default(
+                addon['start_date'] = get_default(
                     'start_date', addon, service,
                     special_attribute='startDate', date_force_day='start'
                 )
-                if addon_start_date < self.doc['start_date']:
-                    addon['start_date'] = self.doc['start_date']
+                if 'last_invoice_end_date' in self.doc:
+                    if addon['start_date'] < self.doc['last_invoice_end_date']:
+                        addon['start_date'] = cycle_start_date
                 else:
-                    addon['start_date'] = addon_start_date
-
+                    if addon['start_date'] < self.doc['start_date']:
+                        addon['start_date'] = self.doc['start_date']
                 addon['end_date'] = get_default(
                     'end_date', addon, self.doc,
                     special_attribute='endDate',
@@ -210,9 +212,6 @@ class Invoice(object):
 
     def add_amount(self, price, start_date, end_date):
         item = {}
-        if ('last_invoice_end_date' in self.doc
-           and start_date < self.doc['start_date']):
-            start_date = self.doc['start_date']
         months = (
             (end_date.year - start_date.year) * 12 +
             (end_date.month - start_date.month) + 1
