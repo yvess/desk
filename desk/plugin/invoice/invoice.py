@@ -145,7 +145,8 @@ class Invoice(object):
             service_doc.update(self.add_amount(
                 service_doc['price'], service_doc['start_date'], service_end_date)
             )
-            services[service_doc['service_type']] = service_doc
+            if service_doc['total'] != 0.0:
+                services[service_doc['service_type']] = service_doc
         if hasattr(self.settings, 'invoice_service_order'):
             servicesOrdered = OrderedDict()
             service_order = [s.strip() for s in self.settings.invoice_service_order.split(',')]
