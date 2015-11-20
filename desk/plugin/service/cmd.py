@@ -3,8 +3,8 @@
 from __future__ import absolute_import, print_function, unicode_literals, division
 from couchdbkit import Server
 from desk.command import SettingsCommand
-from desk.plugin.extcrm.todoyu import Todoyu
-from desk.plugin.service.importer import ImportServices
+from desk.utils import get_crm_module
+from desk.plugin.service import ImportServices, QueryServices
 
 
 class ImportServiceCommand(SettingsCommand):
@@ -37,6 +37,39 @@ class ImportServiceCommand(SettingsCommand):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def run(self):
-        self.todoyu = Todoyu(self.settings)
+        self.todoyu = get_crm_module(self.settings)
         services = ImportServices(self.settings)
         services.create_files()
+
+
+class QueryServiceCommand(SettingsCommand):
+    def setup_parser(self, subparsers, config_parser):
+        service_query_parser = subparsers.add_parser(
+            'service-query',
+            help="""query service data""",
+            description="Query service data"
+        )
+        service_query_parser.add_argument(*config_parser['args'],
+                                          **config_parser['kwargs'])
+        service_query_parser.add_argument(
+            "service", help="name of service to query"
+        )
+
+        service_query_parser.add_argument(
+            "-p", "--packages", dest="service_packages", default=None,
+            help="packages of services seperated by comma",
+        )
+
+        service_query_parser.add_argument(
+            "-a", "--addons", dest="service_addons",  default=None,
+            help="addons of services seperated by comma",
+        )
+
+        return service_query_parser
+
+    def _cmd(self, cmd):
+        return "{}/{}".format(self.settings.couchdb_db, cmd)
+
+    def run(self):
+        services = QueryServices(self.settings)
+        services.get_services()

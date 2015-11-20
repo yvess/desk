@@ -13,7 +13,7 @@ from desk.command import InstallDbCommand, InstallWorkerCommand
 from desk.command import WorkerCommand, UploadJsonCommand
 from desk.plugin.dns.cmd import ImportDnsCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
-from desk.plugin.service.cmd import ImportServiceCommand
+from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
 
 
 DEFAULTS = {
@@ -102,6 +102,11 @@ class SetupWorkerParser(object):
             self.subparsers, CONFIG_PARSER
         )
 
+        self.service_query_cmd = QueryServiceCommand()
+        self.service_query_parser = self.service_query_cmd.setup_parser(
+            self.subparsers, CONFIG_PARSER
+        )
+
     def merge_configfile(self):
         if self.pass_args:
             args = self.main_parser.parse_args(self.pass_args)
@@ -138,6 +143,7 @@ class SetupWorkerParser(object):
         self.dns_import_parser.set_defaults(**self.merged_defaults)
         self.invoices_create_parser.set_defaults(**self.merged_defaults)
         self.service_import_parser.set_defaults(**self.merged_defaults)
+        self.service_query_parser.set_defaults(**self.merged_defaults)
         if self.pass_args:
             self.settings = self.main_parser.parse_args(self.pass_args)
         else:
@@ -175,3 +181,6 @@ if __name__ == "__main__":
     elif worker.settings.command == 'service-import':
         worker.service_import_cmd.set_settings(worker.settings)
         worker.service_import_cmd.run()
+    elif worker.settings.command == 'service-query':
+        worker.service_query_cmd.set_settings(worker.settings)
+        worker.service_query_cmd.run()
