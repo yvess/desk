@@ -68,35 +68,32 @@ class Todoyu(ExtCrmBase):
                     print("*** double company", data, self.address_map[pk])
 
     def _fill_contact(self, cursor):
+        contactinfo = ('contactinfo.info',)
         person = (
-            'IFNULL(person_privat.id, person.id) as p_id',
-            'IFNULL(person_privat.salutation, person.salutation) as salutation',
-            'IFNULL(person_privat.firstname, person.firstname) as firstname',
-            'IFNULL(person_privat.lastname, person.lastname) as lastname',
+            'person.id as p_id', 'person.salutation as salutation',
+            'person.firstname as firstname', 'person.lastname as lastname',
         )
-        person_fields = ('p_id', 'salutation', 'firstname', 'lastname')
-        contactinfo = (
-            'contactinfo.info',
-        )
-        company = 'company.id', 'company.title'
+        person_fields = 'p_id', 'salutation', 'firstname', 'lastname',
+        company = 'company.id as c_id', 'company.title'
+        company_fields = 'c_id', 'company.title'
 
         SQL = """
         SELECT
-        {contactinfo}, {person}, {company}
+            {contactinfo}, {person}, {company}
         FROM ext_contact_contactinfo as contactinfo
-        LEFT JOIN (ext_contact_mm_company_contactinfo as c2c, ext_contact_company as company)
-            ON (contactinfo.id=c2c.id_contactinfo AND company.id=c2c.id_company)
-        LEFT JOIN (ext_contact_mm_person_contactinfo as p2c, ext_contact_person as person_privat)
-            ON (contactinfo.id=p2c.id_contactinfo AND person_privat.id=p2c.id_person)
-        LEFT JOIN (ext_contact_mm_company_person as c2p, ext_contact_person as person)
-            ON (person.id=c2p.id_person AND company.id=c2p.id_company)
+        LEFT JOIN (ext_contact_mm_person_contactinfo as p2c, ext_contact_person as person)
+            ON (contactinfo.id=p2c.id_contactinfo AND person.id=p2c.id_person)
+        LEFT JOIN ext_contact_mm_company_person as c2p
+            ON (person.id=c2p.id_person)
+        LEFT JOIN (ext_contact_company as company)
+            ON (company.id=c2p.id_company)
         WHERE 1
         AND (contactinfo.deleted=0) AND (contactinfo.id_contactinfotype=1)
         AND (company.deleted=0 OR company.deleted IS NULL)
         AND (person.deleted=0 OR person.deleted IS NULL)
-        AND (person_privat.deleted=0 OR person_privat.deleted IS NULL)
+
         ORDER BY
-        company.title, firstname, lastname;
+        firstname, lastname
         """.format(
             company=", ".join(company),
             person=", ".join(person),
@@ -105,9 +102,9 @@ class Todoyu(ExtCrmBase):
 
         cursor.execute(SQL)
         for r in cursor.fetchall():
-            fields = [f.replace('.', '_') for f in (contactinfo + person_fields + company)]
+            fields = [f.replace('.', '_') for f in (contactinfo + person_fields + company_fields)]
             data = dict(zip(fields, r))
-            pk_keys = (data['p_id'], 'p'), (data['company_id'], 'c')
+            pk_keys = (data['p_id'], 'p'), (data['c_id'], 'c')
             pk = "-".join(["%s%s" % (key, pk) for pk, key in pk_keys if pk])
             if pk:
                 if (pk not in self.contact_map):
