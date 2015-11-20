@@ -65,6 +65,17 @@ class QueryServiceCommand(SettingsCommand):
             help="addons of services seperated by comma",
         )
 
+        service_query_parser.add_argument(
+            "-i", "--included_items", dest="included_items", default=None,
+            help="show value of included_items",
+        )
+
+        service_query_parser.add_argument(
+            "-b", "--onlybillable", dest="only_billable", default=False,
+            action="store_true",
+            help="only show billable clients",
+        )
+
         return service_query_parser
 
     def _cmd(self, cmd):

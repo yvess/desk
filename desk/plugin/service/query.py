@@ -27,6 +27,8 @@ class QueryServices(object):
         services = []
         startkey = [self.settings.service]
         endkey = [self.settings.service]
+        only_billable = self.settings.only_billable
+
         if self.settings.service_packages:
             startkey.append(self.settings.service_packages)
             endkey.append(self.settings.service_packages)
@@ -42,25 +44,32 @@ class QueryServices(object):
         for item in self.db.view(
                 self._cmd("service_package_addon"),
                 startkey=startkey, endkey=endkey, include_docs=True):
-            if 'extcrm_id' in item['doc']:
+            if 'extcrm_id' in item['doc'] and (not only_billable or \
+               (only_billable and 'is_billable' in item['doc'] and item['doc']['is_billable'])) :
                 extcrm_id = item['doc']['extcrm_id']
                 service_name = '-'.join([part for part in item['key'] if part])
+                included_items = []
+                if 'value' in item and 'included_service_items' in item['value']:
+                    included_items = [item['itemid'] for item in item['value']['included_service_items']]
+                included_items = ','.join(included_items)
                 if extcrm_id in self.crm.contact_map:
                     contact = self.crm.contact_map[extcrm_id]
                     name = [contact['company_title'], contact['firstname'], contact['lastname']]
                     name = [part for part in name if part]
                     print(
-                        contact['contactinfo_info'], ',' ,
-                        ' '.join(name), ',',
-                        service_name, ',',
+                        contact['contactinfo_info'], ';' ,
+                        ' '.join(name), ';',
+                        service_name, ';',
+                        included_items, ';',
                         extcrm_id,
                         sep=''
                     )
                 else:
                     print(
-                        "# No Email #", ',' ,
-                        item['doc']['name'], ',',
-                        service_name, ',',
+                        "# No Email #", ';' ,
+                        ' '.join(name), ';',
+                        service_name, ';',
+                        included_items, ';',
                         extcrm_id,
                         sep=''
                     )
