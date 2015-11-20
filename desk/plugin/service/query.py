@@ -44,13 +44,26 @@ class QueryServices(object):
                 startkey=startkey, endkey=endkey, include_docs=True):
             if 'extcrm_id' in item['doc']:
                 extcrm_id = item['doc']['extcrm_id']
+                service_name = '-'.join([part for part in item['key'] if part])
                 if extcrm_id in self.crm.contact_map:
                     contact = self.crm.contact_map[extcrm_id]
                     name = [contact['company_title'], contact['firstname'], contact['lastname']]
                     name = [part for part in name if part]
-                    print(contact['contactinfo_info'], ',' , ' '.join(name), ',', item['key'], sep='')
+                    print(
+                        contact['contactinfo_info'], ',' ,
+                        ' '.join(name), ',',
+                        service_name, ',',
+                        extcrm_id,
+                        sep=''
+                    )
                 else:
-                    print("### No Contact", item['doc']['name'], item['key'])
+                    print(
+                        "# No Email #", ',' ,
+                        item['doc']['name'], ',',
+                        service_name, ',',
+                        extcrm_id,
+                        sep=''
+                    )
             else:
                 print("*** no extcrm_id", item)
         return services
