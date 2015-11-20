@@ -6,6 +6,7 @@ import os
 import shutil
 import json
 import requests
+from importlib import import_module
 
 
 class ObjectDict(object):
@@ -136,3 +137,15 @@ def calc_esr_checksum(ref_number):
     for n in ref_number:
         sum = quasigroup_esr[(sum + int(n)) % 10]
     return (10 - sum) % 10
+
+
+def get_crm_module(settings):
+    crm_module = import_module('.extcrm', package='desk.plugin')
+    if 'worker_extcrm' in settings:
+        crm_classname = settings.worker_extcrm.split(':')[0].title()
+        Crm = getattr(crm_module, crm_classname)
+        crm = Crm(settings)
+    else:
+        Crm = getattr(crm_module, 'Dummy')
+        crm = Crm()
+    return crm
