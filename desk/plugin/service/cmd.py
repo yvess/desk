@@ -83,4 +83,4 @@ class QueryServiceCommand(SettingsCommand):
 
     def run(self):
         services = QueryServices(self.settings)
-        services.get_services()
+        services.query()

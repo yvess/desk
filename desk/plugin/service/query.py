@@ -23,7 +23,7 @@ class QueryServices(object):
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
-    def get_services(self):
+    def query(self):
         services = []
         startkey = [self.settings.service]
         endkey = [self.settings.service]
@@ -45,33 +45,41 @@ class QueryServices(object):
                 self._cmd("service_package_addon"),
                 startkey=startkey, endkey=endkey, include_docs=True):
             if 'extcrm_id' in item['doc']:
-                extcrm_id = item['doc']['extcrm_id']
+                client_doc  = item['doc']
+                extcrm_id = client_doc['extcrm_id']
                 service_name = '-'.join([part for part in item['key'] if part])
                 included_items = []
+                is_billable = client_doc['is_billable'] if 'is_billable' in client_doc else False
                 if 'value' in item and 'included_service_items' in item['value']:
                     included_items = [included['itemid'] for included in item['value']['included_service_items']]
                 included_items = ','.join(included_items)
-                address_id = item['doc']['extcrm_id'] if 'extcrm_id' in item['doc'] else None
-                contact_id = item['doc']['extcrm_contact_id'] if 'extcrm_contact_id' in item['doc'] else None
-                if address_id and self.crm.has_contact(contact_id):
-                    contact = self.crm.get_contact(contact_id)
-                    print(
-                        contact.email, ';' ,
-                        contact.name, ';',
-                        service_name, ';',
-                        included_items, ';',
-                        extcrm_id,
-                        sep=''
-                    )
+                address_id = client_doc['extcrm_id'] if 'extcrm_id' in client_doc else None
+                if 'extcrm_contact_id' in client_doc and client_doc['extcrm_contact_id']:
+                    contact_id = client_doc['extcrm_contact_id']
+                elif 'p' in extcrm_id:
+                    for part in extcrm_id.split('-'):
+                        if part.startswith('p'):
+                            contact_id = part
                 else:
-                    print(
-                        "# No Email #", ';' ,
-                        "# no contact#", ';',
-                        service_name, ';',
-                        included_items, ';',
-                        extcrm_id,
-                        sep=''
-                    )
+                    contact_id = ''
+
+                if not only_billable or only_billable and is_billable:
+                    if address_id and self.crm.has_contact(contact_id):
+                        contact = self.crm.get_contact(contact_id)
+                        services.append([
+                            contact.email, contact.name, service_name,
+                            included_items,
+                            extcrm_id, contact_id
+                        ])
+                    else:
+                        services.append([
+                            "# No Email #", "# no contact#", service_name,
+                            included_items,
+                            extcrm_id, ''
+                        ])
             else:
                 print("*** no extcrm_id", item)
-        return services
+        for service in services:
+            print(service)
+            print(';'.join(service))
+        print("total: %s" % len(services))
