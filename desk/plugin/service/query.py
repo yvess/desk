@@ -80,6 +80,5 @@ class QueryServices(object):
             else:
                 print("*** no extcrm_id", item)
         for service in services:
-            print(service)
             print(';'.join(service))
         print("total: %s" % len(services))
