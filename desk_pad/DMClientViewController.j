@@ -1,6 +1,5 @@
 @import <AppKit/CPPopover.j>
 @import <AppKit/CPArrayController.j>
-@import <CouchResource/COArrayController.j>
 @import <CouchResource/COViewController.j>
 @import "DMService.j"
 @import "DMClient.j"

@@ -4,7 +4,6 @@
 @import <AppKit/CPOutlineView.j>
 @import <AppKit/CPPopover.j>
 @import <CouchResource/COViewController.j>
-@import <CouchResource/COArrayController.j>
 @import "DMDomain.j"
 @import "DMTemplate.j"
 @import "DMDomainRecordsOutlineController.j"
