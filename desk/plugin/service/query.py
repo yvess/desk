@@ -44,21 +44,20 @@ class QueryServices(object):
         for item in self.db.view(
                 self._cmd("service_package_addon"),
                 startkey=startkey, endkey=endkey, include_docs=True):
-            if 'extcrm_id' in item['doc'] and (not only_billable or \
-               (only_billable and 'is_billable' in item['doc'] and item['doc']['is_billable'])) :
+            if 'extcrm_id' in item['doc']:
                 extcrm_id = item['doc']['extcrm_id']
                 service_name = '-'.join([part for part in item['key'] if part])
                 included_items = []
                 if 'value' in item and 'included_service_items' in item['value']:
-                    included_items = [item['itemid'] for item in item['value']['included_service_items']]
+                    included_items = [included['itemid'] for included in item['value']['included_service_items']]
                 included_items = ','.join(included_items)
-                if extcrm_id in self.crm.contact_map:
-                    contact = self.crm.contact_map[extcrm_id]
-                    name = [contact['company_title'], contact['firstname'], contact['lastname']]
-                    name = [part for part in name if part]
+                address_id = item['doc']['extcrm_id'] if 'extcrm_id' in item['doc'] else None
+                contact_id = item['doc']['extcrm_contact_id'] if 'extcrm_contact_id' in item['doc'] else None
+                if address_id and self.crm.has_contact(contact_id):
+                    contact = self.crm.get_contact(contact_id)
                     print(
-                        contact['contactinfo_info'], ';' ,
-                        ' '.join(name), ';',
+                        contact.email, ';' ,
+                        contact.name, ';',
                         service_name, ';',
                         included_items, ';',
                         extcrm_id,
@@ -67,7 +66,7 @@ class QueryServices(object):
                 else:
                     print(
                         "# No Email #", ';' ,
-                        ' '.join(name), ';',
+                        "# no contact#", ';',
                         service_name, ';',
                         included_items, ';',
                         extcrm_id,
