@@ -32,8 +32,9 @@ class QueryServices(object):
         if self.settings.service_packages:
             startkey.append(self.settings.service_packages)
             endkey.append(self.settings.service_packages)
+            couchdb_view = 'service_package_addon'
         else:
-            endkey.append({})
+            couchdb_view = 'service_addon'
 
         if self.settings.service_addons:
             startkey.append(self.settings.service_addons)
@@ -42,7 +43,7 @@ class QueryServices(object):
             endkey.append({})
 
         for item in self.db.view(
-                self._cmd("service_package_addon"),
+                self._cmd(couchdb_view),
                 startkey=startkey, endkey=endkey, include_docs=True):
             if 'extcrm_id' in item['doc']:
                 client_doc  = item['doc']
@@ -64,10 +65,10 @@ class QueryServices(object):
                     contact_id = ''
 
                 if not only_billable or only_billable and is_billable:
-                    if address_id and self.crm.has_contact(contact_id):
-                        contact = self.crm.get_contact(contact_id)
+                    if address_id and all([self.crm.has_contact(cid) for cid in contact_id.split(',')]):
+                        contacts = [self.crm.get_contact(cid) for cid in contact_id.split(',')]
                         services.append([
-                            contact.email, contact.name, service_name,
+                            ','.join([contact.email for contact in contacts]), ','.join([contact.name for contact in contacts]), service_name,
                             included_items,
                             extcrm_id, contact_id
                         ])
