@@ -16,6 +16,9 @@ class TodoyuContact(ContactBase):
     def email(self):
         return self.data['contactinfo_info']
 
+    def __unicode__(self):
+        return self.data['p_id']
+
 
 class Todoyu(ExtCrmBase):
     def __init__(self, settings):

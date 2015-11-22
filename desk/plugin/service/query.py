@@ -40,7 +40,11 @@ class QueryServices(object):
             startkey.append(self.settings.service_addons)
             endkey.append(self.settings.service_addons)
         else:
-            endkey.append({})
+            if self.settings.service_packages:
+                couchdb_view = 'service_package_addon'
+                endkey.append({})
+            else:
+                couchdb_view = 'service_type'
 
         for item in self.db.view(
                 self._cmd(couchdb_view),
