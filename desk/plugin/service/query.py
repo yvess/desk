@@ -56,7 +56,9 @@ class QueryServices(object):
                 included_items = []
                 is_billable = client_doc['is_billable'] if 'is_billable' in client_doc else False
                 if 'value' in item and 'included_service_items' in item['value']:
-                    included_items = [included['itemid'] for included in item['value']['included_service_items']]
+                    included_items = [
+                        included['itemid'] for included in item['value']['included_service_items']
+                    ]
                 included_items = ','.join(included_items)
                 address_id = client_doc['extcrm_id'] if 'extcrm_id' in client_doc else None
                 if 'extcrm_contact_id' in client_doc and client_doc['extcrm_contact_id']:
@@ -69,10 +71,16 @@ class QueryServices(object):
                     contact_id = ''
 
                 if not only_billable or only_billable and is_billable:
-                    if address_id and all([self.crm.has_contact(cid) for cid in contact_id.split(',')]):
-                        contacts = [self.crm.get_contact(cid) for cid in contact_id.split(',')]
+                    if address_id and all([
+                        self.crm.has_contact(cid.strip()) for cid in contact_id.split(',')
+                    ]):
+                        contacts = [
+                            self.crm.get_contact(cid.strip()) for cid in contact_id.split(',')
+                        ]
                         services.append([
-                            ','.join([contact.email for contact in contacts]), ','.join([contact.name for contact in contacts]), service_name,
+                            ','.join([contact.email for contact in contacts]),
+                            ','.join([contact.name for contact in contacts]),
+                            service_name,
                             included_items,
                             extcrm_id, contact_id
                         ])
