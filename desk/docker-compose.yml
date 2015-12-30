@@ -7,10 +7,9 @@ cdb:
     - COUCHDB_ADMINPASS=admin
   volumes:
     - ../:/opt/app/
-    - ~/src:/opt/src
-    - ~/env:/opt/env
-  volumes_from:
-    - desk_data
+    - ./src:/opt/src
+    - ./env:/opt/env
+    - ./var:/var/services
   ports:
     - "5984:5984"
 
@@ -23,8 +22,7 @@ dnsa:
     - COUCHDB_ADMINPASS=admin
   volumes:
     - ../:/opt/app/
-  volumes_from:
-    - desk_data
+    - ./var:/var/services
   links:
     - cdb
   ports:
@@ -40,8 +38,7 @@ dnsb:
     - COUCHDB_ADMINPASS=admin
   volumes:
     - ../:/opt/app/
-  volumes_from:
-    - desk_data
+    - ./var:/var/services
   links:
     - cdb
   ports:
@@ -57,8 +54,7 @@ foreman:
     - COUCHDB_ADMINPASS=admin
   volumes:
     - ../:/opt/app/
-  volumes_from:
-    - desk_data
+    - ./var:/var/services
   links:
     - cdb
     - dnsa
