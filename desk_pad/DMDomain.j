@@ -121,7 +121,7 @@
         aaaa_items = [[self aaaa] items],
         cname_items = [[self cname] items],
         mx_items = [[self mx] items],
-        txt_items = [[self mx] items],
+        txt_items = [[self txt] items],
         a_array = [],
         aaaa_array = [],
         cname_array = [],

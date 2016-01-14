@@ -55,7 +55,6 @@
 - (void)addRecord:(id)sender
 {
     var recordType = [recordPopUp titleOfSelectedItem];
-    console.log(recordType);
     switch (recordType)
     {
     case @"A":
@@ -84,6 +83,15 @@
     [domainOutline reloadData];
 }
 
+
+- (void)addDomainAaaa
+{
+    [[[[self currentDomain] aaaa] items] addObject:[[DMDomainAaaa alloc]
+        initWithJSObject:{ "host": "new", "ipv6": "aaaa:aaaa:aaaa:aaaa::1" }] ];
+    [[domainOutline delegate] setLookupForDomainEntries];
+    [domainOutline reloadData];
+}
+
 - (void)addDomainCname
 {
     [[[[self currentDomain] cname] items] addObject:[[DMDomainCname alloc]
@@ -103,14 +111,9 @@
 - (void)addDomainTxt
 {
     [[[[self currentDomain] txt] items] addObject:[[DMDomainTxt alloc]
-        initWithJSObject:{ "alias": "new", "host": "new" }] ];
+        initWithJSObject:{ "name": "new", "txt": "info" }] ];
     [[domainOutline delegate] setLookupForDomainEntries];
     [domainOutline reloadData];
-}
-
-- (void)addDomainAaaa
-{
-    // dummy
 }
 
 - (void)showTpl:(id)sender
@@ -153,7 +156,6 @@
             @"DMDomainTxt":viewDomainTxt}];
     [domainOutline setDelegate:domainOutlineController];
     [domainOutline setDataSource:domainOutlineController];
-    //[domainOutline setRowHeight:28];
     [domainOutline reloadData];
     [self setCurrentDomain:aItem];
 }

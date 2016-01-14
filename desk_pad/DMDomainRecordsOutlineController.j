@@ -50,11 +50,15 @@
 - (void)deleteDomainEntry:(id)sender
 {
     var domainRecordAItems = [[[self domainRecord] a] items],
+        domainRecordAaaaItems = [[[self domainRecord] aaaa] items],
         domainRecordCnameItems = [[[self domainRecord] cname] items],
-        domainRecordMxItems = [[[self domainRecord] mx] items];
+        domainRecordMxItems = [[[self domainRecord] mx] items],
+        domainRecordTxtItems = [[[self domainRecord] txt] items];
     [domainRecordAItems removeObject:sender.domainEntry];
+    [domainRecordAaaaItems removeObject:sender.domainEntry];
     [domainRecordCnameItems removeObject:sender.domainEntry];
     [domainRecordMxItems removeObject:sender.domainEntry];
+    [domainRecordTxtItems removeObject:sender.domainEntry];
     [self setLookupForDomainEntries];
     [domainOutline reloadData];
 }
@@ -144,7 +148,7 @@
 @implementation DMDomainRecordsOutlineController (OutlineProtocol)
 - (int)outlineView:(CPOutlineView)outlineView numberOfChildrenOfItem:(id)item
 {
-    var count = 3; // for root item
+    var count = 5; // for root item
     if (item != nil)
     {
         if ([item respondsToSelector:CPSelectorFromString(@"items")])
@@ -169,12 +173,15 @@
             result = [[self domainRecord] a];
             break;
         case 1:
-            result = [[self domainRecord] cname];
+            result = [[self domainRecord] aaaa];
             break;
         case 2:
-            result = [[self domainRecord] mx];
+            result = [[self domainRecord] cname];
             break;
         case 3:
+            result = [[self domainRecord] mx];
+            break;
+        case 4:
             result = [[self domainRecord] txt];
             break;
         }
@@ -191,7 +198,8 @@
     {
         var rows = [outlineView rowsInRect:[outlineView visibleRect]];
     }
-    return [self outlineView:outlineView numberOfChildrenOfItem:item] > 0;
+    var isExpandable = numberOfChilds > 0;
+    return isExpandable;
 }
 
 - (id)outlineView:(id)outlineView viewForTableColumn:(id)tableColumn item:(id)item
@@ -206,7 +214,7 @@
             [[view textField] setStringValue:[[self domainRecord] a].label];
             break;
         case @"AAAA":
-            //[[view textField] setStringValue:[[self domainRecord] a].label];
+            [[view textField] setStringValue:[[self domainRecord] aaaa].label];
             break;
         case @"CNAME":
             [[view textField] setStringValue:[[self domainRecord] cname].label];
@@ -215,7 +223,7 @@
             [[view textField] setStringValue:[[self domainRecord] mx].label];
             break;
         case @"TXT":
-            //[[view textField] setStringValue:[[self domainRecord] mx].label];
+            [[view textField] setStringValue:[[self domainRecord] txt].label];
             break;
         }
     } else {

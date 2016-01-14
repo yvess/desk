@@ -378,14 +378,6 @@
                                         <menu key="menu" title="OtherViews" id="201"/>
                                     </popUpButtonCell>
                                 </popUpButton>
-                                <button verticalHuggingPriority="750" id="axl-Ag-9Qc">
-                                    <rect key="frame" x="106" y="18" width="85" height="25"/>
-                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    <buttonCell key="cell" type="roundTextured" title="Add Record" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9OI-mO-fZc">
-                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                        <font key="font" metaFont="system"/>
-                                    </buttonCell>
-                                </button>
                                 <button verticalHuggingPriority="750" id="283">
                                     <rect key="frame" x="442" y="430" width="82" height="32"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
@@ -419,14 +411,16 @@
                                     </textFieldCell>
                                 </textField>
                                 <popUpButton verticalHuggingPriority="750" springLoaded="YES" id="CbI-I5-JGB">
-                                    <rect key="frame" x="197" y="18" width="90" height="26"/>
+                                    <rect key="frame" x="105" y="18" width="90" height="26"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="9XZ-Du-siq">
                                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                                         <font key="font" metaFont="menu"/>
                                         <menu key="menu" title="A" id="YXZ-3g-djT">
                                             <items>
-                                                <menuItem title="A" tag="1" id="bT2-Kf-ZgP"/>
+                                                <menuItem title="A" tag="1" id="bT2-Kf-ZgP">
+                                                    <attributedString key="attributedTitle"/>
+                                                </menuItem>
                                                 <menuItem title="AAAA" tag="2" id="LGf-MB-XVz"/>
                                                 <menuItem title="CNAME" tag="3" id="HnE-nr-WQ5"/>
                                                 <menuItem title="MX" tag="4" id="9rO-iv-s8f">
@@ -538,6 +532,14 @@
                                         <autoresizingMask key="autoresizingMask"/>
                                     </tableHeaderView>
                                 </scrollView>
+                                <button verticalHuggingPriority="750" id="axl-Ag-9Qc">
+                                    <rect key="frame" x="200" y="18" width="85" height="25"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <buttonCell key="cell" type="roundTextured" title="Add Record" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9OI-mO-fZc">
+                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                        <font key="font" metaFont="system"/>
+                                    </buttonCell>
+                                </button>
                             </subviews>
                         </customView>
                     </subviews>
@@ -764,7 +766,7 @@
                 <textField verticalHuggingPriority="750" id="ymx-al-tjc">
                     <rect key="frame" x="63" y="57" width="200" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="host" drawsBackground="YES" id="Ss4-0U-Fky">
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="name" drawsBackground="YES" id="Ss4-0U-Fky">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -773,7 +775,7 @@
                 <textField verticalHuggingPriority="750" id="3v1-Vh-0GD">
                     <rect key="frame" x="63" y="25" width="200" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="ipv6" drawsBackground="YES" id="nbC-ES-H9V">
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="txt" drawsBackground="YES" id="nbC-ES-H9V">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
