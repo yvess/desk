@@ -13,12 +13,16 @@
     @outlet              CPButton addDomainCnameButton;
     @outlet              CPButton addDomainAButton;
     @outlet              CPButton addDomainMxButton;
+    @outlet              CPButton addRecordButton;
+    @outlet              CPPopUpButton recordPopUp;
     @outlet              CPPopUpButton clientsForDomainPopUp;
     @outlet              CPOutlineView domainOutline;
     @outlet              CPPopover popoverDomain;
     @outlet              CPView viewDomainA;
+    @outlet              CPView viewDomainAaaa;
     @outlet              CPView viewDomainCname;
     @outlet              CPView viewDomainMx;
+    @outlet              CPView viewDomainTxt;
     @outlet              CPPopUpButton tplForDomainPopUp;
     @outlet              CPButton showTplButton;
     @outlet              CPPopover popoverTpl;
@@ -48,7 +52,31 @@
     return self;
 }
 
-- (void)addDomainA:(id)sender
+- (void)addRecord:(id)sender
+{
+    var recordType = [recordPopUp titleOfSelectedItem];
+    console.log(recordType);
+    switch (recordType)
+    {
+    case @"A":
+        [self addDomainA];
+        break;
+    case @"AAAA":
+        [self addDomainAaaa];
+        break;
+    case @"CNAME":
+        [self addDomainCname];
+        break;
+    case @"MX":
+        [self addDomainMx];
+        break;
+    case @"TXT":
+        [self addDomainTxt];
+        break;
+    }
+}
+
+- (void)addDomainA
 {
     [[[[self currentDomain] a] items] addObject:[[DMDomainA alloc]
         initWithJSObject:{ "host": "new", "ip": "0.0.0.0" }] ];
@@ -56,7 +84,7 @@
     [domainOutline reloadData];
 }
 
-- (void)addDomainCname:(id)sender
+- (void)addDomainCname
 {
     [[[[self currentDomain] cname] items] addObject:[[DMDomainCname alloc]
         initWithJSObject:{ "alias": "new", "host": "new" }] ];
@@ -64,12 +92,25 @@
     [domainOutline reloadData];
 }
 
-- (void)addDomainMx:(id)sender
+- (void)addDomainMx
 {
     [[[[self currentDomain] mx] items] addObject:[[DMDomainMx alloc]
         initWithJSObject:{ "host": "new", "priority": "10" }] ];
     [[domainOutline delegate] setLookupForDomainEntries];
     [domainOutline reloadData];
+}
+
+- (void)addDomainTxt
+{
+    [[[[self currentDomain] txt] items] addObject:[[DMDomainTxt alloc]
+        initWithJSObject:{ "alias": "new", "host": "new" }] ];
+    [[domainOutline delegate] setLookupForDomainEntries];
+    [domainOutline reloadData];
+}
+
+- (void)addDomainAaaa
+{
+    // dummy
 }
 
 - (void)showTpl:(id)sender
@@ -105,8 +146,11 @@
     [tplForDomainPopUp selectItemAtIndex:(templateIndex == -1) ? 0 : templateIndex + 1];
 
     var domainOutlineController = [[DMDomainRecordsOutlineController alloc] initWithDomain:aItem
-        domainOutline:domainOutline popover:popoverDomain viewDomainA:viewDomainA
-        viewDomainCname:viewDomainCname viewDomainMx:viewDomainMx];
+        domainOutline:domainOutline popover:popoverDomain
+        viewRecordTypes: @{
+            @"DMDomainA":viewDomainA, @"DMDomainAaaa":viewDomainAaaa,
+            @"DMDomainCname":viewDomainCname, @"DMDomainMx":viewDomainMx,
+            @"DMDomainTxt":viewDomainTxt}];
     [domainOutline setDelegate:domainOutlineController];
     [domainOutline setDataSource:domainOutlineController];
     //[domainOutline setRowHeight:28];
@@ -157,14 +201,9 @@
     if (last != nil)
         [self updateDomainOutline:[self lastSelectedObject]];
 
-    [addDomainAButton setAction:@selector(addDomainA:)];
-    [addDomainAButton setTarget:self];
-
-    [addDomainCnameButton setAction:@selector(addDomainCname:)];
-    [addDomainCnameButton setTarget:self];
-
-    [addDomainMxButton setAction:@selector(addDomainMx:)];
-    [addDomainMxButton setTarget:self];
+    [recordPopUp selectItemWithTitle:@"A"];
+    [addRecordButton setAction:@selector(addRecord:)];
+    [addRecordButton setTarget:self];
 
     [showTplButton setAction:@selector(showTpl:)];
     [showTplButton setTarget:self];

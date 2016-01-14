@@ -11,10 +11,21 @@
     CPString host @accessors;
     CPString ip @accessors;
 }
-
 - (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
 {
     return [CPString stringWithFormat:@"%@ : %@", host, ip];
+}
+@end
+
+@implementation DMDomainAaaa : COSubItem
+{
+    CPString host @accessors;
+    CPString ipv6 @accessors;
+}
+
+- (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
+{
+    return [CPString stringWithFormat:@"%@ : %@", host, ipv6];
 }
 @end
 
@@ -44,6 +55,18 @@
 }
 @end
 
+@implementation DMDomainTxt : COSubItem
+{
+    CPString name @accessors;
+    CPString txt @accessors;
+}
+
+- (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
+{
+  return [CPString stringWithFormat:@"%@ : %@", name, txt];
+}
+@end
+
 
 @implementation DMDomain : COResourceVersioned
 {
@@ -66,8 +89,10 @@
     CPString clientId      @accessors;
     CPString templateId    @accessors;
     COItemsParent a        @accessors(readonly);
+    COItemsParent aaaa     @accessors(readonly);
     COItemsParent cname    @accessors(readonly);
-    COItemsParent mx       @accessors;
+    COItemsParent mx       @accessors(readonly);
+    COItemsParent txt      @accessors(readonly);
 }
 
 - (CPString)nameIdentifierString
@@ -93,11 +118,16 @@
 - (JSObject)attributes
 {
     var a_items = [[self a] items],
+        aaaa_items = [[self aaaa] items],
         cname_items = [[self cname] items],
         mx_items = [[self mx] items],
+        txt_items = [[self mx] items],
         a_array = [],
+        aaaa_array = [],
         cname_array = [],
-        mx_array = [];
+        mx_array = [],
+        txt_array = [];
+
     if ([self nameservers])
     {
         var nameservers_array = [[self nameservers] componentsSeparatedByString:@","];
@@ -114,6 +144,10 @@
         a_array.push([item JSONFromObject]);
     }];
 
+    [aaaa_items enumerateObjectsUsingBlock:function(item) {
+        aaaa_array.push([item JSONFromObject]);
+    }];
+
     [cname_items enumerateObjectsUsingBlock:function(item) {
         cname_array.push([item JSONFromObject]);
     }];
@@ -122,11 +156,15 @@
         mx_array.push([item JSONFromObject]);
     }];
 
+    [txt_items enumerateObjectsUsingBlock:function(item) {
+        txt_array.push([item JSONFromObject]);
+    }];
+
     var json = {},
         couchKeys = ["_id", "_rev", "_attachments", "prev_rev", "prev_active_rev", "state","domain", "nameservers", "hostmaster", "refresh",
-                     "retry", "expire", "ttl", "client_id", "template_id", "a", "cname", "mx"],
+                     "retry", "expire", "ttl", "client_id", "template_id", "a", "aaaa", "cname", "mx", 'txt'],
         cappuccinoValues = [coId, coRev, coAttachments, prevRev, prevActiveRev, state, domain, nameservers_array, hostmaster, refresh,
-                            retry, expire, ttl, clientId, templateId, a_array, cname_array, mx_array];
+                            retry, expire, ttl, clientId, templateId, a_array, aaaa_array, cname_array, mx_array, txt_array];
 
     for (var i = 0; i < couchKeys.length; i++)
     {
@@ -151,8 +189,10 @@
     if (self)
     {
         a = [[COItemsParent alloc] initWithLabel: @"A"];
+        aaaa = [[COItemsParent alloc] initWithLabel: @"AAAA"];
         cname = [[COItemsParent alloc] initWithLabel: @"CNAME"];
         mx = [[COItemsParent alloc] initWithLabel: @"MX"];
+        txt = [[COItemsParent alloc] initWithLabel: @"TXT"];
     }
     return self;
 }

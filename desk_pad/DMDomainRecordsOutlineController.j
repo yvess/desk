@@ -10,14 +10,12 @@
     CPOutlineView domainOutline @accessors(readonly);
     CPPopover popover @accessors;
     CPMutableDictionary lookupDomainEntries @accessors;
-    CPView viewDomainA @accessors;
-    CPView viewDomainCname @accessors;
-    CPView viewDomainMx @accessors;
+    CPMutableDictionary viewRecordTypes @accessors(readonly);
 }
 
 - (id)initWithDomain:(DMDomain)aDomain domainOutline:(CPOutlineView)aDomainOutline
-      popover:(CPPopover)aPopover viewDomainA:(CPView)aViewDomainA
-      viewDomainCname:(CPView) aViewDomainCname viewDomainMx:(CPView) aViewDomainMx
+      popover:(CPPopover)aPopover
+      viewRecordTypes:(CPDictionary)aViewRecordTypes
 {
     self = [super init];
     if (self)
@@ -25,9 +23,7 @@
         domainRecord = aDomain;
         domainOutline = aDomainOutline;
         popover = aPopover;
-        viewDomainA = aViewDomainA;
-        viewDomainCname = aViewDomainCname;
-        viewDomainMx = aViewDomainMx;
+        viewRecordTypes = aViewRecordTypes;
         [self setLookupForDomainEntries];
     }
     return self;
@@ -42,8 +38,10 @@
 {
     lookupDomainEntries = [[CPMutableDictionary alloc] init];
     var domainEntries = [[CPMutableArray alloc] initWithArray:[[[self domainRecord] a] items]];
+    [domainEntries addObjectsFromArray:[[[self domainRecord] aaaa] items]];
     [domainEntries addObjectsFromArray:[[[self domainRecord] cname] items]];
     [domainEntries addObjectsFromArray:[[[self domainRecord] mx] items]];
+    [domainEntries addObjectsFromArray:[[[self domainRecord] txt] items]];
     [domainEntries enumerateObjectsUsingBlock:function(item) {
         [lookupDomainEntries setObject:item forKey:[item objectValueForOutlineColumn:@"entry"]];
     }];
@@ -67,19 +65,9 @@
     var domainEntry = sender.domainEntry;
     if (![popover isShown])
     {
-        var viewDomainEntry = nil;
-        if ([domainEntry isKindOfClass:DMDomainA])
-        {
-            [[popover contentViewController] setView:[self viewDomainA]];
-        }
-        if ([domainEntry isKindOfClass:DMDomainCname])
-        {
-            [[popover contentViewController] setView:[self viewDomainCname]];
-        }
-        if ([domainEntry isKindOfClass:DMDomainMx])
-        {
-            [[popover contentViewController] setView:[self viewDomainMx]];
-        }
+        var viewDomainEntry = nil,
+            viewRecordType = [viewRecordTypes objectForKey:[domainEntry className]];
+        [[popover contentViewController] setView:viewRecordType];
         var viewDomainEntry = [[popover contentViewController] view];
         [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
             if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
@@ -98,6 +86,15 @@
                     break;
                 case @"priority":
                     value = [domainEntry priority];
+                    break;
+                case @"ipv6":
+                    value = [domainEntry ipv6];
+                    break;
+                case @"name":
+                    value = [domainEntry name];
+                    break;
+                case @"txt":
+                    value = [domainEntry txt];
                     break;
                 }
                 [view setObjectValue:value];
@@ -122,6 +119,15 @@
                     break;
                 case @"priority":
                     [domainEntry setPriority:[view objectValue]];
+                    break;
+                case @"ipv6":
+                    [domainEntry setIpv6:[view objectValue]];
+                    break;
+                case @"name":
+                    [domainEntry setName:[view objectValue]];
+                    break;
+                case @"txt":
+                    [domainEntry setTxt:[view objectValue]];
                     break;
                 }
             }
@@ -153,6 +159,7 @@
 
 - (id)outlineView:(CPOutlineView)outlineView child:(int)index ofItem:(id)item
 {
+    console.log(index);
     var result = nil;
     if (item == nil)
     {
@@ -166,6 +173,9 @@
             break;
         case 2:
             result = [[self domainRecord] mx];
+            break;
+        case 3:
+            result = [[self domainRecord] txt];
             break;
         }
     } else {
@@ -195,11 +205,17 @@
         case @"A":
             [[view textField] setStringValue:[[self domainRecord] a].label];
             break;
+        case @"AAAA":
+            //[[view textField] setStringValue:[[self domainRecord] a].label];
+            break;
         case @"CNAME":
             [[view textField] setStringValue:[[self domainRecord] cname].label];
             break;
         case @"MX":
             [[view textField] setStringValue:[[self domainRecord] mx].label];
+            break;
+        case @"TXT":
+            //[[view textField] setStringValue:[[self domainRecord] mx].label];
             break;
         }
     } else {
