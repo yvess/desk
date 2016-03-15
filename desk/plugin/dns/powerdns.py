@@ -80,7 +80,7 @@ class Powerdns(DnsBase):
             rtype="SOA", ttl=self.get_ttl(self.doc)
         )
         # TODO sudoers
-        os.system("sudo pdns_control purge {}$".format(self.domain))
+        os.system("pdns_control purge {}$".format(self.domain))
 
     def add_domain(self, domain=None):
         if domain:
