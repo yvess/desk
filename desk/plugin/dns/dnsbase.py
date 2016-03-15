@@ -85,11 +85,13 @@ class DnsValidator(object):
             domain, ns = self.domain, ns
             self._setup_resolver(ns)
             self._validate('A', 'ip', q_key='host')
+            self._validate('AAAA', 'ipv6', q_key='host')
             self._validate('MX', 'host', answer_attr='exchange')
             self._validate('MX', 'priority', answer_attr='preference')
             self._validate(
                 'CNAME', 'host', q_key='alias', answer_attr='target'
             )
+            self._validate('TXT', 'name')
         is_valid = all(self.valid)
         self.valid = []
         return is_valid
@@ -117,6 +119,13 @@ class DnsBase(object):
             )
         },
         {
+            'name': 'aaaa',
+            'key_id': 'host', 'value_id': 'ipv6',
+            'key_trans': lambda host, domain: (
+                ".".join([host, domain]) if host != "@" else domain
+            )
+        },
+        {
             'name': 'cname',
             'key_id': 'alias', 'value_id': 'host',
             'key_trans': lambda alias, domain: (
@@ -128,6 +137,10 @@ class DnsBase(object):
         {
             'name': 'mx',
             'key_id': 'host', 'value_id': 'priority'
+        },
+        {
+            'name': 'txt',
+            'key_id': 'name', 'value_id': 'txt'
         }
     ]
     map_doc_id = 'map-ips'
