@@ -52,6 +52,11 @@
     return self;
 }
 
+- (void)reloadItems
+{
+    [self setItems:[modelClass allWithParams:@{} withPath:@"/domains_by_name"]];
+}
+
 - (void)addRecord:(id)sender
 {
     var recordType = [recordPopUp titleOfSelectedItem];
