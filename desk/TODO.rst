@@ -10,10 +10,8 @@ TASKS
 
 - change to env vars for couchdb
 - autosetup db if it doesn't exists
-- add TXT dns record
-- add AAAA dns record
 - add update validators
-- previous version template update on tempalte change
+- previous version template update on template change
 - cleanup template doc befor merge
 - use_doc for all plugins
 - permission sqlitedb
