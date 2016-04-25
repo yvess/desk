@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv sh
+
+START_PDNS=${START_PDNS:-NO}
+
+if [ "$START_PDNS" == "YES" ]; then
+    rm /etc/services.d/pdns/down
+fi
