@@ -27,5 +27,3 @@ setup: build_couchdb build_worker build_dns data
 
 fig_test:
 	cd ../ && fig run foreman
-
-
