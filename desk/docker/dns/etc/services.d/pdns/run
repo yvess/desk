@@ -1,8 +1,8 @@
 #!/usr/bin/with-contenv sh
 
   IP=$(hostname -i)
-  PDNS_DATA=${PDNS_DATA:-/var/services/data/powerdns}
-  PDNS_LOG=${PDNS_LOG:-/var/services/log/powerdns}
+  PDNS_DATA=${PDNS_DATA:-/var/services/powerdns}
+  PDNS_LOG=${PDNS_LOG:-/var/services/powerdns/log}
   DNS_PRIMARY=${DNS_PRIMARY:-$HOSTNAME}
   mkdir -p "$PDNS_DATA" "$PDNS_LOG"
 
@@ -39,4 +39,4 @@
   [ ! -d "/etc/service/pdns" ] && cp -R /root/build/service/pdns /etc/service/
 fi
 
-/usr/sbin/pdns_server --daemon=no --guardian=no >> $PDNS_LOG$/pdns.log 2>&1
+/usr/sbin/pdns_server --daemon=no --guardian=no >> $PDNS_LOG$/pdns.$hostname.log 2>&1

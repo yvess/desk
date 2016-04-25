@@ -12,7 +12,7 @@ fi
 WORKER_TYPE=${WORKER_TYPE:-worker} # set to worker as default
 TESTING=${TESTING:-NO}
 START_WORKER=${START_WORKER:-YES}
-WORKER_LOG=${WORKER_LOG:-/var/services/log/worker}
+WORKER_LOG=${WORKER_LOG:-/var/services/worker/log}
 
 # CREATE DIRS
 mkdir -p "$WORKER_LOG"
