@@ -11,17 +11,12 @@ fi
 
 WORKER_TYPE=${WORKER_TYPE:-worker} # set to worker as default
 TESTING=${TESTING:-NO}
+FQHOSTNAME=$(hostname)
 START_WORKER=${START_WORKER:-YES}
 WORKER_LOG=${WORKER_LOG:-/var/services/worker/log}
 
 # CREATE DIRS
 mkdir -p "$WORKER_LOG"
-
-# ADDING DESK TO PYTHON PATH
-if [ ! -f "/usr/lib/python2.7/site-packages/desk.egg-link" ]; then
-    cd /opt/app && python setup.py develop > /dev/null
-    echo "* added desk to python packages"
-fi
 
 # CONFIGURE WORKER COUCHDB
 if grep -q "COUCHDB_ADMINPASS" "/etc/desk/worker.conf"; then
@@ -30,11 +25,6 @@ if grep -q "COUCHDB_ADMINPASS" "/etc/desk/worker.conf"; then
         -e "s#-COUCHDB_ADMINPASS-#${COUCHDB_ADMINPASS}#" \
         -e "s#-COUCHDB_ADMIN-#${COUCHDB_ADMIN}#" \
       /etc/desk/worker.conf
-fi
-
-# RUN SETUP WORKER SCRIPT
-if [ -f "/entrypoint-worker.sh" ]; then
-    /entrypoint-worker.sh
 fi
 
 # RUN STUFF FOR FOREMAN, CREATE DATABASE
@@ -48,7 +38,7 @@ if [ $WORKER_TYPE = "foreman" ]; then
     fi
 
     # Setup Fonts for invoices
-    if [ -d "/root/.fonts" ] && [ -d "/root/build" ]; then
+    if [ -d "/root/.fonts" ]; then
         echo "* cleaning font cache"
         /usr/bin/fc-cache -f
     fi
@@ -62,7 +52,7 @@ if [ "$TESTING" == "NO" ]; then
         sleep 1
         echo "* wait desk_drawer db"
     done
-    curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://cdb:5984/desk_drawer/worker-`hostname`|cat|grep -q -E "HTTP.*404"
+    curl -Is -u "${COUCHDB_ADMIN}:${COUCHDB_ADMINPASS}" "http://cdb:5984/desk_drawer/worker-${FQHOSTNAME}"|cat|grep -q -E "HTTP.*404"
     if [ $? -eq 0 ]; then # worker doesn't exist
         cd /opt/app/desk && python ./dworker install-worker
         echo "* registred worker"
@@ -70,4 +60,6 @@ if [ "$TESTING" == "NO" ]; then
 fi
 
 cd /opt/app/desk
-python -u ./dworker run -v >> $WORKER_LOG/$(hostname).log 2>&1
+echo "* staring worker"
+sleep 2 # start after other /etc/services.d
+python -u ./dworker run -v >> "${WORKER_LOG}/${FQHOSTNAME}.log" 2>&1
