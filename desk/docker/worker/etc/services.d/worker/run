@@ -24,9 +24,11 @@ if [ ! -f "/usr/lib/python2.7/site-packages/desk.egg-link" ]; then
 fi
 
 # CONFIGURE WORKER COUCHDB
-if [ grep "COUCHDB_ADMINPASS" "/etc/desk/worker.conf" ]; then
+if grep -q "COUCHDB_ADMINPASS" "/etc/desk/worker.conf"; then
     echo "* configure couchdb worker.conf"
-    sed -i -e "s#-COUCHDB_ADMINPASS-#${COUCHDB_ADMINPASS}#" -e "s#-COUCHDB_ADMIN-#${COUCHDB_ADMIN}#"
+    sed -i \
+        -e "s#-COUCHDB_ADMINPASS-#${COUCHDB_ADMINPASS}#" \
+        -e "s#-COUCHDB_ADMIN-#${COUCHDB_ADMIN}#" \
       /etc/desk/worker.conf
 fi
 
