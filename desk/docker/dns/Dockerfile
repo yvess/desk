@@ -14,3 +14,4 @@ ADD entrypoint-worker.sh /entrypoint-worker.sh
 ENV WORKER_TYPE worker
 ENV WORKER_SUBTYPE dns
 EXPOSE 53/udp 53/tcp
+
