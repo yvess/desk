@@ -7,7 +7,9 @@ RUN echo -e "@edgetesting http://dl-cdn.alpinelinux.org/alpine/edge/testing\n@ed
         boost-program_options@edgemain \
         pdns@edgetesting \
         pdns-backend-sqlite3@edgetesting && \
+    addgroup pdns && adduser pdns pdns && \
     ln -s /usr/lib/pdns/pdns/libgsqlite3backend.so /usr/lib/pdns/libgsqlite3backend.so && \
+    rm /etc/pdns.conf && \
     rm -rf /var/cache/apk/*
 ADD ./etc/ /etc/
 ADD entrypoint-worker.sh /entrypoint-worker.sh
