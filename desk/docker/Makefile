@@ -1,6 +1,5 @@
 .PHONY:
 
-couchdb_version = 1.6.1
 worker_version = 0.1
 dns_version = 0.1
 
