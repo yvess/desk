@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 
 import os
 import logging
+import time
 from couchdbkit.loaders import FileSystemDocsLoader
 from couchdbkit import Server
 from couchdbkit.resource import ResourceNotFound
@@ -148,6 +149,19 @@ class DocsProcessor(SettingsCommand):
     allowed_template_type = None  # needs to be set by subclass
     map_id = None  # needs to be set by subclass
     replace_id = None  # needs to be set by subclass
+    _map_cache = None
+    _map_cache_time = None
+
+    @classmethod
+    def map_cache(cls):
+        if cls._map_cache_time and time.time() > (cls._map_cache_time + 3600):
+            cls._map_cache = None
+        return cls._map_cache
+
+    @classmethod
+    def set_map_cache(cls, value):
+        cls._map_cache_time = time.time()
+        cls._map_cache = value
 
     def __init__(self, settings, docs):
         self.set_settings(settings)
@@ -180,9 +194,12 @@ class DocsProcessor(SettingsCommand):
         return template_doc
 
     def get_map(self):
-        map_dict = None
+        map_dict = self.map_cache()
+        if map_dict:
+            return map_dict
         try:
             map_dict = self.db.get(self.map_id)['map']
+            self.set_map_cache(map_dict)
         except ResourceNotFound:
             pass
         return map_dict
