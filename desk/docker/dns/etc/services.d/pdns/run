@@ -1,36 +1,6 @@
 #!/usr/bin/with-contenv sh
 
-HOST_IP=$(hostname -i)
-PDNS_DATA=${PDNS_DATA:-/var/services/powerdns}
 PDNS_LOG=${PDNS_LOG:-/var/services/powerdns/log}
 FQHOSTNAME=$(hostname)
-DNS_PRIMARY=${DNS_PRIMARY:-$FQHOSTNAME}
-mkdir -p "${PDNS_DATA}" "${PDNS_LOG}"
-
-# CONFIGURE WORKER
-if grep "PDNS_DATA" "/etc/desk/worker.conf"; then
-    echo "* configure worker.conf for pdns"
-    sed -i \
-        -e "s#-HOSTNAME-#${FQHOSTNAME}#" \
-        -e "s#-DNS_PRIMARY-#${DNS_PRIMARY}#" \
-        -e "s#-PDNS_DATA-#${PDNS_DATA}#" \
-        /etc/desk/worker.conf
-fi
-
-# CONFIGURE PDNS
-if grep "HOST_IP" "/etc/powerdns/pdns.d/pdns.local.conf"; then
-    echo "* configure pdns"
-    sed -i \
-        -e "s/-HOST_IP-/${HOST_IP}/" \
-        -e "s/-HOSTNAME-/${FQHOSTNAME}/" \
-        -e "s#-PDNS_DATA-#${PDNS_DATA}#" \
-        /etc/powerdns/pdns.d/*
-fi
-
-# SETUP PDNS DATABASE
-if [ ! -f "${PDNS_DATA}/pdns_${FQHOSTNAME}.sqlite3" ]; then
-    echo "* create pdns database: ${PDNS_DATA}/pdns_${FQHOSTNAME}.sqlite3"
-    sqlite3 "${PDNS_DATA}/pdns_${FQHOSTNAME}.sqlite3" < /etc/powerdns/powerdns-setup.sql
-fi
 
 /usr/sbin/pdns_server --config-dir=/etc/powerdns --daemon=no --guardian=no >> "${PDNS_LOG}/pdns.${FQHOSTNAME}.log" 2>&1

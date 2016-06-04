@@ -1,15 +1,8 @@
-FROM alpine:3.3
+FROM alpine:3.4
 MAINTAINER Yves Serrano <y@yas.ch>
 
-# s6 overlay
-RUN apk add --no-cache wget && \
-    wget -q https://github.com/just-containers/s6-overlay/releases/download/v1.17.2.0/s6-overlay-amd64.tar.gz --no-check-certificate -O /tmp/s6-overlay.tar.gz && \
-    tar xvfz /tmp/s6-overlay.tar.gz -C / && \
-    rm -f /tmp/s6-overlay.tar.gz && \
-    apk del wget
-
-ADD requirements.txt /tmp/requirements.txt
 RUN apk add --no-cache \
+        curl \
         python \
         py-pip \
         make \
@@ -22,6 +15,16 @@ RUN apk add --no-cache \
         openldap \
         libffi \
         pango \
+        bind-tools \
+        ttf-freefont
+
+# s6 overlay
+RUN curl -Ls -o /tmp/s6-overlay.tar.gz https://github.com/just-containers/s6-overlay/releases/download/v1.17.2.0/s6-overlay-amd64.tar.gz && \
+    tar xvfz /tmp/s6-overlay.tar.gz -C / && \
+    rm -f /tmp/s6-overlay.tar.gz
+
+ADD requirements.txt /tmp/requirements.txt
+RUN apk add --no-cache \
         git \
         gcc \
         g++ \
@@ -34,8 +37,6 @@ RUN apk add --no-cache \
         pango-dev \
         cairo \
         pango-dev \
-        bind-tools \
-        ttf-freefont \
         && \
     cat /tmp/requirements.txt |grep -v "^#"| xargs -n 1 pip install && \
     apk del \

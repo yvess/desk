@@ -1,7 +1,7 @@
 .PHONY:
 
-worker_version = 0.1
-dns_version = 0.1
+worker_version=0.1.1
+dns_version=0.1.1
 
 default: build_couchdb build_worker build_dns
 

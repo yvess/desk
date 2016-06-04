@@ -1,4 +1,4 @@
-FROM yvess/desk-worker:0.1
+FROM yvess/desk-worker:0.1.1
 MAINTAINER Yves Serrano <y@yas.ch>
 
 RUN echo -e "@edgetesting http://dl-cdn.alpinelinux.org/alpine/edge/testing\n@edgemain http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
