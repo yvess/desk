@@ -33,29 +33,33 @@ class ImportServices(object):
     def process_row(self, row):
         for service_type in ['web', 'email']:
             if row[service_type]:
-                service_doc = self.service_tpl.copy()
-                service_doc['_id'] = "service-%s" % self.server.next_uuid()
-                if row['todoyu'] not in self.clients_extcrm_ids:
-                    client_id = self.get_or_create_client(row)
-                    self.clients_extcrm_ids[row['todoyu']] = client_id
-                else:
-                    client_id = self.clients_extcrm_ids[row['todoyu']]
-                service_doc['service_type'] = service_type
-                service_doc['start_date'] = row['start_date']
-                service_doc['client_id'] = client_id
-                if isinstance(row[service_type], dict):
-                    service_doc.update(row[service_type])
-                else:
-                    service_doc['package_type'] = row[service_type]
+                try:
+                    service_doc = self.service_tpl.copy()
+                    service_doc['_id'] = "service-%s" % self.server.next_uuid()
+                    if row['todoyu'] not in self.clients_extcrm_ids:
+                        client_id = self.get_or_create_client(row)
+                        self.clients_extcrm_ids[row['todoyu']] = client_id
+                    else:
+                        client_id = self.clients_extcrm_ids[row['todoyu']]
+                    service_doc['service_type'] = service_type
+                    service_doc['start_date'] = row['start_date']
+                    service_doc['client_id'] = client_id
+                    if isinstance(row[service_type], dict):
+                        service_doc.update(row[service_type])
+                    else:
+                        service_doc['package_type'] = row[service_type]
 
-                addon_key = '%s_addon_items' % service_type
-                if addon_key in row and row[addon_key]:
-                    service_doc['addon_service_items'] = row[addon_key]
+                    addon_key = '%s_addon_items' % service_type
+                    if addon_key in row and row[addon_key]:
+                        service_doc['addon_service_items'] = row[addon_key]
 
-                included_key = '%s_included_items' % service_type
-                if included_key in row and row[included_key]:
-                    service_doc['included_service_items'] = row[included_key]
-                self.docs.append((service_doc['_id'], service_doc))
+                    included_key = '%s_included_items' % service_type
+                    if included_key in row and row[included_key]:
+                        service_doc['included_service_items'] = row[included_key]
+                    self.docs.append((service_doc['_id'], service_doc))
+                except:
+                    print("!!! couldn't import service")
+                    pass
 
     def process_sheet(self):
         services = []
