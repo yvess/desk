@@ -5,6 +5,7 @@ import time
 import os
 import logging
 from copy import copy
+import traceback
 from desk.plugin.dns import DnsBase
 
 SOA_FORMAT = "{soa_primary} {soa_hostmaster} {serial} {soa_refresh} {soa_retry} {soa_expire} {soa_default_ttl}"
@@ -32,23 +33,31 @@ class Powerdns(DnsBase):
         self._conn.close()
 
     def _db(self, sql):
-        self._cursor.execute(sql)
-        self._conn.commit()
-        return self._cursor
+        error = None
+        try:
+            self._cursor.execute(sql)
+            self._conn.commit()
+        except:
+            error = "%s\n\n" % sql
+            error += traceback.format_exc()
+            logging.error(error)
+        return (error, self._cursor)
 
     def check_domain(self, domain):
-        lookup_domain = self._db(
+        error, result = self._db(
             'SELECT id FROM domains WHERE name="{}"'.format(domain)
-        ).fetchone()
+        )
+        lookup_domain = result.fetchone()
         has_domain = True if lookup_domain else False
         return has_domain
 
     def set_domain(self, domain, new=False):
         self.domain = domain
         if not new:
-            self.domain_id = self._db(
+            error, result = self._db(
                 'SELECT id FROM domains WHERE name="{}"'.format(domain)
-            ).fetchone()[0]
+            )
+            self.domain_id = result.fetchone()[0]
 
     def _calc_serial(self, previous=""):
         serial_date = time.strftime("%Y%m%d", time.localtime())
@@ -70,10 +79,11 @@ class Powerdns(DnsBase):
     def update_soa(self, domain=None):
         if domain:
             self.set_domain(domain)
-        current_serial = self._db(
+        error, result = self._db(
             '''SELECT content FROM records WHERE name="{}"
                AND type="SOA"'''.format(self.domain)
-        ).fetchone()[0].split(" ")[-1]
+        )
+        current_serial = result.fetchone()[0].split(" ")[-1]
 
         self.update_record(
             self.domain, self._calc_serial(current_serial),
@@ -85,7 +95,7 @@ class Powerdns(DnsBase):
     def add_domain(self, domain=None):
         if domain:
             self.set_domain(domain, new=True)
-        self._db("""INSERT INTO domains (name, type)
+        error, result = self._db("""INSERT INTO domains (name, type)
                     VALUES ('{}', 'NATIVE')""".format(self.domain))
         self.domain_id = self._cursor.lastrowid
         self.add_soa(domain)
@@ -93,10 +103,10 @@ class Powerdns(DnsBase):
     def del_domain(self, domain=None):
         if domain:
             self.set_domain(domain)
-        self._db(
+        error, result = self._db(
             "DELETE FROM records WHERE domain_id={}".format(self.domain_id)
         )
-        self._db("DELETE FROM domains WHERE id={}".format(self.domain_id))
+        error, result = self._db("DELETE FROM domains WHERE id={}".format(self.domain_id))
 
     def _prepare_record_value(self, value):
         if value.startswith('@ip_'):  # get ip value from hashmap
@@ -109,7 +119,7 @@ class Powerdns(DnsBase):
             self.set_domain(domain)
         # TOOD set ttl
         value = self._prepare_record_value(value)
-        self._db(
+        error, result = self._db(
             """INSERT INTO records
                (domain_id, name, content, type, ttl, prio)
                VALUES
@@ -128,7 +138,7 @@ class Powerdns(DnsBase):
             where = "name='{}'".format(key)
         elif lookup == 'value':
             where = "content='{}'".format(value)
-        self._db(
+        error, result = self._db(
             """UPDATE records
                SET domain_id={domain_id}, name='{key}', content='{value}',
                    ttl={ttl},prio={priority}
@@ -140,7 +150,7 @@ class Powerdns(DnsBase):
     def del_record(self, key, value, rtype='A', domain=None):
         if domain:
             self.set_domain(domain)
-        self._db(
+        error, result = self._db(
             """DELETE FROM records
                WHERE name='{key}' AND type='{rtype}'
             """.format(domain_id=self.domain_id, key=key,
@@ -156,7 +166,6 @@ class Powerdns(DnsBase):
                 self.add_record(self.domain, nameserver, rtype="NS",
                                 ttl=self.get_ttl(self.doc))
             self._create_records()
-            self._conn.commit()
             self.add_soa()
             was_sucessfull = True
         return was_sucessfull
@@ -191,7 +200,7 @@ class Powerdns(DnsBase):
     def del_records(self, rtype, domain=None):
         if domain:
             self.set_domain(domain)
-        self._db(
+        error, result = self._db(
             """DELETE FROM records
                WHERE domain_id='{domain_id}' AND type='{rtype}'
             """.format(domain_id=self.domain_id, rtype=rtype.upper())
@@ -237,7 +246,6 @@ class Powerdns(DnsBase):
                     update = self.diff['update'][name]
                 self.del_records(rtype=name)
                 self._create_records(only_rtype=name)
-            self._conn.commit()
             self.update_soa()
             was_sucessfull = True
         return was_sucessfull
