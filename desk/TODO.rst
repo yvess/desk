@@ -21,6 +21,7 @@ TASKS
 - undo queue feature
 - generic cache doc
 - add order nothing todo
+- add client, without reload
 
 BUGS
 ====
