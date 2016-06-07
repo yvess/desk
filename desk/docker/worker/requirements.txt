@@ -17,7 +17,7 @@ cssselect==0.9.1
 dnspython==1.12.0
 ecdsa==0.11
 ezodf==0.2.5
-gevent==1.0.1
+gevent==1.1.1
 greenlet==0.4.4
 html5lib==0.999
 http-parser==0.8.3
