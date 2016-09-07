@@ -201,6 +201,11 @@
         [menuItem setRepresentedObject:item];
     }];
     [arrayController addObserver:self forKeyPath:@"selection.domain" options:nil context:@"domain"];
+    [[CPNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(domainWasRemoved:)
+            name:@"DMRemoveTableRow"
+          object:nil
+    ];
     var last = [self lastSelectedObject];
     if (last != nil)
         [self updateDomainOutline:[self lastSelectedObject]];
@@ -211,6 +216,14 @@
 
     [showTplButton setAction:@selector(showTpl:)];
     [showTplButton setTarget:self];
+}
+
+- (void)domainWasRemoved:(CPNotification)notification
+{
+    var domainToDelete = [notification object];
+    domainToDelete.state = @"delete_do";
+    var message = [CPString stringWithFormat:@"domain: %@ \nwas deleted", domainToDelete.domain];
+    [growlCenter pushNotificationWithTitle:@"deleted" message:message];
 }
 
 - (void)saveModel:(id)sender
