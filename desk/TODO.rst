@@ -41,3 +41,5 @@ states:
  - changed
  - active
  - failed
+ - delete_do
+ - deleted
