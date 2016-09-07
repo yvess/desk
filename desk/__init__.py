@@ -2,9 +2,11 @@
 from __future__ import absolute_import, print_function, unicode_literals, division  # python3
 
 import os
+import sys
 import time
 import gevent
 import logging
+import traceback
 from couchdbkit import Server, Consumer
 from couchdbkit.changes import ChangesStream
 from restkit.conn import Connection
@@ -18,6 +20,7 @@ __version__ = '0.1'
 DOC_TYPES = {
     'domain': dns
 }
+logging.basicConfig(level=logging.DEBUG)
 
 
 class Worker(object):
@@ -38,6 +41,8 @@ class Worker(object):
             }
         }
 
+        self.logger = logging.getLogger(__name__)
+
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
@@ -51,7 +56,7 @@ class Worker(object):
             self.provides = worker_result[0]['provides']
 
     def _process_tasks(self, tasks):
-        logging.info("ready for processing tasks")
+        self.logger.info("ready for processing tasks")
         provider_lookup = {}
         for (servcie_type, services) in self.provides.viewitems():
             for service in services:
@@ -64,19 +69,19 @@ class Worker(object):
         successfull_tasks = []
         for doc_id in docs:
             doc = self.db.get(doc_id)
-            logging.info("do task %s" % task_id)
+            self.logger.info("do task %s" % task_id)
             was_successfull = self._do_task(doc)
-            logging.info("was_successfull", was_successfull)
+            self.logger.info("was_successfull", was_successfull)
             successfull_tasks.append(was_successfull)
         task_doc = self.db.get(task_id)
         if all(successfull_tasks):
             task_doc['state'] = 'done'
             self.db.save_doc(task_doc)
-            logging.info("task done doc_id: %s" % task_doc['_id'])
+            self.logger.info("task done doc_id: %s" % task_doc['_id'])
         else:
             task_doc['state'] = 'failed'
             self.db.save_doc(task_doc)
-            logging.info("task failed doc_id: %s" % task_doc['_id'])
+            self.logger.info("task failed doc_id: %s" % task_doc['_id'])
 
     def _do_task(self, doc):
         if doc['type'] in self.provides:
@@ -143,9 +148,9 @@ class Foreman(Worker):
         }
 
     def _process_orders(self, orders):
-        logging.info("ready for processing orders")
+        self.logger.info("ready for processing orders")
         for order in orders:
-            logging.info("got order %s" % order['doc']['_id'])
+            self.logger.info("got order %s" % order['doc']['_id'])
             order_doc, editor = order['doc'], order['doc']['editor']
             providers, docs = {}, []
             already_processed_orders = []
@@ -179,7 +184,7 @@ class Foreman(Worker):
         for provider in providers:
             created = True
             task_id = "task-{}-{}".format(provider, self.server.next_uuid())  # int(time.mktime(current_time))
-            logging.info("create task %s" % task_id)
+            self.logger.info("create task %s" % task_id)
             doc = {
                 "_id": task_id,
                 "type": "task",
@@ -203,7 +208,7 @@ class Foreman(Worker):
             task_doc['state'] = 'done_checked'
             self.db.save_doc(task_doc)
             self.db.save_doc(order_doc)
-            logging.info("updating order for task %s, state: %s"
+            self.logger.info("updating order for task %s, state: %s"
                          % (task['doc']['_id'], order_doc['state']))
             if providers == providers_done:
                 order_doc['state'] = 'done'
@@ -221,7 +226,7 @@ class Foreman(Worker):
                     update_docs.append(doc)
                 self.db.save_docs(update_docs)
                 self.db.save_doc(order_doc)
-                logging.info("order state: %s" % order_doc['state'])
+                self.logger.info("order state: %s" % order_doc['state'])
 
     def run(self):
         queue_tasks_open = self._create_queue(
