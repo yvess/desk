@@ -1,7 +1,19 @@
 #!/usr/bin/with-contenv sh
 #set -e
 
+
 cd /opt/app/desk
+sleep 2
 echo "* staring worker"
-sleep 2 # start after other /etc/services.d
-python -u ./dworker run -v >> "${WORKER_LOG}/${FQHOSTNAME}.log" 2>&1
+
+pid=$$
+
+sigterm() {
+    kill -TERM $pid
+}
+
+trap sigterm SIGTERM
+# start after other /etc/services.d
+python -u ./dworker run -v >> "${WORKER_LOG}/${FQHOSTNAME}.log" 2>&1 &
+pid=$!
+wait

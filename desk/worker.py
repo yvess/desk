@@ -151,11 +151,10 @@ class SetupWorkerParser(object):
 
 
 def signal_handler(signum, frame):
-    if signum == signal.SIGHUP:
-        # restart program
-        python = sys.executable
-        os.execl(python, python, * sys.argv)
+    if signum == signal.SIGTERM or signum == signal.SIGHUP:
+        sys.exit(0)
 
+signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGHUP, signal_handler)
 
 if __name__ == "__main__":
