@@ -10,9 +10,6 @@
 
 @implementation DMDomainViewController : COViewController
 {
-    @outlet              CPButton addDomainCnameButton;
-    @outlet              CPButton addDomainAButton;
-    @outlet              CPButton addDomainMxButton;
     @outlet              CPButton addRecordButton;
     @outlet              CPPopUpButton recordPopUp;
     @outlet              CPPopUpButton clientsForDomainPopUp;

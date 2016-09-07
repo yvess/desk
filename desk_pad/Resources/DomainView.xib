@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9531" systemVersion="15C50" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="10116" systemVersion="15G1004" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9531"/>
-        <plugIn identifier="com.apple.WebKitIBPlugin" version="9531"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10116"/>
+        <plugIn identifier="com.apple.WebKitIBPlugin" version="10116"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="DMDomainViewController">
@@ -619,7 +619,7 @@
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="-74" y="588"/>
+            <point key="canvasLocation" x="44" y="974"/>
         </customView>
         <customView id="150" userLabel="ViewDomainCname">
             <rect key="frame" x="0.0" y="0.0" width="290" height="100"/>
@@ -662,7 +662,7 @@
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="-74" y="245"/>
+            <point key="canvasLocation" x="44" y="786"/>
         </customView>
         <customView id="264" userLabel="ViewDomainMx">
             <rect key="frame" x="0.0" y="0.0" width="290" height="104"/>
@@ -705,7 +705,7 @@
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="-74" y="415"/>
+            <point key="canvasLocation" x="418" y="786"/>
         </customView>
         <customView id="7Zn-os-xFM" userLabel="ViewDomainAAAA">
             <rect key="frame" x="0.0" y="0.0" width="290" height="104"/>
@@ -748,7 +748,7 @@
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="-74" y="749"/>
+            <point key="canvasLocation" x="418" y="974"/>
         </customView>
         <customView id="EzZ-0Q-QOh" userLabel="ViewDomainTXT">
             <rect key="frame" x="0.0" y="0.0" width="290" height="104"/>
@@ -791,7 +791,7 @@
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="-74" y="918"/>
+            <point key="canvasLocation" x="44" y="1173"/>
         </customView>
     </objects>
 </document>
