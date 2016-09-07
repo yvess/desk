@@ -1,16 +1,15 @@
-FROM yvess/desk-worker:0.1.1
+FROM yvess/desk-worker:0.1.2
 MAINTAINER Yves Serrano <y@yas.ch>
 
-RUN echo -e "@edgetesting http://dl-cdn.alpinelinux.org/alpine/edge/testing\n@edgemain http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
+RUN echo -e "http://dl-cdn.alpinelinux.org/alpine/edge/main\nhttp://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
     apk add --no-cache \
-        boost-serialization@edgemain \
-        boost-program_options@edgemain \
-        pdns@edgetesting \
-        pdns-backend-sqlite3@edgetesting && \
-    addgroup pdns && adduser pdns pdns && \
-    ln -s /usr/lib/pdns/pdns/libgsqlite3backend.so /usr/lib/pdns/libgsqlite3backend.so && \
-    rm /etc/pdns.conf && \
+        boost-serialization \
+        boost-program_options \
+        pdns \
+        pdns-backend-sqlite3 && \
     rm -rf /var/cache/apk/*
+    # rm /etc/pdns.conf && \
+    # ln -s /usr/lib/pdns/pdns/libgsqlite3backend.so /usr/lib/pdns/libgsqlite3backend.so && \
 ADD ./etc/ /etc/
 ENV WORKER_TYPE worker
 ENV WORKER_SUBTYPE dns
