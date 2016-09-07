@@ -7,9 +7,9 @@ RUN echo -e "http://dl-cdn.alpinelinux.org/alpine/edge/main\nhttp://dl-cdn.alpin
         boost-program_options \
         pdns \
         pdns-backend-sqlite3 && \
+        ln -s /usr/lib/pdns/pdns/libgsqlite3backend.so /usr/lib/pdns/libgsqlite3backend.so && \
     rm -rf /var/cache/apk/*
     # rm /etc/pdns.conf && \
-    # ln -s /usr/lib/pdns/pdns/libgsqlite3backend.so /usr/lib/pdns/libgsqlite3backend.so && \
 ADD ./etc/ /etc/
 ENV WORKER_TYPE worker
 ENV WORKER_SUBTYPE dns
