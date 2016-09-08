@@ -71,7 +71,6 @@ class Worker(object):
             doc = self.db.get(doc_id)
             self.logger.info("do task %s" % task_id)
             was_successfull = self._do_task(doc)
-            self.logger.info("was_successfull", was_successfull)
             successfull_tasks.append(was_successfull)
         task_doc = self.db.get(task_id)
         if all(successfull_tasks):
@@ -96,13 +95,14 @@ class Worker(object):
                         backend_class
                     )
                 except AttributeError:
-                    print("not found")
+                    self.logger.error("not found: %s" % doc['_id'])
                 if ServiceClass:
                     with ServiceClass(self.settings) as service:
                         updater = Updater(self.db, doc, service)
                         was_successfull = updater.do_task()
                         return was_successfull
         else:
+            self.logger.error("I doesn't provide the requested service")
             raise Exception("I doesn't provide the requested service")
 
     def _create_queue(self, item_function, run_once=False, **item_kwargs):
@@ -163,7 +163,8 @@ class Foreman(Worker):
                     get_providers = getattr(
                         DOC_TYPES[doc['type']], 'get_providers'
                     )
-                    for provider in get_providers(doc):
+                    doc_providers = get_providers(doc)
+                    for provider in doc_providers:
                         if provider in providers:
                             providers[provider].append(result['doc']['_id'])
                         else:
@@ -182,7 +183,6 @@ class Foreman(Worker):
         current_time = time.mktime(time.localtime())
         created = False
         for provider in providers:
-            created = True
             task_id = "task-{}-{}".format(provider, self.server.next_uuid())  # int(time.mktime(current_time))
             self.logger.info("create task %s" % task_id)
             doc = {
@@ -194,6 +194,7 @@ class Foreman(Worker):
                 "provider": provider
             }
             self.db.save_doc(doc)
+            created = True
         return created
 
     def _update_order(self, tasks):
@@ -208,8 +209,9 @@ class Foreman(Worker):
             task_doc['state'] = 'done_checked'
             self.db.save_doc(task_doc)
             self.db.save_doc(order_doc)
-            self.logger.info("updating order for task %s, state: %s"
-                         % (task['doc']['_id'], order_doc['state']))
+            self.logger.info(
+                "updating order for task %s, state: %s" % (task['doc']['_id'], order_doc['state'])
+            )
             if providers == providers_done:
                 order_doc['state'] = 'done'
                 update_docs, update_docs_id = [], []
@@ -220,7 +222,10 @@ class Foreman(Worker):
                 )
                 for result in bulk_docs:
                     doc = result['doc']
-                    doc['state'] = 'active'
+                    if doc['state'] in ['new', 'changed']:
+                        doc['state'] = 'active'
+                    if doc['state'] in ['delete']:
+                        doc['state'] = 'deleted'
                     if 'prev_rev' in doc:
                         doc['prev_active_rev'] = doc['prev_rev']
                     update_docs.append(doc)

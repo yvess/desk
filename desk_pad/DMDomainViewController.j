@@ -222,7 +222,7 @@
 {
     var domainToDelete = [notification object];
     domainToDelete.state = @"delete_do";
-    var message = [CPString stringWithFormat:@"domain: %@ \nwas deleted", domainToDelete.domain];
+    var message = [CPString stringWithFormat:@"domain: %@ \nis scheduled for deletion", domainToDelete.domain];
     [growlCenter pushNotificationWithTitle:@"deleted" message:message];
 }
 

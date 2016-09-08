@@ -68,8 +68,13 @@ class VersionDoc(object):
 class Updater(object):
     def __init__(self, db, doc, service):
         self.db, self.doc = db, doc
-        choose_task = {'new': service.create, 'changed': service.update}
+        choose_task = {
+            'new': service.create,
+            'changed': service.update,
+            'delete': service.delete
+        }
         self.task = None
+        self.prev_active_doc = None
         if doc['state'] in choose_task:
             self.task = choose_task[doc['state']]
         self.merged_doc = MergedDoc(db, doc).doc
@@ -79,9 +84,9 @@ class Updater(object):
             else:
                 prev_active_rev = doc['prev_rev']
             prev_active_doc = db.fetch_attachment(doc['_id'], prev_active_rev)
-            self.prev_active_doc = json.loads(prev_active_doc)
-        else:
-            self.prev_active_doc = None
+
+            if prev_active_doc:
+                self.prev_active_doc = json.loads(prev_active_doc)
         service.set_docs(self.merged_doc, self.prev_active_doc)
         if hasattr(service, 'map_doc_id'):
             try:

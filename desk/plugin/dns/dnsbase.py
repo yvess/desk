@@ -158,6 +158,10 @@ class DnsBase(object):
         """Update the dns record."""
 
     @abc.abstractmethod
+    def delete(self, record):
+        """delete the dns record."""
+
+    @abc.abstractmethod
     def add_domain(self, domain):
         """add new domain"""
 

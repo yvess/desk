@@ -55,7 +55,7 @@
     //console.log([CPDate date]);
     var order = [[DMOrder alloc] init];
     //[order setDate:[CPString stringWithFormat:@"%@", [[CPDate date] description]]]; // [CPDate date]
-    [order setDate:[CPString stringWithFormat:@"%@", Date.now()]];
+    [order setDate:[CPString stringWithFormat:@"%@", new Date().toISOString()]];
     [order setCoId:[DMOrder couchId]];
     [order setSender:@"pad"];
     [order setState:@"new_pre"];
@@ -118,6 +118,7 @@
     {
         var source = new EventSource("/orders/done/?since=now");
         source.addEventListener('message', function(e) {
+          console.log("order updated");
           var data = JSON.parse(e.data);
           doNotification(data);
           if (data.doc['type'] == 'order')
@@ -136,6 +137,7 @@
           if (e.readyState == EventSource.CLOSED)
           {
             // Connection was closed.
+            console.log("eventsource errror");
           }
         }, false);
     }

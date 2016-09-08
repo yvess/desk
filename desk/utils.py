@@ -1,7 +1,8 @@
 # coding: utf-8
 from __future__ import absolute_import, print_function, division  # unicode_literals
 import time
-from datetime import date
+from datetime import date, datetime
+import uuid
 import os
 import shutil
 import json
@@ -109,12 +110,14 @@ def auth_from_uri(uri):
 
 
 def create_order_doc(uploader):
-    current_time = time.localtime()
-    order_id = "order-{}".format(int(time.mktime(current_time)))
+    now = datetime.now()
+    # same format as javascript
+    current_time = "%s.%sZ" % (now.strftime('%Y-%m-%dT%H:%M:%S'), "%03.0f" % (now.microsecond / 1000.0))
+    order_id = "order-{}".format(unicode(uuid.uuid1()).replace('-',''))
 
     order_doc = {
         "_id": order_id,
-        "date": time.strftime("%Y-%m-%d %H:%M:%S %z", current_time),
+        "date": current_time,
         "type": "order", "sender": "pad", "state": "new"
     }
     uploader.put(data=json.dumps(order_doc), doc_id=order_id)

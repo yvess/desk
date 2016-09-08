@@ -8,6 +8,10 @@ Worker
 TASKS
 =====
 
+- clients deleted
+- renable normal destroy
+- propogate failed order to frontend
+- check for pdns logfile existens
 - change to env vars for couchdb
 - autosetup db if it doesn't exists
 - add update validators
@@ -41,5 +45,5 @@ states:
  - changed
  - active
  - failed
- - delete_do
+ - delete
  - deleted

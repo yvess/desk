@@ -9,12 +9,14 @@ import traceback
 from desk.plugin.dns import DnsBase
 
 SOA_FORMAT = "{soa_primary} {soa_hostmaster} {serial} {soa_refresh} {soa_retry} {soa_expire} {soa_default_ttl}"
+logging.basicConfig(level=logging.DEBUG)
 
 
 class Powerdns(DnsBase):
     SETTING_KEYS = ['backend', 'db', 'user', 'name']
 
     def __init__(self, settings):
+        self.logger = logging.getLogger(__name__)
         self.settings = settings
         self.doc = None
         self.domain_id = None
@@ -35,12 +37,13 @@ class Powerdns(DnsBase):
     def _db(self, sql):
         error = None
         try:
+            self.logger.info(sql)
             self._cursor.execute(sql)
             self._conn.commit()
         except:
             error = "%s\n\n" % sql
             error += traceback.format_exc()
-            logging.error(error)
+            self.logger.error(error)
         return (error, self._cursor)
 
     def check_domain(self, domain):
@@ -90,7 +93,7 @@ class Powerdns(DnsBase):
             rtype="SOA", ttl=self.get_ttl(self.doc)
         )
         # TODO sudoers
-        os.system("pdns_control purge {}$".format(self.domain))
+        #os.system("pdns_control purge {}$".format(self.domain))
 
     def add_domain(self, domain=None):
         if domain:
@@ -157,19 +160,6 @@ class Powerdns(DnsBase):
                        value=value, rtype=rtype)
         )
 
-    def create(self,):
-        was_sucessfull = False
-        if self.doc:
-            self.set_domain(self.doc['domain'], new=True)
-            self.add_domain()
-            for nameserver in self.doc['nameservers']:
-                self.add_record(self.domain, nameserver, rtype="NS",
-                                ttl=self.get_ttl(self.doc))
-            self._create_records()
-            self.add_soa()
-            was_sucessfull = True
-        return was_sucessfull
-
     def _create_records(self, only_rtype=None):
         for rtype in self.structure:
             name, key_id, value_id = (
@@ -213,6 +203,19 @@ class Powerdns(DnsBase):
             value = rtype['value_trans'](value, self.domain)
         return (key, value)
 
+    def create(self,):
+        was_sucessfull = False
+        if self.doc:
+            self.set_domain(self.doc['domain'], new=True)
+            self.add_domain()
+            for nameserver in self.doc['nameservers']:
+                self.add_record(self.domain, nameserver, rtype="NS",
+                                ttl=self.get_ttl(self.doc))
+            self._create_records()
+            self.add_soa()
+            was_sucessfull = True
+        return was_sucessfull
+
     def update(self):
         was_sucessfull = False
         if self.doc:
@@ -247,5 +250,12 @@ class Powerdns(DnsBase):
                 self.del_records(rtype=name)
                 self._create_records(only_rtype=name)
             self.update_soa()
+            was_sucessfull = True
+        return was_sucessfull
+
+    def delete(self,):
+        was_sucessfull = False
+        if self.doc:
+            self.del_domain(self.doc['domain'])
             was_sucessfull = True
         return was_sucessfull
