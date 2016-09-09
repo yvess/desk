@@ -29,6 +29,6 @@
 
 - (CPString)selectorDestroy
 {
-    return @"markForDeletion";
+    return @"markAsDeleted";
 }
 @end
