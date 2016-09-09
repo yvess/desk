@@ -9,7 +9,7 @@ import traceback
 from desk.plugin.dns import DnsBase
 
 SOA_FORMAT = "{soa_primary} {soa_hostmaster} {serial} {soa_refresh} {soa_retry} {soa_expire} {soa_default_ttl}"
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 class Powerdns(DnsBase):
@@ -37,7 +37,7 @@ class Powerdns(DnsBase):
     def _db(self, sql):
         error = None
         try:
-            self.logger.info(sql)
+            self.logger.debug(sql)
             self._cursor.execute(sql)
             self._conn.commit()
         except:
