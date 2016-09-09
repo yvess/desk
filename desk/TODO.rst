@@ -9,7 +9,6 @@ TASKS
 =====
 
 - clients deleted
-- renable normal destroy
 - propogate failed order to frontend
 - check for pdns logfile existens
 - change to env vars for couchdb
