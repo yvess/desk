@@ -17,6 +17,7 @@ TASKS
 ENHANCEMENTS
 ============
 
+- add couchdb migrations, active -> activated
 - propogate failed order to frontend
 - check for pdns logfile existence
 - change to env vars for couchdb
