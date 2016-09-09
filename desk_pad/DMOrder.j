@@ -23,4 +23,9 @@
 {
     return @"date";
 }
+
+- (CPString)selectorDestroy
+{
+    return @"markForDeletion";
+}
 @end

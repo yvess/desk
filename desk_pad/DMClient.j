@@ -25,4 +25,9 @@
 {
     return @"name";
 }
+
+- (CPString)selectorDestroy
+{
+    return @"markForDeletion";
+}
 @end

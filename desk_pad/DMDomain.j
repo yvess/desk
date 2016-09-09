@@ -100,6 +100,12 @@
     return @"domain";
 }
 
+- (CPString)selectorDestroy
+{
+    return @"markForDeletion";
+}
+
+
 - (CPString)transformLabel:(CPString) aLabel
 {
     return [aLabel uppercaseString];
