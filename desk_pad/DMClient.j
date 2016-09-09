@@ -8,6 +8,7 @@
 
     /* custom ivars */
     CPString name     @accessors;
+    CPString state         @accessors;
     CPString extcrmId    @accessors;
     CPString extcrmContactId    @accessors;
     CPString lastInvoiceEndDate @accessors;

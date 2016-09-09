@@ -179,6 +179,11 @@
             name:CPMenuDidChangeItemNotification
           object:nil
     ];
+    [[CPNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(clientWasRemoved:)
+            name:@"DMRemoveTableRow"
+          object:nil
+    ];
 
     [arrayController addObserver:self forKeyPath:@"selection.client" options:nil context:@"client"];
 
@@ -355,6 +360,17 @@
     if ([popoverService isShown])
     {
         [popoverService close];
+    }
+}
+
+- (void)clientWasRemoved:(CPNotification)notification
+{
+    var clientToDelete = [notification object];
+    if ([clientToDelete className] == @"DMClient")
+    {
+        clientToDelete.state = @"deleted";
+        var message = [CPString stringWithFormat:@"client: %@ \nis marked as deleted", clientToDelete.name];
+        [growlCenter pushNotificationWithTitle:@"deleted" message:message];
     }
 }
 

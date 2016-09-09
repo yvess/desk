@@ -8,9 +8,16 @@ Worker
 TASKS
 =====
 
-- clients deleted
+- compare dns content new/current
+- check for pdns logfile existence
+- permission sqlitedb pdns_controll
+- update clients, without reload
+
+ENHANCEMENTS
+============
+
 - propogate failed order to frontend
-- check for pdns logfile existens
+- check for pdns logfile existence
 - change to env vars for couchdb
 - autosetup db if it doesn't exists
 - add update validators
@@ -24,7 +31,6 @@ TASKS
 - undo queue feature
 - generic cache doc
 - add order nothing todo
-- add client, without reload
 
 BUGS
 ====

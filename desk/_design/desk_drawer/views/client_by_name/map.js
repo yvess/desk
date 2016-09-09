@@ -1,5 +1,9 @@
 function(doc) {
     if (doc.type == 'client') {
-        emit(doc.name, doc);
+        if (doc.hasOwnProperty('state') && doc.state.indexOf('delete') >= 0) {
+            // do nothing
+        } else {
+            emit(doc.name, doc._rev);
+        }
     }
 }

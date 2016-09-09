@@ -221,9 +221,12 @@
 - (void)domainWasRemoved:(CPNotification)notification
 {
     var domainToDelete = [notification object];
-    domainToDelete.state = @"delete_do";
-    var message = [CPString stringWithFormat:@"domain: %@ \nis scheduled for deletion", domainToDelete.domain];
-    [growlCenter pushNotificationWithTitle:@"deleted" message:message];
+    if ([domainToDelete className] == @"DMDomain")
+    {
+        domainToDelete.state = @"delete";
+        var message = [CPString stringWithFormat:@"domain: %@ \nis scheduled for deletion\nsend order for execution", domainToDelete.domain];
+        [growlCenter pushNotificationWithTitle:@"deleted" message:message];
+    }
 }
 
 - (void)saveModel:(id)sender
