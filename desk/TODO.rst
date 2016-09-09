@@ -12,6 +12,7 @@ TASKS
 - check for pdns logfile existence
 - permission sqlitedb pdns_controll
 - update clients, without reload
+- cache map_ips
 
 ENHANCEMENTS
 ============
