@@ -11,7 +11,7 @@ import argparse
 import codecs
 from desk.command import InstallDbCommand, InstallWorkerCommand
 from desk.command import WorkerCommand, UploadJsonCommand
-from desk.plugin.dns.cmd import ImportDnsCommand
+from desk.plugin.dns.cmd import ImportDnsCommand, LdifPlainDnsCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
 
@@ -89,6 +89,11 @@ class SetupWorkerParser(object):
 
         self.dns_import_cmd = ImportDnsCommand()
         self.dns_import_parser = self.dns_import_cmd.setup_parser(
+            self.subparsers, CONFIG_PARSER
+        )
+
+        self.dns_ldifplain_cmd = LdifPlainDnsCommand()
+        self.dns_ldifplain_parser = self.dns_ldifplain_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
         )
 
@@ -174,6 +179,9 @@ if __name__ == "__main__":
     elif worker.settings.command == 'dns-import':
         worker.dns_import_cmd.set_settings(worker.settings)
         worker.dns_import_cmd.run()
+    elif worker.settings.command == 'dns-ldifplain':
+        worker.dns_ldifplain_cmd.set_settings(worker.settings)
+        worker.dns_ldifplain_cmd.run()
     elif worker.settings.command == 'invoices-create':
         worker.invoices_create_cmd.set_settings(worker.settings)
         worker.invoices_create_cmd.run()

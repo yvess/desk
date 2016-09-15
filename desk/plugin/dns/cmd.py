@@ -132,3 +132,29 @@ class ImportDnsCommand(SettingsCommand):
             create_order_doc(couch_up)
         if temp_dir:
             shutil.rmtree(temp_dir)
+
+
+class LdifPlainDnsCommand(SettingsCommand):
+    def setup_parser(self, subparsers, config_parser):
+        ldifplain_parser = subparsers.add_parser(
+            'dns-ldifplain',
+            help="""converts ldif files to plain text""",
+            description="""Converts ldifs to plain text dns data for diff form dns-export"""
+        )
+        ldifplain_parser.add_argument(*config_parser['args'],
+                                      **config_parser['kwargs'])
+        ldifplain_parser.add_argument(
+            "src",
+            help="source of the ldif file with the DNS data",
+        )
+
+        ldifplain_parser.add_argument(
+            "dest",
+            help="dest of the plain text dns data file",
+        )
+
+        return ldifplain_parser
+
+    def run(self):
+        src, dest = self.settings.src, self.settings.dest
+
