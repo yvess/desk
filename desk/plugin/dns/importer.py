@@ -8,6 +8,14 @@ from desk.command import DocsProcessor
 
 
 class IspmanDnsLDIF(LDIFParser):
+    structure_map = {
+        'a': ['host', 'ip'],
+        'aaaa': ['host', 'ipv6'],
+        'cname': ['alias', 'host'],
+        'mx': ['host', 'priority'],
+        'txt': ['name', 'txt'],
+    }
+
     def __init__(self, input, output, settings, clients_ldif=None, editor=None):
         LDIFParser.__init__(self, input)
         self.domains = {}

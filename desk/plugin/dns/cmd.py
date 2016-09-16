@@ -155,11 +155,30 @@ class LdifPlainDnsCommand(SettingsCommand):
 
         return ldifplain_parser
 
+    def plain_text_records(self, dname, rtype, records):
+        lines = []
+        if rtype in records:
+            for record in records[rtype]:
+                key_id, value_id = self.dns_ldif.structure_map[rtype]
+                line = "{dname} {rtype} {key} {value}".format(
+                    dname=dname, rtype=rtype.upper(),
+                    key=record[key_id], value=record[value_id]
+                )
+                lines.append(line)
+        return lines
+
     def run(self):
         src, dest = self.settings.src, self.settings.dest
-        dns_ldif = IspmanDnsLDIF(
+        output = []
+        self.dns_ldif = IspmanDnsLDIF(
             open(src, 'r'), sys.stdout, self.settings
         )
-        dns_ldif.parse()
-        data = [[k, v] for k, v in dns_ldif.domains.iteritems()]
-        print(data)
+        self.dns_ldif.parse()
+        domains = [[k, v] for k, v in self.dns_ldif.domains.iteritems()]
+        domains = sorted(domains, key=lambda x: x[0])
+        for domain in domains:
+            for rtype in ['a', 'aaaa', 'cname', 'mx', 'txt']:
+                dname, records = domain[0], domain[1]
+                output.extend(self.plain_text_records(dname, rtype, records))
+            output.extend(["%s NS %s" % (dname, n) for n in records['nameservers']])
+        print("\n".join(output))
