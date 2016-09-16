@@ -157,4 +157,9 @@ class LdifPlainDnsCommand(SettingsCommand):
 
     def run(self):
         src, dest = self.settings.src, self.settings.dest
-
+        dns_ldif = IspmanDnsLDIF(
+            open(src, 'r'), sys.stdout, self.settings
+        )
+        dns_ldif.parse()
+        data = [[k, v] for k, v in dns_ldif.domains.iteritems()]
+        print(data)

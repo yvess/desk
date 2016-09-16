@@ -146,6 +146,7 @@ class SetupWorkerParser(object):
         self.install_worker_parser.set_defaults(**self.merged_defaults)
         self.upload_json_parser.set_defaults(**self.merged_defaults)
         self.dns_import_parser.set_defaults(**self.merged_defaults)
+        self.dns_ldifplain_parser.set_defaults(**self.merged_defaults)
         self.invoices_create_parser.set_defaults(**self.merged_defaults)
         self.service_import_parser.set_defaults(**self.merged_defaults)
         self.service_query_parser.set_defaults(**self.merged_defaults)
