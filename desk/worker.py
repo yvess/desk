@@ -4,7 +4,7 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 
 from gevent import monkey; monkey.patch_all()
 import sys
-import os
+import re
 import signal
 from ConfigParser import SafeConfigParser
 import argparse
@@ -49,6 +49,11 @@ CONF_SECTIONS = ['couchdb', 'powerdns', 'worker', 'todoyu',
                  'invoice', 'service_web', 'service_email']
 
 
+def to_snake_case(name):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
 class SetupWorkerParser(object):
     def __init__(self, pass_args=None):
         """create the command line parser / config file reader """
@@ -72,6 +77,9 @@ class SetupWorkerParser(object):
             self.subparsers, CONFIG_PARSER, VERBOSE_PARSER
         )
 
+        for command in []:
+            command
+
         self.install_db_cmd = InstallDbCommand()
         self.install_db_parser = self.install_db_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
@@ -87,28 +95,28 @@ class SetupWorkerParser(object):
             self.subparsers, CONFIG_PARSER
         )
 
-        self.dns_import_cmd = ImportDnsCommand()
-        self.dns_import_parser = self.dns_import_cmd.setup_parser(
+        self.import_dns_cmd = ImportDnsCommand()
+        self.import_dns_parser = self.import_dns_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
         )
 
-        self.dns_ldifplain_cmd = LdifPlainDnsCommand()
-        self.dns_ldifplain_parser = self.dns_ldifplain_cmd.setup_parser(
+        self.ldifplain_dns_cmd = LdifPlainDnsCommand()
+        self.ldifplain_dns_parser = self.ldifplain_dns_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
         )
 
-        self.invoices_create_cmd = CreateInvoicesCommand()
-        self.invoices_create_parser = self.invoices_create_cmd.setup_parser(
+        self.create_invoices_cmd = CreateInvoicesCommand()
+        self.create_invoices_parser = self.create_invoices_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
         )
 
-        self.service_import_cmd = ImportServiceCommand()
-        self.service_import_parser = self.service_import_cmd.setup_parser(
+        self.import_service_cmd = ImportServiceCommand()
+        self.import_service_parser = self.import_service_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
         )
 
-        self.service_query_cmd = QueryServiceCommand()
-        self.service_query_parser = self.service_query_cmd.setup_parser(
+        self.query_service_cmd = QueryServiceCommand()
+        self.query_service_parser = self.query_service_cmd.setup_parser(
             self.subparsers, CONFIG_PARSER
         )
 
@@ -145,11 +153,11 @@ class SetupWorkerParser(object):
         self.install_db_parser.set_defaults(**self.merged_defaults)
         self.install_worker_parser.set_defaults(**self.merged_defaults)
         self.upload_json_parser.set_defaults(**self.merged_defaults)
-        self.dns_import_parser.set_defaults(**self.merged_defaults)
-        self.dns_ldifplain_parser.set_defaults(**self.merged_defaults)
-        self.invoices_create_parser.set_defaults(**self.merged_defaults)
-        self.service_import_parser.set_defaults(**self.merged_defaults)
-        self.service_query_parser.set_defaults(**self.merged_defaults)
+        self.import_dns_parser.set_defaults(**self.merged_defaults)
+        self.ldifplain_dns_parser.set_defaults(**self.merged_defaults)
+        self.create_invoices_parser.set_defaults(**self.merged_defaults)
+        self.import_service_parser.set_defaults(**self.merged_defaults)
+        self.query_service_parser.set_defaults(**self.merged_defaults)
         if self.pass_args:
             self.settings = self.main_parser.parse_args(self.pass_args)
         else:
@@ -178,17 +186,17 @@ if __name__ == "__main__":
         worker.upload_json_cmd.set_settings(worker.settings)
         worker.upload_json_cmd.run()
     elif worker.settings.command == 'dns-import':
-        worker.dns_import_cmd.set_settings(worker.settings)
-        worker.dns_import_cmd.run()
+        worker.import_dns_cmd.set_settings(worker.settings)
+        worker.import_dns_cmd.run()
     elif worker.settings.command == 'dns-ldifplain':
-        worker.dns_ldifplain_cmd.set_settings(worker.settings)
-        worker.dns_ldifplain_cmd.run()
+        worker.ldifplain_dns_cmd.set_settings(worker.settings)
+        worker.ldifplain_dns_cmd.run()
     elif worker.settings.command == 'invoices-create':
-        worker.invoices_create_cmd.set_settings(worker.settings)
-        worker.invoices_create_cmd.run()
+        worker.create_invoices_cmd.set_settings(worker.settings)
+        worker.create_invoices_cmd.run()
     elif worker.settings.command == 'service-import':
-        worker.service_import_cmd.set_settings(worker.settings)
-        worker.service_import_cmd.run()
+        worker.import_service_cmd.set_settings(worker.settings)
+        worker.import_service_cmd.run()
     elif worker.settings.command == 'service-query':
-        worker.service_query_cmd.set_settings(worker.settings)
-        worker.service_query_cmd.run()
+        worker.query_service_cmd.set_settings(worker.settings)
+        worker.query_service_cmd.run()
