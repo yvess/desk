@@ -289,7 +289,7 @@ class Powerdns(DnsBase):
         for row in result.fetchall():
             rtype, key, value = row
             key = reverse_fqdn(domain, key)
-            if rtype.lower() not in ['a', 'aaaa']:
+            if rtype.lower() in ['cname', 'mx', 'ns']:
                 value = reverse_fqdn(domain, value)
 
             if rtype.lower() in records:

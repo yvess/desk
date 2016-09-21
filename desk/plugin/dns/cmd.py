@@ -200,13 +200,13 @@ class PowerdnsExportCommand(SettingsCommand):
                                             **config_parser['kwargs'])
 
         export_powerdns_parser.add_argument(
-            "dest",
-            help="dest of the plain text dns data file",
+            "db",
+            help="""path to the sqlite database"""
         )
 
         export_powerdns_parser.add_argument(
-            "-d", "--db", dest="db", default=None, required=True,
-            help="""path to the sqlite database"""
+            "dest",
+            help="dest of the plain text dns data file",
         )
 
         return export_powerdns_parser
