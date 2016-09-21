@@ -6,7 +6,7 @@ import os
 import logging
 from copy import copy
 import traceback
-from desk.plugin.dns import DnsBase
+from desk.plugin.dns import DnsBase, reverse_fqdn
 
 SOA_FORMAT = "{soa_primary} {soa_hostmaster} {serial} {soa_refresh} {soa_retry} {soa_expire} {soa_default_ttl}"
 logging.basicConfig(level=logging.INFO)
@@ -253,9 +253,36 @@ class Powerdns(DnsBase):
             was_sucessfull = True
         return was_sucessfull
 
-    def delete(self,):
+    def delete(self):
         was_sucessfull = False
         if self.doc:
             self.del_domain(self.doc['domain'])
             was_sucessfull = True
         return was_sucessfull
+
+    def get_domains(self):
+        error, result = self._db(
+            "SELECT name FROM domains"
+        )
+        domains = [d[0] for d in result.fetchall()]
+        return domains
+
+    def get_records(self, domain):
+        error, result = self._db(
+            "SELECT id FROM domains WHERE name='%s'" % domain
+        )
+        domain_id = result.fetchone()[0]
+        error, result = self._db(
+            """SELECT type, name, content
+            FROM records WHERE domain_id=%s
+            ORDER by type, name, content""" % domain_id
+        )
+        records = {'a': [], 'aaaa': [], 'cname': [], 'mx': [], 'txt': []}
+        for row in result.fetchall():
+            rtype, key, value = row
+            key = reverse_fqdn(domain, key)
+            value = reverse_fqdn(domain, value)
+
+            if rtype.lower() in records:
+                records[rtype.lower()].append((key, value))
+        return records

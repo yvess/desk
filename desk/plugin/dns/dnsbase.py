@@ -107,6 +107,29 @@ def dnsbase_structure_cname_value_trans(host, domain):
     return value
 
 
+def to_fqdn(entry, domain=None):
+    if entry.endswith('.'):
+        return entry[:-1]
+    if domain:
+        return "%s.%s" % (entry, domain)
+    return entry
+
+
+def reverse_fqdn(domain, record):
+    record, matched_domain, remainer = record.partition(".%s" % domain)
+    if record == domain:
+        return "@"
+    if not matched_domain:
+        return "%s." % record
+    return record
+
+
+def get_providers(doc):
+    provider_key = 'nameservers'
+    nameservers = [to_fqdn(provider) for provider in doc[provider_key]]
+    return nameservers
+
+
 class DnsBase(object):
     __metaclass__ = abc.ABCMeta
     validator = DnsValidator
@@ -185,6 +208,14 @@ class DnsBase(object):
     def del_records(self, rtype, domain=None):
         """delete records from one rtype"""
 
+    @abc.abstractmethod
+    def get_domains(self):
+        """get all domain names"""
+
+    @abc.abstractmethod
+    def get_records(self, domain=None):
+        """get all records"""
+
     def set_docs(self, doc, prev_doc=None):
         """sets the doc to use"""
         self.doc = doc
@@ -204,17 +235,3 @@ class DnsBase(object):
         if 'soa_default_ttl' in doc:
             return doc['soa_default_ttl']
         return 86400
-
-
-def to_fqdn(entry, domain=None):
-    if entry.endswith('.'):
-        return entry[:-1]
-    if domain:
-        return "%s.%s" % (entry, domain)
-    return entry
-
-
-def get_providers(doc):
-    provider_key = 'nameservers'
-    nameservers = [to_fqdn(provider) for provider in doc[provider_key]]
-    return nameservers
