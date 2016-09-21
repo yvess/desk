@@ -5,6 +5,7 @@ import time
 import os
 import logging
 from copy import copy
+from collections import OrderedDict
 import traceback
 from desk.plugin.dns import DnsBase, reverse_fqdn
 
@@ -277,11 +278,19 @@ class Powerdns(DnsBase):
             FROM records WHERE domain_id=%s
             ORDER by type, name, content""" % domain_id
         )
-        records = {'a': [], 'aaaa': [], 'cname': [], 'mx': [], 'txt': []}
+        records = OrderedDict([
+            ('a', []),
+            ('aaaa', []),
+            ('cname', []),
+            ('mx', []),
+            ('ns', []),
+            ('txt', []),
+        ])
         for row in result.fetchall():
             rtype, key, value = row
             key = reverse_fqdn(domain, key)
-            value = reverse_fqdn(domain, value)
+            if rtype.lower() not in ['a', 'aaaa']:
+                value = reverse_fqdn(domain, value)
 
             if rtype.lower() in records:
                 records[rtype.lower()].append((key, value))

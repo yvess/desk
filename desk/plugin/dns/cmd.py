@@ -222,7 +222,6 @@ class PowerdnsExportCommand(SettingsCommand):
 
         domains = pdns.get_domains()
 
-
         for domain in domains:
             records = pdns.get_records(domain)
             for rtype in records:
