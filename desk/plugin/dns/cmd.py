@@ -160,7 +160,7 @@ class LdifPlainDnsCommand(SettingsCommand):
         if rtype in records:
             for record in records[rtype]:
                 key_id, value_id = self.dns_ldif.structure_map[rtype]
-                line = "{dname} {rtype} {key} {value}".format(
+                line = u"{dname} {rtype} {key} {value}\n".format(
                     dname=dname, rtype=rtype.upper(),
                     key=record[key_id], value=record[value_id]
                 )
@@ -180,5 +180,6 @@ class LdifPlainDnsCommand(SettingsCommand):
             for rtype in ['a', 'aaaa', 'cname', 'mx', 'txt']:
                 dname, records = domain[0], domain[1]
                 output.extend(self.plain_text_records(dname, rtype, records))
-            output.extend(["%s NS %s" % (dname, n) for n in records['nameservers']])
-        print("\n".join(output))
+            output.extend([u"%s NS %s\n" % (dname, n) for n in records['nameservers']])
+        with open(dest, 'w') as f:
+            f.writelines(output)
