@@ -9,6 +9,7 @@ import signal
 from ConfigParser import SafeConfigParser
 import argparse
 import codecs
+from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
 from desk.command import WorkerCommand, UploadJsonCommand
 from desk.plugin.dns.cmd import ImportDnsCommand, LdifPlainDnsCommand
@@ -80,16 +81,16 @@ class SetupWorkerParser(object):
         )
         self.parsers.append(self.worker_parser)
 
-        self.commands = {
-            'install-db': InstallWorkerCommand,
-            'install-worker': InstallDbCommand,
-            'upload-json': UploadJsonCommand,
-            'dns-import': ImportDnsCommand,
-            'dns-ldifplain': LdifPlainDnsCommand,
-            'invoices-create': CreateInvoicesCommand,
-            'service-import': ImportServiceCommand,
-            'service-query': QueryServiceCommand,
-        }
+        self.commands = OrderedDict([
+            ('install-db', InstallWorkerCommand),
+            ('install-worker', InstallDbCommand),
+            ('upload-json', UploadJsonCommand),
+            ('dns-import', ImportDnsCommand),
+            ('dns-ldifplain', LdifPlainDnsCommand),
+            ('invoices-create', CreateInvoicesCommand),
+            ('service-import', ImportServiceCommand),
+            ('service-query', QueryServiceCommand),
+        ])
 
         for command_name, command in self.commands.items():
             name_snake = to_snake_case(command.__name__)
