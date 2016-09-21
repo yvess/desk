@@ -120,7 +120,9 @@ def reverse_fqdn(domain, record):
     if record == domain:
         return "@"
     if not matched_domain and not record.endswith('.'):
-        return "%s." % record
+        record = "%s." % record
+    if record == ".":
+        return ""
     return record
 
 

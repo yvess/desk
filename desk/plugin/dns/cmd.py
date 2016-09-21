@@ -157,16 +157,23 @@ class LdifPlainDnsCommand(SettingsCommand):
         return ldifplain_parser
 
     def plain_text_records(self, dname, rtype, records):
-        records = []
+        items = []
         if rtype in records:
             for record in records[rtype]:
                 key_id, value_id = self.dns_ldif.structure_map[rtype]
+                if rtype != 'mx':
+                    key = record[key_id]
+                    value = record[value_id]
+                else:
+                    key = "@"
+                    value = record[key_id]
+                if value == '.':
+                    value = ''
                 entry = u"{dname} {rtype} {key} {value}\n".format(
-                    dname=dname, rtype=rtype.upper(),
-                    key=record[key_id], value=record[value_id]
+                    dname=dname, rtype=rtype.upper(), key=key, value=value
                 )
-                records.append(entry)
-        return records
+                items.append(entry)
+        return items
 
     def run(self):
         src, dest = self.settings.src, self.settings.dest
@@ -181,7 +188,7 @@ class LdifPlainDnsCommand(SettingsCommand):
             for rtype in ['a', 'aaaa', 'cname', 'mx', 'ns', 'txt']:
                 dname, records = domain[0], domain[1]
                 if rtype == 'ns':
-                    output.extend([u"%s NS %s\n" % (dname, n) for n in records['nameservers']])
+                    output.extend([u"%s NS @ %s\n" % (dname, n) for n in records['nameservers']])
                 else:
                     output.extend(self.plain_text_records(dname, rtype, records))
         output.sort()
@@ -230,6 +237,7 @@ class PowerdnsExportCommand(SettingsCommand):
                             dname=domain, rtype=rtype.upper(),
                             key=record[0], value=record[1]
                     )
-                    output.extend(entry)
+                    output.append(entry)
+        output.sort()
         with open(dest, 'w') as f:
             f.writelines(output)
