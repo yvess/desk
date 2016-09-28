@@ -137,7 +137,11 @@ class Todoyu(ExtCrmBase):
         conn.close()
 
     def get_address(self, pk=None):
-        return self._address_map[pk]
+        try:
+            return self._address_map[pk]
+        except KeyError:
+            print(self._address_map)
+            raise KeyError
 
     def get_contact(self, pk=None):
         return self._contact_map[pk]
