@@ -220,7 +220,7 @@ class Invoice(object):
             months = 0
         item['months'] = months
         item['amount'] = months * price
-        item['tax'] = item['amount'] * self.tax
+        item['tax'] = round(item['amount'] * self.tax, 1)
         item['total'] = item['amount'] + item['tax']
         self.doc['amount'] += item['amount']
         self.doc['tax'] += item['tax']
