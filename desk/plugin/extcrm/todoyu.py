@@ -141,6 +141,7 @@ class Todoyu(ExtCrmBase):
             return self._address_map[pk]
         except KeyError:
             print(self._address_map)
+            print("key error", pk)
             raise KeyError
 
     def get_contact(self, pk=None):
