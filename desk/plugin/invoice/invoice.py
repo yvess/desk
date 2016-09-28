@@ -52,7 +52,11 @@ class Invoice(object):
         self.jinja_env.filters['format_date'] = filters.format_date
         self.crm = crm
         self.client_id = client_doc['_id']
-        self.extcrm_id = client_doc['extcrm_id']
+        try:
+            self.extcrm_id = client_doc['extcrm_id']
+        except KeyError:
+            print(client_doc)
+            raise KeyError
         self.client_doc = client_doc
         self.settings = settings
         self.invoice_cycle = invoice_cycle
