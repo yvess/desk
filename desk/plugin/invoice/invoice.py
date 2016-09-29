@@ -202,7 +202,8 @@ class Invoice(object):
                 addon.update(
                     self.add_amount(addon['price'], addon['start_date'], addon['end_date'])
                 )
-                if not addon['start_date'] > self.invoice_cycle.doc['end_date']:
+                if (not addon['start_date'] > self.invoice_cycle.doc['end_date'] and
+                   not addon['start_date'] > addon['end_date']):
                     addons.append(addon)
             del(service['addon_service_items'])
         return addons
