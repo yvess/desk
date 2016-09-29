@@ -191,8 +191,12 @@ class Invoice(object):
                 else:
                     if addon['start_date'] < self.doc['start_date']:
                         addon['start_date'] = self.doc['start_date']
+                if 'end_date' in service:
+                    end_date_doc = service
+                else:
+                    end_date_doc = self.doc
                 addon['end_date'] = get_default(
-                    'end_date', addon, self.doc,
+                    'end_date', addon, end_date_doc,
                     special_attribute='endDate',
                 )
                 addon.update(
