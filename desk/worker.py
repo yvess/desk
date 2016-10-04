@@ -82,8 +82,8 @@ class SetupWorkerParser(object):
         self.parsers.append(self.worker_parser)
 
         self.commands = OrderedDict([
-            ('install-db', InstallWorkerCommand),
-            ('install-worker', InstallDbCommand),
+            ('install-db', InstallDbCommand),
+            ('install-worker', InstallWorkerCommand),
             ('upload-json', UploadJsonCommand),
             ('dns-import', ImportDnsCommand),
             ('dns-ldifplain', LdifPlainDnsCommand),
