@@ -1,5 +1,5 @@
 cdb:
-  image: yvess/desk-couchdb
+  image: yvess/couchdb:1.6.1a
   hostname: cdb
   environment:
     - TERM=xterm-256color
