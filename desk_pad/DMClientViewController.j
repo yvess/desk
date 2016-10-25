@@ -68,8 +68,9 @@
 - (id)initWithCibName:(CPString) aCibNameOrNil
       bundle: (CPBundle) aCibBundleOrNil
       modelClass: (CPObject) aModelClass
+      growlCenter: (TNGrowlCenter) aGrowlCenter
 {
-    self = [super initWithCibName:aCibNameOrNil bundle:aCibBundleOrNil modelClass:aModelClass];
+    self = [super initWithCibName:aCibNameOrNil bundle:aCibBundleOrNil modelClass:aModelClass growlCenter:aGrowlCenter];
     if (self)
     {
         itemLookup = [self createLookup];
@@ -79,6 +80,7 @@
         serviceDefinitions = [DMServiceDefinition all];
         serviceItems = [[CPMutableArray alloc] init];
         domainItems = [[CPMutableArray alloc] init];
+        self.growlCenter = aGrowlCenter;
     }
     return self;
 }
@@ -370,7 +372,7 @@
     {
         clientToDelete.state = @"deleted";
         var message = [CPString stringWithFormat:@"client: %@ \nis marked as deleted", clientToDelete.name];
-        [growlCenter pushNotificationWithTitle:@"deleted" message:message];
+        [self.growlCenter pushNotificationWithTitle:@"deleted" message:message];
     }
 }
 

@@ -35,16 +35,18 @@
 - (id)initWithCibName:(CPString) aCibNameOrNil
       bundle: (CPBundle) aCibBundleOrNil
       modelClass: (CPObject) aModelClass
+      growlCenter: (TNGrowlCenter) aGrowlCenter
       clients: (CPMutableArray) aClientsArray
       clientLookup: (CPMutableDictionary) aClientLookup
 {
-    self = [super initWithCibName:aCibNameOrNil bundle:aCibBundleOrNil modelClass:aModelClass];
+    self = [super initWithCibName:aCibNameOrNil bundle:aCibBundleOrNil modelClass:aModelClass growlCenter:aGrowlCenter];
     if (self)
     {
         clients = aClientsArray;
         clientLookup = aClientLookup;
         itemLookup = [self createLookup];
         items = [modelClass allWithParams:@{} withPath:@"/domains_by_name"];
+        self.growlCenter = aGrowlCenter;
     }
     return self;
 }
@@ -225,7 +227,7 @@
     {
         domainToDelete.state = @"delete";
         var message = [CPString stringWithFormat:@"domain: %@ \nis scheduled for deletion\nsend order for execution", domainToDelete.domain];
-        [growlCenter pushNotificationWithTitle:@"deleted" message:message];
+        [self.growlCenter pushNotificationWithTitle:@"deleted" message:message];
     }
 }
 

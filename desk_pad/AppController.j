@@ -15,7 +15,6 @@
 @import <AppKit/CPTabView.j>
 @import <GrowlCappuccino/GrowlCappuccino.j>
 @import <CouchResource/COCategories.j>
-@import <CouchResource/COViewController.j>
 @import "DMClient.j"
 @import "DMClientViewController.j"
 @import "DMDomain.j"
@@ -34,6 +33,7 @@
     DMClientViewController clientViewController;
     DMDomainViewController domainViewController;
     CPSet                popovers;
+    TNGrowlCenter        growlCenter;
 }
 
 - (void)switchTabFromButton:(id)sender
@@ -78,12 +78,22 @@
     popovers = [[CPSet alloc] init];
     window.popovers = popovers;
 
+    self.growlCenter = [TNGrowlCenter defaultCenter];
+
     var clientVC = [[DMClientViewController alloc]
-                    initWithCibName:@"ClientView" bundle:nil modelClass:[DMClient class]],
+                    initWithCibName:@"ClientView"
+                    bundle:nil
+                    modelClass:[DMClient class]
+                    growlCenter:self.growlCenter
+        ],
         domainVC = [[DMDomainViewController alloc]
-                    initWithCibName:@"DomainView" bundle:nil
-                    modelClass:[DMDomain class] clients:[clientVC items]
-                    clientLookup:[clientVC itemLookup]];
+                    initWithCibName:@"DomainView"
+                    bundle:nil
+                    modelClass:[DMDomain class]
+                    growlCenter:self.growlCenter
+                    clients:[clientVC items]
+                    clientLookup:[clientVC itemLookup]
+        ];
 
     self.clientViewController = clientVC;
     self.domainViewController = domainVC;
@@ -103,16 +113,12 @@
     [mainTabView selectTabViewItemAtIndex:0];
     [self switchTabFromButton:@"Clients"];
 
-    var growlCenter = [TNGrowlCenter defaultCenter];
-
     [growlCenter setView:mainTabView];
     var doNotification = function(data) {
         console.log("doNotification");
         var message = [CPString stringWithFormat:@"id: %@\nsender:%@", data.id, data.doc.sender];
         [growlCenter pushNotificationWithTitle:@"order done" message:message];
     }
-    domainViewController.growlCenter = growlCenter;
-    clientViewController.growlCenter = growlCenter;
 
     if (!!window.EventSource)
     {
