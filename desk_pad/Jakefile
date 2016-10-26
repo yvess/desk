@@ -78,7 +78,7 @@ task ("run-release", ["release"], function()
 task ("deploy", ["release"], function()
 {
     FILE.mkdirs(FILE.join("Build", "Deployment", projectName));
-    OS.system(["press", "-f", FILE.join("Build", "Release", projectName), FILE.join("Build", "Deployment", projectName)]);
+    OS.system(["press", "-f", "-p", "--manifest", FILE.join("Build", "Release", projectName), FILE.join("Build", "Deployment", projectName)]);
     printResults("Deployment")
 });
 
