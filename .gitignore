@@ -1,3 +1,4 @@
+*.pyc
 .DS_Store
 .xCodeSupport
 src
@@ -12,3 +13,5 @@ desk/htmlcov
 htmlcov
 desk/py27/*
 Frameworks.tgz
+desk.egg-info
+/tmp
