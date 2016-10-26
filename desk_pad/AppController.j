@@ -13,13 +13,15 @@
 @import <AppKit/CPPopUpButton.j>
 @import <AppKit/CPButtonBar.j>
 @import <AppKit/CPTabView.j>
-@import <GrowlCappuccino/GrowlCappuccino.j>
+@import <GrowlCappuccino/TNGrowlCenter.j>
 @import <CouchResource/COCategories.j>
 @import "DMClient.j"
 @import "DMClientViewController.j"
 @import "DMDomain.j"
 @import "DMDomainViewController.j"
 @import "DMOrder.j"
+
+var defaultGrowlCenter = nil;
 
 @implementation AppController : CPObject
 {
@@ -78,19 +80,22 @@
     popovers = [[CPSet alloc] init];
     window.popovers = popovers;
 
-    self.growlCenter = [TNGrowlCenter defaultCenter];
+    if (!defaultGrowlCenter)
+    {
+        defaultGrowlCenter = [TNGrowlCenter defaultCenter];
+    }
 
     var clientVC = [[DMClientViewController alloc]
                     initWithCibName:@"ClientView"
                     bundle:nil
                     modelClass:[DMClient class]
-                    growlCenter:self.growlCenter
+                    growlCenter:defaultGrowlCenter
         ],
         domainVC = [[DMDomainViewController alloc]
                     initWithCibName:@"DomainView"
                     bundle:nil
                     modelClass:[DMDomain class]
-                    growlCenter:self.growlCenter
+                    growlCenter:defaultGrowlCenter
                     clients:[clientVC items]
                     clientLookup:[clientVC itemLookup]
         ];
@@ -113,11 +118,11 @@
     [mainTabView selectTabViewItemAtIndex:0];
     [self switchTabFromButton:@"Clients"];
 
-    [growlCenter setView:mainTabView];
+    [defaultGrowlCenter setView:mainTabView];
     var doNotification = function(data) {
         console.log("doNotification");
         var message = [CPString stringWithFormat:@"id: %@\nsender:%@", data.id, data.doc.sender];
-        [growlCenter pushNotificationWithTitle:@"order done" message:message];
+        [defaultGrowlCenter pushNotificationWithTitle:@"order done" message:message];
     }
 
     if (!!window.EventSource)

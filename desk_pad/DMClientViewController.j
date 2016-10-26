@@ -79,9 +79,7 @@
         addonServiceItems = [[CPMutableArray alloc] init];
         serviceDefinitions = [DMServiceDefinition all];
         serviceItems = [[CPMutableArray alloc] init];
-        domainItems = [[CPMutableArray alloc] init];
-        self.growlCenter = aGrowlCenter;
-    }
+        domainItems = [[CPMutableArray alloc] init];    }
     return self;
 }
 
