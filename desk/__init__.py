@@ -155,7 +155,8 @@ class Foreman(Worker):
             providers, docs = {}, []
             already_processed_orders = []
             for result in self.db.view(
-                self._cmd("new_by_editor"), key=editor, include_docs=True
+                self._cmd("new_by_editor"), include_docs=True # process for all editors
+                # self._cmd("new_by_editor"), key=editor, include_docs=True
             ):
                 if result['doc']['_id'] not in already_processed_orders:
                     doc = MergedDoc(self.db, result['doc'],
