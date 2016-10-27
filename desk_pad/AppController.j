@@ -13,7 +13,7 @@
 @import <AppKit/CPPopUpButton.j>
 @import <AppKit/CPButtonBar.j>
 @import <AppKit/CPTabView.j>
-@import <GrowlCappuccino/TNGrowlCenter.j>
+@import <GrowlCappuccino/GrowlCappuccino.j>
 @import <CouchResource/COCategories.j>
 @import "DMClient.j"
 @import "DMClientViewController.j"
@@ -120,9 +120,13 @@ var defaultGrowlCenter = nil;
 
     [defaultGrowlCenter setView:mainTabView];
     var doNotification = function(data) {
-        console.log("doNotification");
-        var message = [CPString stringWithFormat:@"id: %@\nsender:%@", data.id, data.doc.sender];
-        [defaultGrowlCenter pushNotificationWithTitle:@"order done" message:message];
+        var title = @"order processed";
+        var message = [CPString stringWithFormat:@"id: %@ \nstate:%@ \nsender:%@", data.id, data.doc.state, data.doc.sender];
+        if (data.doc.state == 'failed') {
+            [defaultGrowlCenter pushNotificationWithTitle:title message:message icon:TNGrowlIconError];
+        } else {
+            [defaultGrowlCenter pushNotificationWithTitle:title message:message];
+        }
     }
 
     if (!!window.EventSource)
