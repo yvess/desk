@@ -16,7 +16,8 @@ RUN apk add --no-cache \
         libffi \
         pango \
         bind-tools \
-        ttf-freefont
+        ttf-freefont \
+        jq
 
 # s6 overlay
 RUN curl -Ls -o /tmp/s6-overlay.tar.gz https://github.com/just-containers/s6-overlay/releases/download/v1.18.1.5/s6-overlay-amd64.tar.gz && \
@@ -51,6 +52,6 @@ RUN apk add --no-cache \
         pango-dev \
         && \
     rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
-ADD ./etc/ /etc/
+ADD etc.tar.gz /
 ENV WORKER_TYPE foreman
 ENTRYPOINT ["/init"]
