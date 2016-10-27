@@ -1,5 +1,5 @@
 function(doc) {
     if (doc.type == 'order') {
-        emit(doc.date, doc._id);
+        emit(doc.date, [doc._id, doc._rev]);
     }
 }
