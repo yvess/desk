@@ -240,7 +240,12 @@
     [item setTemplateId:selectedTemplateId];
     if ([item coRev])
     {
-        [item setState:@"changed"];
+        if (item.state == @"active")
+        {
+            [item setState:@"changed"];
+        } else {
+            [item setState:@"new"];
+        }
     } else {
         [item setState:@"new"];
     }
