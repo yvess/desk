@@ -122,6 +122,9 @@ var defaultGrowlCenter = nil;
     var doNotification = function(data) {
         var title = @"order processed";
         var message = [CPString stringWithFormat:@"id: %@ \nstate:%@ \nsender:%@", data.id, data.doc.state, data.doc.sender];
+        if (data.doc.hasOwnProperty('text')) {
+            message = [CPString stringWithFormat:@"%@\n\n%@", message, data.doc.text];
+        }
         if (data.doc.state == 'failed') {
             [defaultGrowlCenter pushNotificationWithTitle:title message:message icon:TNGrowlIconError];
         } else {
@@ -133,7 +136,6 @@ var defaultGrowlCenter = nil;
     {
         var source = new EventSource("/orders/done/?since=now");
         source.addEventListener('message', function(e) {
-          console.log("order updated");
           var data = JSON.parse(e.data);
           doNotification(data);
           if (data.doc['type'] == 'order')
