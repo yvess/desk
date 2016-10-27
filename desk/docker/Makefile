@@ -1,28 +1,20 @@
 .PHONY:
 
-worker_version=0.1.2
-dns_version=0.1.2
+worker_version=0.1.2c
+dns_version=0.1.2c
 
-default: build_couchdb build_worker build_dns
-
-build_couchdb:
-	docker build -t yvess/desk-couchdb:$(couchdb_version) couchdb
+default: build_worker build_dns
 
 build_worker:
+	cd worker; tar czvf etc.tar.gz etc; cd -
 	docker build -t yvess/desk-worker:$(worker_version) worker
+	rm worker/etc.tar.gz
 
 build_dns:
+	cd dns; tar czvf etc.tar.gz etc; cd -
 	docker build -t yvess/desk-dns:$(dns_version) dns
-
-data:
-	docker create -v /var/services --name desk_data busybox true
+	rm dns/etc.tar.gz
 
 pull:
-	docker pull yvess/desk-couchdb
 	docker pull yvess/desk-worker
 	docker pull yvess/desk-dns
-
-setup: build_couchdb build_worker build_dns data
-
-fig_test:
-	cd ../ && fig run foreman

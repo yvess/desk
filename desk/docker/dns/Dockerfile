@@ -1,4 +1,4 @@
-FROM yvess/desk-worker:0.1.2
+FROM yvess/desk-worker:0.1.2c
 MAINTAINER Yves Serrano <y@yas.ch>
 
 RUN echo -e "http://dl-cdn.alpinelinux.org/alpine/edge/main\nhttp://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
@@ -10,7 +10,7 @@ RUN echo -e "http://dl-cdn.alpinelinux.org/alpine/edge/main\nhttp://dl-cdn.alpin
         ln -s /usr/lib/pdns/pdns/libgsqlite3backend.so /usr/lib/pdns/libgsqlite3backend.so && \
     rm -rf /var/cache/apk/*
     # rm /etc/pdns.conf && \
-ADD ./etc/ /etc/
+ADD etc.tar.gz /
 ENV WORKER_TYPE worker
 ENV WORKER_SUBTYPE dns
 EXPOSE 53/udp 53/tcp
