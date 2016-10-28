@@ -8,7 +8,6 @@ Worker
 TASKS
 =====
 
-- compare dns content new/current
 - check for pdns logfile existence
 - permission sqlitedb pdns_controll
 - update clients, without reload
@@ -18,9 +17,7 @@ ENHANCEMENTS
 ============
 
 - add couchdb migrations, active -> activated
-- propogate failed order to frontend
 - check for pdns logfile existence
-- change to env vars for couchdb
 - autosetup db if it doesn't exists
 - add update validators
 - previous version template update on template change
