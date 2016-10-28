@@ -1,6 +1,6 @@
 function(doc, req) {
     if (doc.type == 'order') {
-        if (doc.state == 'done' || doc.state == 'failed' ) {
+        if (doc.state == 'done' || doc.state == 'error' ) {
             return true;
         }
     }

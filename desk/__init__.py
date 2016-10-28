@@ -78,9 +78,9 @@ class Worker(object):
             self.db.save_doc(task_doc)
             self.logger.info("task done doc_id: %s" % task_doc['_id'])
         else:
-            task_doc['state'] = 'failed'
+            task_doc['state'] = 'error'
             self.db.save_doc(task_doc)
-            self.logger.info("task failed doc_id: %s" % task_doc['_id'])
+            self.logger.info("task error doc_id: %s" % task_doc['_id'])
 
     def _do_task(self, doc):
         if doc['type'] in self.provides:
@@ -177,7 +177,7 @@ class Foreman(Worker):
                 order_doc['state'] = 'new_created_tasks'
             if order_doc['state'] == 'new':
                 if providers:
-                    order_doc['state'] = 'failed'
+                    order_doc['state'] = 'error'
                 else:
                     order_doc['state'] = 'done'
                     order_doc['text'] = 'empty order'

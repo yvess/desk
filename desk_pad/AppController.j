@@ -125,7 +125,7 @@ var defaultGrowlCenter = nil;
         if (data.doc.hasOwnProperty('text')) {
             message = [CPString stringWithFormat:@"%@\n\n%@", message, data.doc.text];
         }
-        if (data.doc.state == 'failed') {
+        if (data.doc.state == 'error') {
             [defaultGrowlCenter pushNotificationWithTitle:title message:message icon:TNGrowlIconError];
         } else {
             [defaultGrowlCenter pushNotificationWithTitle:title message:message];
