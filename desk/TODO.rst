@@ -30,6 +30,8 @@ ENHANCEMENTS
 - undo queue feature
 - generic cache doc
 - add order nothing todo
+- visualize doc state
+- reset powerdns domain
 
 BUGS
 ====
