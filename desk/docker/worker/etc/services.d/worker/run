@@ -1,10 +1,12 @@
 #!/usr/bin/with-contenv sh
 #set -e
 
+FQHOSTNAME=$(hostname)
+WORKER_LOG=${WORKER_LOG:-/var/services/worker/log}
 
 cd /opt/app/desk
 sleep 2
-echo "* staring worker"
+echo "* staring worker - $(date)" | tee "${WORKER_LOG}/${FQHOSTNAME}.log"
 
 pid=$$
 
