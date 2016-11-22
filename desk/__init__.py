@@ -127,7 +127,7 @@ class Worker(object):
             self._process_tasks, run_once=False,
             **self.queue_kwargs['tasks_open']
         )
-        gevent.joinall([gevent.spawn(queue_tasks_open)])
+        gevent.joinall([gevent.spawn(queue_tasks_open)], raise_error=True)
 
     def run_once(self):
         queue_tasks_open = self._create_queue(
@@ -255,7 +255,7 @@ class Foreman(Worker):
             gevent.spawn(queue_orders_open),
             gevent.spawn(queue_tasks_open),
             gevent.spawn(queue_tasks_done)
-        ])
+        ], raise_error=True)
 
     def run_once(self):
         queue_orders_open = self._create_queue(
