@@ -86,7 +86,10 @@ class Powerdns(DnsBase):
                AND type="SOA"'''.format(self.domain)
         )
         soa = result.fetchone()[0]
-        current_serial = soa.split(" ")[2]
+        try:
+            current_serial = soa.split(" ")[2]
+        except IndexError:
+            current_serial = ""
         return current_serial
 
     def update_soa(self, domain=None, serial=None):
