@@ -95,7 +95,7 @@ class Powerdns(DnsBase):
             serial = self.get_soa_serial()
 
         self.update_record(
-            self.domain, self._calc_serial(serial),
+            self.domain, SOA_FORMAT.format(serial=self._calc_serial(serial), **self.doc),
             rtype="SOA", ttl=self.get_ttl(self.doc)
         )
         # TODO sudoers
