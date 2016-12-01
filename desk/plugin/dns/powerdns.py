@@ -80,17 +80,22 @@ class Powerdns(DnsBase):
             ttl=self.get_ttl(self.doc)
         )
 
-    def update_soa(self, domain=None):
-        if domain:
-            self.set_domain(domain)
+    def get_soa_serial(self):
         error, result = self._db(
             '''SELECT content FROM records WHERE name="{}"
                AND type="SOA"'''.format(self.domain)
         )
         current_serial = result.fetchone()[0].split(" ")[-1]
+        return current_serial
+
+    def update_soa(self, domain=None, serial=None):
+        if domain:
+            self.set_domain(domain)
+        if not serial:
+            serial = self.get_soa_serial()
 
         self.update_record(
-            self.domain, self._calc_serial(current_serial),
+            self.domain, self._calc_serial(serial),
             rtype="SOA", ttl=self.get_ttl(self.doc)
         )
         # TODO sudoers
@@ -204,16 +209,16 @@ class Powerdns(DnsBase):
             value = rtype['value_trans'](value, self.domain)
         return (key, value)
 
-    def create(self,):
+    def create(self):
         was_sucessfull = False
         if self.doc:
             self.set_domain(self.doc['domain'], new=True)
             self.add_domain()
+            self.add_soa()
             for nameserver in self.doc['nameservers']:
                 self.add_record(self.domain, nameserver, rtype="NS",
                                 ttl=self.get_ttl(self.doc))
             self._create_records()
-            self.add_soa()
             was_sucessfull = True
         return was_sucessfull
 

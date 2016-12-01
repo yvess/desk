@@ -12,7 +12,8 @@ import codecs
 from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
 from desk.command import WorkerCommand, UploadJsonCommand
-from desk.plugin.dns.cmd import ImportDnsCommand, LdifPlainDnsCommand, PowerdnsExportCommand
+from desk.plugin.dns.cmd import ImportDnsCommand, LdifPlainDnsCommand
+from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
 
@@ -88,6 +89,7 @@ class SetupWorkerParser(object):
             ('dns-import', ImportDnsCommand),
             ('dns-ldifplain', LdifPlainDnsCommand),
             ('dns-export-powerdns', PowerdnsExportCommand),
+            ('dns-rebuild-powerdns', PowerdnsRebuildCommand),
             ('invoices-create', CreateInvoicesCommand),
             ('service-import', ImportServiceCommand),
             ('service-query', QueryServiceCommand),

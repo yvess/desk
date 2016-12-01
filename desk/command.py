@@ -24,6 +24,16 @@ class SettingsCommand(object):
             logger.setLevel(loglevel)
 
 
+class SettingsCommandDb(SettingsCommand):
+    def set_settings(self, settings, hostname=os.uname()[1]):
+        super(SettingsCommandDb, self).set_settings(settings, hostname)
+        self.server = Server(uri=self.settings.couchdb_uri)
+        self.db = self.server.get_db(self.settings.couchdb_db)
+
+    def _cmd(self, cmd):
+        return "{}/{}".format(self.settings.couchdb_db, cmd)
+
+
 class WorkerCommand(SettingsCommand):
     def set_settings(self, settings, *args, **kwargs):
         super(WorkerCommand, self).set_settings(settings, *args, **kwargs)

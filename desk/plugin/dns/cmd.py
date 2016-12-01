@@ -10,9 +10,8 @@ from socket import gethostbyaddr
 from desk.command import SettingsCommand
 from desk.utils import CouchdbUploader, create_order_doc, auth_from_uri
 from desk.plugin.dns.importer import IspmanDnsLDIF, IspmanClientLDIF
-from desk.utils import FilesForCouch, ObjectDict
+from desk.utils import FilesForCouch
 from desk.plugin.dns.importer import DnsDocsProcessor
-from desk.plugin.dns.powerdns import Powerdns
 
 
 class ImportDnsCommand(SettingsCommand):
@@ -191,53 +190,6 @@ class LdifPlainDnsCommand(SettingsCommand):
                     output.extend([u"%s NS @ %s\n" % (dname, n) for n in records['nameservers']])
                 else:
                     output.extend(self.plain_text_records(dname, rtype, records))
-        output.sort()
-        with open(dest, 'w') as f:
-            f.writelines(output)
-
-
-class PowerdnsExportCommand(SettingsCommand):
-    def setup_parser(self, subparsers, config_parser):
-        export_powerdns_parser = subparsers.add_parser(
-            'dns-export-powerdns',
-            help="""converts powerdns data to plain text""",
-            description="""Converts plain text dns data for diff from ldif plaintext"""
-        )
-        export_powerdns_parser.add_argument(*config_parser['args'],
-                                            **config_parser['kwargs'])
-
-        export_powerdns_parser.add_argument(
-            "db",
-            help="""path to the sqlite database"""
-        )
-
-        export_powerdns_parser.add_argument(
-            "dest",
-            help="dest of the plain text dns data file",
-        )
-
-        return export_powerdns_parser
-
-    def run(self):
-        conf = {
-            'powerdns_backend': "sqlite",
-            'powerdns_db': self.settings.db
-        }
-        pdns = Powerdns(ObjectDict(**conf))
-        dest = self.settings.dest
-        output = []
-
-        domains = pdns.get_domains()
-
-        for domain in domains:
-            records = pdns.get_records(domain)
-            for rtype in records:
-                for record in records[rtype]:
-                    entry = u"{dname} {rtype} {key} {value}\n".format(
-                            dname=domain, rtype=rtype.upper(),
-                            key=record[0], value=record[1]
-                    )
-                    output.append(entry)
         output.sort()
         with open(dest, 'w') as f:
             f.writelines(output)
