@@ -58,9 +58,9 @@ class Worker(object):
     def _process_tasks(self, tasks):
         self.logger.info("ready for processing tasks")
         provider_lookup = {}
-        for (servcie_type, services) in self.provides.viewitems():
+        for (service_type, services) in self.provides.viewitems():
             for service in services:
-                provider_lookup[service['name']] = servcie_type
+                provider_lookup[service['name']] = service_type
         for task in tasks:
             if task['doc']['provider'] in provider_lookup:
                 self._run_tasks(task_id=task['id'], docs=task['doc']['docs'])
