@@ -85,7 +85,8 @@ class Powerdns(DnsBase):
             '''SELECT content FROM records WHERE name="{}"
                AND type="SOA"'''.format(self.domain)
         )
-        current_serial = result.fetchone()[0].split(" ")[-1]
+        soa = result.fetchone()[0]
+        current_serial = soa.split(" ")[2]
         return current_serial
 
     def update_soa(self, domain=None, serial=None):
@@ -94,8 +95,9 @@ class Powerdns(DnsBase):
         if not serial:
             serial = self.get_soa_serial()
 
+        new_soa = SOA_FORMAT.format(serial=self._calc_serial(serial), **self.doc)
         self.update_record(
-            self.domain, SOA_FORMAT.format(serial=self._calc_serial(serial), **self.doc),
+            self.domain, new_soa,
             rtype="SOA", ttl=self.get_ttl(self.doc)
         )
         # TODO sudoers
