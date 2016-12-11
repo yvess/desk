@@ -166,6 +166,10 @@ class DnsBase(object):
         {
             'name': 'txt',
             'key_id': 'name', 'value_id': 'txt'
+        },
+        {
+            'name': 'srv',
+            'key_id': 'name', 'value_id': 'txt,priority'
         }
     ]
     map_doc_id = 'map-ips'

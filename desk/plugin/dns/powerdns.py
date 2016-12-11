@@ -127,7 +127,7 @@ class Powerdns(DnsBase):
             value = self.lookup_map[value]
         return value
 
-    def add_record(self, key, value, rtype='A', ttl=86400,
+    def add_record(self, key, value, rtype='A', ttl=3600,
                    priority='NULL', domain=None):
         if domain:
             self.set_domain(domain)
@@ -142,7 +142,7 @@ class Powerdns(DnsBase):
                        rtype=rtype, ttl=ttl, priority=priority)
         )
 
-    def update_record(self, key, value, rtype='A', ttl=86400,
+    def update_record(self, key, value, rtype='A', ttl=3600,
                       priority='NULL', domain=None, lookup='key'):
         if domain:
             self.set_domain(domain)
@@ -186,12 +186,24 @@ class Powerdns(DnsBase):
                         value = rtype['value_trans'](
                             item[value_id], self.domain
                         )
+                    elif ',' in value_id:
+                        value = []
+                        for v in value_id.split(','):
+                            value.append(item[v])
                     else:
                         value = item[value_id]
                     if name.upper() == "MX":
                         self.add_record(
                             self.domain, key,
-                            priority=int(value), rtype="MX",
+                            priority=int(value),
+                            rtype="MX",
+                            ttl=self.get_ttl(self.doc)
+                        )
+                    if name.upper() == "SRV":
+                        self.add_record(
+                            key, value=value[0],
+                            priority=int(value[1]),
+                            rtype="SRV",
                             ttl=self.get_ttl(self.doc)
                         )
                     else:
@@ -237,6 +249,8 @@ class Powerdns(DnsBase):
                 name, key_id, value_id = (
                     rtype['name'], rtype['key_id'], rtype['value_id']
                 )
+                if ',' in value_id:
+                    value_id = value_id.split(',')[0]
                 remove, append, update = [], [], []
                 # remove records
                 if name in self.diff['remove']:
@@ -295,11 +309,12 @@ class Powerdns(DnsBase):
             ('mx', []),
             ('ns', []),
             ('txt', []),
+            ('srv', []),
         ])
         for row in result.fetchall():
             rtype, key, value = row
             key = reverse_fqdn(domain, key)
-            if rtype.lower() in ['cname', 'mx', 'ns']:
+            if rtype.lower() in ['cname', 'mx', 'ns', 'txt', 'srv']:
                 value = reverse_fqdn(domain, value)
 
             if rtype.lower() in records:
