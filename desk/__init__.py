@@ -217,7 +217,7 @@ class Foreman(Worker):
             self.logger.info(
                 "updating order for task %s, state: %s" % (task['doc']['_id'], order_doc['state'])
             )
-            if providers == providers_done:
+            if sorted(providers) == sorted(providers_done):
                 order_doc['state'] = 'done'
                 update_docs, update_docs_id = [], []
                 [update_docs_id.extend(v) for v in order_doc['providers'].viewvalues()]
@@ -230,8 +230,9 @@ class Foreman(Worker):
                     state = doc['state']
                     if state == 'new':
                         doc['state'] = 'active'
+                        doc['prev_active_rev'] = doc['prev_rev']
                     if state == 'changed':
-                        doc['prev_active_rev'] = doc['_rev']
+                        doc['prev_active_rev'] = doc['prev_rev']
                         doc['state'] = 'active'
                     if state == 'delete':
                         doc['state'] = 'deleted'
