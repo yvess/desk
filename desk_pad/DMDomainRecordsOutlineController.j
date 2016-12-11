@@ -42,6 +42,7 @@
     [domainEntries addObjectsFromArray:[[[self domainRecord] cname] items]];
     [domainEntries addObjectsFromArray:[[[self domainRecord] mx] items]];
     [domainEntries addObjectsFromArray:[[[self domainRecord] txt] items]];
+    [domainEntries addObjectsFromArray:[[[self domainRecord] srv] items]];
     [domainEntries enumerateObjectsUsingBlock:function(item) {
         [lookupDomainEntries setObject:item forKey:[item objectValueForOutlineColumn:@"entry"]];
     }];
@@ -53,12 +54,14 @@
         domainRecordAaaaItems = [[[self domainRecord] aaaa] items],
         domainRecordCnameItems = [[[self domainRecord] cname] items],
         domainRecordMxItems = [[[self domainRecord] mx] items],
-        domainRecordTxtItems = [[[self domainRecord] txt] items];
+        domainRecordTxtItems = [[[self domainRecord] txt] items],
+        domainRecordSrvItems = [[[self domainRecord] srv] items];
     [domainRecordAItems removeObject:sender.domainEntry];
     [domainRecordAaaaItems removeObject:sender.domainEntry];
     [domainRecordCnameItems removeObject:sender.domainEntry];
     [domainRecordMxItems removeObject:sender.domainEntry];
     [domainRecordTxtItems removeObject:sender.domainEntry];
+    [domainRecordSrvItems removeObject:sender.domainEntry];
     [self setLookupForDomainEntries];
     [domainOutline reloadData];
 }
@@ -148,7 +151,7 @@
 @implementation DMDomainRecordsOutlineController (OutlineProtocol)
 - (int)outlineView:(CPOutlineView)outlineView numberOfChildrenOfItem:(id)item
 {
-    var count = 5; // for root item
+    var count = 6; // 0: A, 1: AAAA, 2: CNAME, 3: MX, 4: TXT, 5: SRV
     if (item != nil)
     {
         if ([item respondsToSelector:CPSelectorFromString(@"items")])
@@ -163,6 +166,7 @@
 
 - (id)outlineView:(CPOutlineView)outlineView child:(int)index ofItem:(id)item
 {
+    console.log("item", index);
     var result = nil;
     if (item == nil)
     {
@@ -182,6 +186,9 @@
             break;
         case 4:
             result = [[self domainRecord] txt];
+            break;
+        case 5:
+            result = [[self domainRecord] srv];
             break;
         }
     } else {
@@ -223,6 +230,9 @@
             break;
         case @"TXT":
             [[view textField] setStringValue:[[self domainRecord] txt].label];
+            break;
+        case @"SRV":
+            [[view textField] setStringValue:[[self domainRecord] srv].label];
             break;
         }
     } else {

@@ -67,6 +67,18 @@
 }
 @end
 
+@implementation DMDomainSrv : COSubItem
+{
+    CPString name @accessors;
+    CPString priority @accessors;
+    CPString txt @accessors;
+}
+
+- (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
+{
+  return [CPString stringWithFormat:@"%@ : %@", name, txt];
+}
+@end
 
 @implementation DMDomain : COResourceVersioned
 {
@@ -93,6 +105,7 @@
     COItemsParent cname    @accessors(readonly);
     COItemsParent mx       @accessors(readonly);
     COItemsParent txt      @accessors(readonly);
+    COItemsParent srv      @accessors(readonly);
 }
 
 - (CPString)nameIdentifierString
@@ -128,11 +141,13 @@
         cname_items = [[self cname] items],
         mx_items = [[self mx] items],
         txt_items = [[self txt] items],
+        srv_items = [[self srv] items],
         a_array = [],
         aaaa_array = [],
         cname_array = [],
         mx_array = [],
-        txt_array = [];
+        txt_array = [],
+        srv_array = [];
 
     if ([self nameservers])
     {
@@ -166,11 +181,15 @@
         txt_array.push([item JSONFromObject]);
     }];
 
+    [srv_items enumerateObjectsUsingBlock:function(item) {
+        srv_array.push([item JSONFromObject]);
+    }];
+
     var json = {},
         couchKeys = ["_id", "_rev", "_attachments", "prev_rev", "prev_active_rev", "state","domain", "nameservers", "hostmaster", "refresh",
-                     "retry", "expire", "ttl", "client_id", "template_id", "a", "aaaa", "cname", "mx", 'txt'],
+                     "retry", "expire", "ttl", "client_id", "template_id", "a", "aaaa", "cname", "mx", "txt", "srv"],
         cappuccinoValues = [coId, coRev, coAttachments, prevRev, prevActiveRev, state, domain, nameservers_array, hostmaster, refresh,
-                            retry, expire, ttl, clientId, templateId, a_array, aaaa_array, cname_array, mx_array, txt_array];
+                            retry, expire, ttl, clientId, templateId, a_array, aaaa_array, cname_array, mx_array, txt_array, srv_array];
 
     for (var i = 0; i < couchKeys.length; i++)
     {
@@ -199,6 +218,7 @@
         cname = [[COItemsParent alloc] initWithLabel: @"CNAME"];
         mx = [[COItemsParent alloc] initWithLabel: @"MX"];
         txt = [[COItemsParent alloc] initWithLabel: @"TXT"];
+        srv = [[COItemsParent alloc] initWithLabel: @"SRV"];
     }
     return self;
 }

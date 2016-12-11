@@ -20,6 +20,7 @@
     @outlet              CPView viewDomainCname;
     @outlet              CPView viewDomainMx;
     @outlet              CPView viewDomainTxt;
+    @outlet              CPView viewDomainSrv;
     @outlet              CPPopUpButton tplForDomainPopUp;
     @outlet              CPButton showTplButton;
     @outlet              CPPopover popoverTpl;
@@ -75,6 +76,9 @@
     case @"TXT":
         [self addDomainTxt];
         break;
+    case @"SRV":
+        [self addDomainSrv];
+        break;
     }
 }
 
@@ -119,6 +123,14 @@
     [domainOutline reloadData];
 }
 
+- (void)addDomainSrv
+{
+    [[[[self currentDomain] srv] items] addObject:[[DMDomainSrv alloc]
+        initWithJSObject:{ "name": "new", "priority": "10", "txt": "info" }] ];
+    [[domainOutline delegate] setLookupForDomainEntries];
+    [domainOutline reloadData];
+}
+
 - (void)showTpl:(id)sender
 {
     var coId = [[[tplForDomainPopUp selectedItem] representedObject] coId];
@@ -156,7 +168,9 @@
         viewRecordTypes: @{
             @"DMDomainA":viewDomainA, @"DMDomainAaaa":viewDomainAaaa,
             @"DMDomainCname":viewDomainCname, @"DMDomainMx":viewDomainMx,
-            @"DMDomainTxt":viewDomainTxt}];
+            @"DMDomainTxt":viewDomainTxt,
+            @"DMDomainSrv":viewDomainSrv
+        }];
     [domainOutline setDelegate:domainOutlineController];
     [domainOutline setDataSource:domainOutlineController];
     [domainOutline reloadData];
