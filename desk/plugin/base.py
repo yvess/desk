@@ -86,7 +86,7 @@ class Updater(object):
             prev_active_doc = db.fetch_attachment(doc['_id'], prev_active_rev)
 
             if prev_active_doc:
-                self.prev_active_doc = json.loads(prev_active_doc)
+                self.prev_active_doc = MergedDoc(db, json.loads(prev_active_doc)).doc
         service.set_docs(self.merged_doc, self.prev_active_doc)
         if hasattr(service, 'map_doc_id'):
             try:
@@ -106,9 +106,11 @@ class Updater(object):
         return doc
 
     def _create_diff(self):
+        old_doc = json.dumps(self._remove_attachment(self.prev_active_doc))
+        new_doc = json.dumps(self._remove_attachment(self.doc))
         diffator = json_diff.Comparator(
-            StringIO(json.dumps(self._remove_attachment(self.prev_active_doc))),
-            StringIO(json.dumps(self._remove_attachment(self.merged_doc))),
+            StringIO(old_doc),
+            StringIO(new_doc),
             opts=OptionsClassDiff()
         )
         diff = diffator.compare_dicts()
