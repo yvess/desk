@@ -184,7 +184,7 @@ class LdifPlainDnsCommand(SettingsCommand):
         domains = [[k, v] for k, v in self.dns_ldif.domains.iteritems()]
         domains = sorted(domains, key=lambda x: x[0])
         for domain in domains:
-            for rtype in ['a', 'aaaa', 'cname', 'mx', 'ns', 'txt']:
+            for rtype in ['a', 'aaaa', 'cname', 'mx', 'ns', 'txt', 'srv']:
                 dname, records = domain[0], domain[1]
                 if rtype == 'ns':
                     output.extend([u"%s NS @ %s\n" % (dname, n) for n in records['nameservers']])

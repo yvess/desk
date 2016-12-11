@@ -133,14 +133,13 @@ class Powerdns(DnsBase):
             self.set_domain(domain)
         # TOOD set ttl
         value = self._prepare_record_value(value)
-        error, result = self._db(
-            """INSERT INTO records
+        sql = """INSERT INTO records
                (domain_id, name, content, type, ttl, prio)
                VALUES
                ({domain_id},'{key}','{value}','{rtype}',{ttl},{priority})
             """.format(domain_id=self.domain_id, key=key, value=value,
                        rtype=rtype, ttl=ttl, priority=priority)
-        )
+        error, result = self._db(sql)
 
     def update_record(self, key, value, rtype='A', ttl=3600,
                       priority='NULL', domain=None, lookup='key'):

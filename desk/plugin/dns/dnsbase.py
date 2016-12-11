@@ -97,7 +97,7 @@ class DnsValidator(object):
         return is_valid
 
 
-def dnsbase_structure_cname_value_trans(host, domain):
+def cname_value_trans(host, domain):
     if host.endswith("."):
         value = host[:-1]
     elif host == '@':
@@ -105,6 +105,19 @@ def dnsbase_structure_cname_value_trans(host, domain):
     else:
         value = ".".join([host, domain])
     return value
+
+
+def cname_key_trans(name, domain):
+    if name.endswith("."):
+        return name[:-1]
+    else:
+        return ".".join([name, domain])
+
+
+def a_key_trans(host, domain):
+    if host != "@":
+        return ".".join([host, domain])
+    return domain
 
 
 def to_fqdn(entry, domain=None):
@@ -138,38 +151,38 @@ class DnsBase(object):
     structure = [
         {
             'name': 'a',
-            'key_id': 'host', 'value_id': 'ip',
-            'key_trans': lambda host, domain: (
-                ".".join([host, domain]) if host != "@" else domain
-            )
+            'key_id': 'host',
+            'key_trans': a_key_trans,
+            'value_id': 'ip',
         },
         {
             'name': 'aaaa',
-            'key_id': 'host', 'value_id': 'ipv6',
-            'key_trans': lambda host, domain: (
-                ".".join([host, domain]) if host != "@" else domain
-            )
+            'key_id': 'host',
+            'key_trans': a_key_trans,
+            'value_id': 'ipv6',
         },
         {
             'name': 'cname',
-            'key_id': 'alias', 'value_id': 'host',
-            'key_trans': lambda alias, domain: (
-                alias[:-1] if alias.endswith(".")
-                else ".".join([alias, domain])
-            ),
-            'value_trans': dnsbase_structure_cname_value_trans
+            'key_id': 'alias',
+            'key_trans': cname_key_trans,
+            'value_id': 'host',
+            'value_trans': cname_value_trans
         },
         {
             'name': 'mx',
-            'key_id': 'host', 'value_id': 'priority'
+            'key_id': 'host',
+            'value_id': 'priority'
         },
         {
             'name': 'txt',
-            'key_id': 'name', 'value_id': 'txt'
+            'key_id': 'name',
+            'value_id': 'txt',
+            'value_trans': cname_value_trans
         },
         {
             'name': 'srv',
-            'key_id': 'name', 'value_id': 'txt,priority'
+            'key_id': 'name',
+            'value_id': 'txt,priority'
         }
     ]
     map_doc_id = 'map-ips'
@@ -222,10 +235,10 @@ class DnsBase(object):
     def get_records(self, domain=None):
         """get all records"""
 
-    def set_docs(self, doc, prev_doc=None):
+    def set_docs(self, doc, prev_active_doc=None):
         """sets the doc to use"""
         self.doc = doc
-        self.prev_doc = prev_doc
+        self.prev_active_doc = prev_active_doc
 
     def set_diff(self, diff):
         """sets the json diff to use"""
