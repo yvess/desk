@@ -271,8 +271,8 @@ class Powerdns(DnsBase):
                 # update records
                 if name in self.diff['update']:
                     update = self.diff['update'][name]
-                self.del_records(rtype=name)
-                self._create_records(only_rtype=name)
+                    self.del_records(rtype=name)
+                    self._create_records(only_rtype=name)
             self.update_soa()
             was_sucessfull = True
         return was_sucessfull
