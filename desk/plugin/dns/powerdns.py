@@ -133,13 +133,16 @@ class Powerdns(DnsBase):
             self.set_domain(domain)
         # TOOD set ttl
         value = self._prepare_record_value(value)
-        sql = """INSERT INTO records
-               (domain_id, name, content, type, ttl, prio)
-               VALUES
-               ({domain_id},'{key}','{value}','{rtype}',{ttl},{priority})
-            """.format(domain_id=self.domain_id, key=key, value=value,
-                       rtype=rtype, ttl=ttl, priority=priority)
-        # print(sql)
+        sql = """
+        INSERT INTO records
+            (domain_id, name, content, type, ttl, prio)
+        VALUES
+            ({domain_id},'{key}','{value}','{rtype}',{ttl},{priority})
+        """.format(
+            domain_id=self.domain_id,
+            key=key, value=value,
+            rtype=rtype, ttl=ttl, priority=priority
+        )
         error, result = self._db(sql)
 
     def update_record(self, key, value, rtype='A', ttl=3600,
@@ -152,24 +155,28 @@ class Powerdns(DnsBase):
             where = "name='{}'".format(key)
         elif lookup == 'value':
             where = "content='{}'".format(value)
-        error, result = self._db(
-            """UPDATE records
-               SET domain_id={domain_id}, name='{key}', content='{value}',
-                   ttl={ttl},prio={priority}
-               WHERE {lookup} AND type='{rtype}'
-            """.format(domain_id=self.domain_id, key=key, value=value,
-                       rtype=rtype, ttl=ttl, priority=priority, lookup=where)
+        sql = """
+        UPDATE records
+        SET domain_id={domain_id}, name='{key}', content='{value}',
+            ttl={ttl},prio={priority}
+        WHERE {lookup} AND type='{rtype}'
+        """.format(
+            domain_id=self.domain_id, key=key, value=value,
+            rtype=rtype, ttl=ttl, priority=priority, lookup=where
         )
+        error, result = self._db(sql)
 
     def del_record(self, key, value, rtype='A', domain=None):
         if domain:
             self.set_domain(domain)
-        error, result = self._db(
-            """DELETE FROM records
-               WHERE name='{key}' AND type='{rtype}'
-            """.format(domain_id=self.domain_id, key=key,
-                       value=value, rtype=rtype)
+        sql = """
+        DELETE FROM records
+            WHERE name='{key}' AND type='{rtype}'
+        """.format(
+            domain_id=self.domain_id, key=key,
+            value=value, rtype=rtype
         )
+        error, result = self._db(sql)
 
     def _create_records(self, only_rtype=None):
         for rtype in self.structure:
