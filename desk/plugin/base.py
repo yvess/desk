@@ -27,8 +27,8 @@ class MergedDoc(object):
             MergedDoc.cache = {}
         merged_doc = None
         if 'template_id' in doc:
-            merged_doc = self.get_template(doc['template_id'], cache_key)
-            merged_doc.update(doc)
+            merged_doc = copy(self.get_template(doc['template_id'], cache_key))
+            merged_doc.update(copy(doc))
             del merged_doc['template_id']
         self.doc = merged_doc if merged_doc else doc
 
@@ -67,7 +67,7 @@ class VersionDoc(object):
 
 class Updater(object):
     def __init__(self, db, doc, service):
-        self.db, self.doc = db, doc
+        self.db, self.doc, self.active_doc = db, doc, None
         choose_task = {
             'new': service.create,
             'changed': service.update,
@@ -77,11 +77,12 @@ class Updater(object):
         self.active_doc = None
         if doc['state'] in choose_task:
             self.task = choose_task[doc['state']]
+
         self.merged_doc = MergedDoc(db, doc).doc
         if 'active_rev' in doc:
             active_rev = doc['active_rev']
-            active_doc = db.fetch_attachment(doc['_id'], active_rev)
-            self.active_doc = MergedDoc(db, json.loads(active_doc)).doc
+            active_doc_json = db.fetch_attachment(doc['_id'], active_rev)
+            self.active_doc = MergedDoc(db, json.loads(active_doc_json)).doc
         service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
             try:
@@ -124,27 +125,29 @@ class Updater(object):
                 item_diff = diff['_update'][name]['_update']
                 item_diff_merged = []
                 for i in item_diff:
-                    changes = item_diff[i]['_update']
-                    # both changed, lookup via id of old entry
-                    if value_id in changes and key_id in changes:
-                        key, value, lookup = (
-                            changes[key_id], self.doc[name][i][value_id], 'id'
-                        )
-                    # value changed, lookup key
-                    elif value_id in changes:
-                        key, value, lookup = (
-                            self.doc[name][i][key_id], changes[value_id], 'key'
-                        )
-                    # key changed, lookup value
-                    elif key_id in changes:
-                        key, value, lookup = (
-                            changes[key_id],
-                            self.doc[name][i][value_id],
-                            'value'
-                        )
-                    item_diff_merged.append(
-                        {key_id: key, value_id: value, 'lookup': lookup}
-                    )
+                    for v_id in value_id.split(','):
+                        changes = item_diff[i]['_update']
+                        # both changed, lookup via id of old entry
+                        if v_id in changes and key_id in changes:
+                            key, value, lookup = (
+                                changes[key_id], self.doc[name][i][v_id], 'id'
+                            )
+                        # value changed, lookup key
+                        elif v_id in changes:
+                            key, value, lookup = (
+                                self.doc[name][i][key_id], changes[v_id], 'key'
+                            )
+                        # key changed, lookup value
+                        elif key_id in changes:
+                            key, value, lookup = (
+                                changes[key_id],
+                                self.doc[name][i][v_id],
+                                'value'
+                            )
+                        if v_id in changes or key_id in changes:
+                            item_diff_merged.append(
+                                {key_id: key, v_id: value, 'lookup': lookup}
+                            )
                 diff_merged['update'][name] = item_diff_merged
             # a new entry
             if ('_update' in diff and name in diff['_update']
