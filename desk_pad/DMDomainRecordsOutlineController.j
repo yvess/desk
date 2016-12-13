@@ -166,7 +166,6 @@
 
 - (id)outlineView:(CPOutlineView)outlineView child:(int)index ofItem:(id)item
 {
-    console.log("item", index);
     var result = nil;
     if (item == nil)
     {

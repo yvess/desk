@@ -139,6 +139,7 @@ class Powerdns(DnsBase):
                ({domain_id},'{key}','{value}','{rtype}',{ttl},{priority})
             """.format(domain_id=self.domain_id, key=key, value=value,
                        rtype=rtype, ttl=ttl, priority=priority)
+        # print(sql)
         error, result = self._db(sql)
 
     def update_record(self, key, value, rtype='A', ttl=3600,
