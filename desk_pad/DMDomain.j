@@ -149,6 +149,17 @@
         txt_array = [],
         srv_array = [];
 
+    function createCompare(sortkey) {
+        var compare = function (a,b) {
+            if (a[sortkey] < b[sortkey])
+                return -1;
+            if (a[sortkey] > b[sortkey])
+                return 1;
+            return 0;
+        }
+        return compare;
+    }
+
     if ([self nameservers])
     {
         var nameservers_array = [[self nameservers] componentsSeparatedByString:@","];
@@ -164,26 +175,32 @@
     [a_items enumerateObjectsUsingBlock:function(item) {
         a_array.push([item JSONFromObject]);
     }];
+    a_array.sort(createCompare('host'));
 
     [aaaa_items enumerateObjectsUsingBlock:function(item) {
         aaaa_array.push([item JSONFromObject]);
     }];
+    aaaa_array.sort(createCompare('host'));
 
     [cname_items enumerateObjectsUsingBlock:function(item) {
         cname_array.push([item JSONFromObject]);
     }];
+    cname_array.sort(createCompare('alias'));
 
     [mx_items enumerateObjectsUsingBlock:function(item) {
         mx_array.push([item JSONFromObject]);
     }];
+    mx_array.sort(createCompare('host'));
 
     [txt_items enumerateObjectsUsingBlock:function(item) {
         txt_array.push([item JSONFromObject]);
     }];
+    txt_array.sort(createCompare('name'));
 
     [srv_items enumerateObjectsUsingBlock:function(item) {
         srv_array.push([item JSONFromObject]);
     }];
+    srv_array.sort(createCompare('name'));
 
     var json = {},
         couchKeys = ["_id", "_rev", "_attachments", "active_rev", "prev_active_rev", "state","domain", "nameservers", "hostmaster", "refresh",
