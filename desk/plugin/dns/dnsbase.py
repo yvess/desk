@@ -97,7 +97,7 @@ class DnsValidator(object):
         return is_valid
 
 
-def cname_value_trans(host, domain):
+def host_to_fqdn(host, domain):
     if host.endswith("."):
         value = host[:-1]
     elif host == '@':
@@ -166,7 +166,7 @@ class DnsBase(object):
             'key_id': 'alias',
             'key_trans': cname_key_trans,
             'value_id': 'host',
-            'value_trans': cname_value_trans
+            'value_trans': host_to_fqdn
         },
         {
             'name': 'mx',
@@ -176,12 +176,13 @@ class DnsBase(object):
         {
             'name': 'txt',
             'key_id': 'name',
+            'key_trans': host_to_fqdn,
             'value_id': 'txt',
-            'value_trans': cname_value_trans
         },
         {
             'name': 'srv',
             'key_id': 'name',
+            'key_trans': host_to_fqdn,
             'value_id': 'txt,priority'
         }
     ]
