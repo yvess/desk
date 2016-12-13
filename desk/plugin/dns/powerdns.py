@@ -239,7 +239,6 @@ class Powerdns(DnsBase):
         if self.doc:
             self.set_domain(self.doc['domain'], new=True)
             self.add_domain()
-            self.add_soa()
             for nameserver in self.doc['nameservers']:
                 self.add_record(self.domain, nameserver, rtype="NS",
                                 ttl=self.get_ttl(self.doc))
