@@ -177,13 +177,13 @@ class DnsBase(object):
             'name': 'txt',
             'key_id': 'name',
             'key_trans': host_to_fqdn,
-            'value_id': 'txt',
+            'value_id': 'content',
         },
         {
             'name': 'srv',
             'key_id': 'name',
             'key_trans': host_to_fqdn,
-            'value_id': 'txt,priority'
+            'value_id': 'priority,weight,port,targethost'
         }
     ]
     map_doc_id = 'map-ips'
@@ -236,10 +236,10 @@ class DnsBase(object):
     def get_records(self, domain=None):
         """get all records"""
 
-    def set_docs(self, doc, prev_active_doc=None):
+    def set_docs(self, doc, active_doc=None):
         """sets the doc to use"""
         self.doc = doc
-        self.prev_active_doc = prev_active_doc
+        self.active_doc = active_doc
 
     def set_diff(self, diff):
         """sets the json diff to use"""

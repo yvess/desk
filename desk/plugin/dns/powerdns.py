@@ -123,7 +123,7 @@ class Powerdns(DnsBase):
         error, result = self._db("DELETE FROM domains WHERE id={}".format(self.domain_id))
 
     def _prepare_record_value(self, value):
-        if value.startswith('@ip_'):  # get ip value from hashmap
+        if hasattr(value, 'startswith') and value.startswith('@ip_'):  # get ip value from hashmap
             value = self.lookup_map[value]
         return value
 
@@ -178,20 +178,26 @@ class Powerdns(DnsBase):
             )
             if name in self.doc and (not only_rtype or name == only_rtype):
                 for item in self.doc[name]:  # TODO merge with create logic
+                    # do key/value transformations
                     if 'key_trans' in rtype:
                         key = rtype['key_trans'](item[key_id], self.domain)
                     else:
                         key = item[key_id]
+
                     if 'value_trans' in rtype:
                         value = rtype['value_trans'](
                             item[value_id], self.domain
                         )
-                    elif ',' in value_id:
-                        value = []
+
+                    # special case for multi value ids
+                    if ',' in value_id:
+                        value = {}
                         for v in value_id.split(','):
-                            value.append(item[v])
+                            value[v] = item[v]
                     else:
                         value = item[value_id]
+
+                    # added the records
                     if name.upper() == "MX":
                         self.add_record(
                             self.domain, key,
@@ -199,16 +205,18 @@ class Powerdns(DnsBase):
                             rtype="MX",
                             ttl=self.get_ttl(self.doc)
                         )
-                    if name.upper() == "SRV":
+                    elif name.upper() == "SRV":
+                        record_value = "{weight} {port} {targethost}".format(**value)
                         self.add_record(
-                            key, value=value[0],
-                            priority=int(value[1]),
+                            key, value=record_value,
+                            priority=int(value['priority']),
                             rtype="SRV",
                             ttl=self.get_ttl(self.doc)
                         )
                     else:
-                        self.add_record(key, value, rtype=name.upper(),
-                                        ttl=self.get_ttl(self.doc))
+                        self.add_record(
+                            key, value, rtype=name.upper(), ttl=self.get_ttl(self.doc)
+                        )
 
     def del_records(self, rtype, domain=None):
         if domain:
@@ -251,29 +259,33 @@ class Powerdns(DnsBase):
                 )
                 if ',' in value_id:
                     value_id = value_id.split(',')[0]
-                remove, append, update = [], [], []
+                remove, append = [], []
+
                 # remove records
                 if name in self.diff['remove']:
                     remove = self.diff['remove'][name]
-                for item in remove:
-                    key, value = self._trans(
-                        item[key_id], item[value_id], rtype=rtype
-                    )
-                    self.del_record(key, value, rtype=name.upper())
-                # new records
-                if name in self.diff['append']:
-                    append = self.diff['append'][name]
-                for item in append:
-                    key, value = self._trans(
-                        item[key_id], item[value_id], rtype=rtype
-                    )
-                    self.add_record(key, value, rtype=name.upper(),
-                                    ttl=self.get_ttl(self.doc))
-                # update records
+                    for item in remove:
+                        key, value = self._trans(
+                            item[key_id], item[value_id], rtype=rtype
+                        )
+                        self.del_record(key, value, rtype=name.upper())
+
+                # update/reset records
                 if name in self.diff['update']:
-                    update = self.diff['update'][name]
                     self.del_records(rtype=name)
                     self._create_records(only_rtype=name)
+
+                # new records only needed without update/reset records
+                elif name in self.diff['append']:
+                    append = self.diff['append'][name]
+                    for item in append:
+                        key, value = self._trans(
+                            item[key_id], item[value_id], rtype=rtype
+                        )
+                        self.add_record(
+                            key, value, rtype=name.upper(),
+                            ttl=self.get_ttl(self.doc)
+                        )
             self.update_soa()
             was_sucessfull = True
         return was_sucessfull
