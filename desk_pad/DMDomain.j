@@ -45,7 +45,7 @@
 @implementation DMDomainMx : COSubItem
 {
     CPString host @accessors;
-    CPString priority @accessors;
+    CPNumber priority @accessors;
 }
 
 - (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
@@ -57,25 +57,27 @@
 @implementation DMDomainTxt : COSubItem
 {
     CPString name @accessors;
-    CPString txt @accessors;
+    CPString content @accessors;
 }
 
 - (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
 {
-  return [CPString stringWithFormat:@"%@ : %@", name, txt];
+  return [CPString stringWithFormat:@"%@ : %@", name, content];
 }
 @end
 
 @implementation DMDomainSrv : COSubItem
 {
     CPString name @accessors;
-    CPString priority @accessors;
-    CPString txt @accessors;
+    CPNumber priority @accessors;
+    CPNumber weight @accessors;
+    CPNumber port @accessors;
+    CPString targethost @accessors;
 }
 
 - (CPString)objectValueForOutlineColumn:(CPString)aTableColumn
 {
-  return [CPString stringWithFormat:@"%@ : %@", name, txt];
+  return [CPString stringWithFormat:@"%@ : %@", name, targethost];
 }
 @end
 

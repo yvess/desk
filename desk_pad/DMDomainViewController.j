@@ -110,7 +110,7 @@
 - (void)addDomainMx
 {
     [[[[self currentDomain] mx] items] addObject:[[DMDomainMx alloc]
-        initWithJSObject:{ "host": "new", "priority": "10" }] ];
+        initWithJSObject:{ "host": "new", "priority": 10 }] ];
     [[domainOutline delegate] setLookupForDomainEntries];
     [domainOutline reloadData];
 }
@@ -118,7 +118,7 @@
 - (void)addDomainTxt
 {
     [[[[self currentDomain] txt] items] addObject:[[DMDomainTxt alloc]
-        initWithJSObject:{ "name": "new", "txt": "info" }] ];
+        initWithJSObject:{ "name": "new", "content": "info" }] ];
     [[domainOutline delegate] setLookupForDomainEntries];
     [domainOutline reloadData];
 }
@@ -126,7 +126,13 @@
 - (void)addDomainSrv
 {
     [[[[self currentDomain] srv] items] addObject:[[DMDomainSrv alloc]
-        initWithJSObject:{ "name": "new", "priority": "10", "txt": "info" }] ];
+        initWithJSObject:{
+            "name": "_service._proto.name.",
+            "priority": 10,
+            "weight": 10,
+            "port": 8080,
+            "targethost": "my.server." }
+        ]];
     [[domainOutline delegate] setLookupForDomainEntries];
     [domainOutline reloadData];
 }

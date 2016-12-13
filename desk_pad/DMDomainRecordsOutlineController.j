@@ -85,6 +85,9 @@
                 case @"host":
                     value = [domainEntry host];
                     break;
+                case @"targethost":
+                    value = [domainEntry targethost];
+                    break;
                 case @"ip":
                     value = [domainEntry ip];
                     break;
@@ -100,8 +103,14 @@
                 case @"name":
                     value = [domainEntry name];
                     break;
-                case @"txt":
-                    value = [domainEntry txt];
+                case @"content":
+                    value = [domainEntry content];
+                    break;
+                case @"weight":
+                    value = [domainEntry weight];
+                    break;
+                case @"port":
+                    value = [domainEntry weight];
                     break;
                 }
                 [view setObjectValue:value];
@@ -118,6 +127,9 @@
                 case @"host":
                     [domainEntry setHost:[view objectValue]];
                     break;
+                case @"targethost":
+                    [domainEntry setTargethost:[view objectValue]];
+                    break;
                 case @"ip":
                     [domainEntry setIp:[view objectValue]];
                     break;
@@ -133,8 +145,14 @@
                 case @"name":
                     [domainEntry setName:[view objectValue]];
                     break;
-                case @"txt":
-                    [domainEntry setTxt:[view objectValue]];
+                case @"content":
+                    [domainEntry setContent:[view objectValue]];
+                    break;
+                case @"weight":
+                    [domainEntry setWeight:[view objectValue]];
+                    break;
+                case @"port":
+                    [domainEntry setPort:[view objectValue]];
                     break;
                 }
             }
