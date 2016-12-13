@@ -2,11 +2,10 @@
 from __future__ import absolute_import, print_function, unicode_literals, division  # python3
 
 import os
-import sys
 import time
 import gevent
 import logging
-import traceback
+import json
 from couchdbkit import Server, Consumer
 from couchdbkit.changes import ChangesStream
 from restkit.conn import Connection
@@ -155,7 +154,7 @@ class Foreman(Worker):
             providers, docs = {}, []
             already_processed_orders = []
             for result in self.db.view(
-                self._cmd("new_by_editor"), include_docs=True # process for all editors
+                self._cmd("new_by_editor"), include_docs=True  # process for all editors
                 # self._cmd("new_by_editor"), key=editor, include_docs=True
             ):
                 if result['doc']['_id'] not in already_processed_orders:
@@ -185,10 +184,9 @@ class Foreman(Worker):
             self.db.save_doc(order_doc)
 
     def _create_tasks(self, providers=None, order_id=None):
-        current_time = time.mktime(time.localtime())
         created = False
         for provider in providers:
-            task_id = "task-{}-{}".format(provider, self.server.next_uuid())  # int(time.mktime(current_time))
+            task_id = "task-{}-{}".format(provider, self.server.next_uuid())
             self.logger.info("create task %s" % task_id)
             doc = {
                 "_id": task_id,
@@ -219,25 +217,35 @@ class Foreman(Worker):
             )
             if sorted(providers) == sorted(providers_done):
                 order_doc['state'] = 'done'
-                update_docs, update_docs_id = [], []
+                update_docs_id = []
                 [update_docs_id.extend(v) for v in order_doc['providers'].viewvalues()]
                 update_docs_id = list(set(update_docs_id))
-                bulk_docs = self.db.all_docs(
-                    keys=update_docs_id, include_docs=True
-                )
-                for result in bulk_docs:
-                    doc = result['doc']
+                for doc_id in update_docs_id:
+                    doc = self.db.get(doc_id)
                     state = doc['state']
+                    next_state = 'undefined'
                     if state == 'new':
-                        doc['state'] = 'active'
-                        doc['prev_active_rev'] = doc['prev_rev']
+                        next_state = 'active'
                     if state == 'changed':
-                        doc['prev_active_rev'] = doc['prev_rev']
-                        doc['state'] = 'active'
+                        next_state = 'active'
                     if state == 'delete':
-                        doc['state'] = 'deleted'
-                    update_docs.append(doc)
-                self.db.save_docs(update_docs)
+                        next_state = 'deleted'
+
+                    # update state
+                    self.db.update(
+                        self._cmd('set-state'), doc_id=doc_id, state=next_state
+                    )
+                    if next_state == 'active':
+                        # save attachment of active doc
+                        active_doc = self.db.get(doc_id)
+                        active_rev = active_doc['_rev']
+                        self.db.put_attachment(
+                            active_doc, json.dumps(active_doc),
+                            name=active_rev, content_type="application/json"
+                        )
+                        self.db.update(
+                            self._cmd('set-active-rev'), doc_id=doc_id, active_rev=active_rev
+                        )
                 self.db.save_doc(order_doc)
                 self.logger.info("order state: %s" % order_doc['state'])
 

@@ -11,7 +11,7 @@ import json_diff
 class OptionsClassDiff(object):
     def __init__(self):
         self.exclude = [
-            '_attachments', 'prev_rev', 'prev_active_rev', '_rev', 'state',
+            '_attachments', 'prev_rev', 'active_rev', 'prev_active_rev', '_rev', 'state',
             'client_id', 'template_id', 'template_type'
         ]
         self.include = []
@@ -74,20 +74,15 @@ class Updater(object):
             'delete': service.delete
         }
         self.task = None
-        self.prev_active_doc = None
+        self.active_doc = None
         if doc['state'] in choose_task:
             self.task = choose_task[doc['state']]
         self.merged_doc = MergedDoc(db, doc).doc
-        if 'prev_active_rev' in doc or 'prev_rev' in doc:
-            if 'prev_active_rev' in doc:
-                prev_active_rev = doc['prev_active_rev']
-            else:
-                prev_active_rev = doc['prev_rev']
-            prev_active_doc = db.fetch_attachment(doc['_id'], prev_active_rev)
-
-            if prev_active_doc:
-                self.prev_active_doc = MergedDoc(db, json.loads(prev_active_doc)).doc
-        service.set_docs(self.merged_doc, self.prev_active_doc)
+        if 'active_rev' in doc:
+            active_rev = doc['active_rev']
+            active_doc = db.fetch_attachment(doc['_id'], active_rev)
+            self.active_doc = MergedDoc(db, json.loads(active_doc)).doc
+        service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
             try:
                 lookup_map_doc = db.get(service.map_doc_id)
@@ -95,7 +90,7 @@ class Updater(object):
             except ResourceNotFound:
                 pass
         self.service = service
-        if self.prev_active_doc and doc['state'] == 'changed':
+        if self.active_doc and doc['state'] == 'changed':
             diff = self._create_diff()
             service.set_diff(diff)
 
@@ -106,7 +101,7 @@ class Updater(object):
         return doc
 
     def _create_diff(self):
-        old_doc = json.dumps(self._remove_attachment(self.prev_active_doc))
+        old_doc = json.dumps(self._remove_attachment(self.active_doc))
         new_doc = json.dumps(self._remove_attachment(self.doc))
         diffator = json_diff.Comparator(
             StringIO(old_doc),

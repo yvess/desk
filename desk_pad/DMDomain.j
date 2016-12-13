@@ -1,5 +1,4 @@
 @import <CouchResource/COResource.j>
-@import <CouchResource/COResourceVersioned.j>
 @import <CouchResource/COCategories.j>
 @import <CouchResource/COItemsParent.j>
 @import <CouchResource/COSubItem.j>
@@ -80,11 +79,12 @@
 }
 @end
 
-@implementation DMDomain : COResourceVersioned
+@implementation DMDomain : COResource
 {
     CPString coId          @accessors;
     CPString coRev         @accessors;
     CPString coAttachments @accessors;
+    CPString activeRev     @accessors;
     CPString prevActiveRev @accessors;
     CPString state         @accessors;
 
@@ -186,9 +186,9 @@
     }];
 
     var json = {},
-        couchKeys = ["_id", "_rev", "_attachments", "prev_rev", "prev_active_rev", "state","domain", "nameservers", "hostmaster", "refresh",
+        couchKeys = ["_id", "_rev", "_attachments", "active_rev", "prev_active_rev", "state","domain", "nameservers", "hostmaster", "refresh",
                      "retry", "expire", "ttl", "client_id", "template_id", "a", "aaaa", "cname", "mx", "txt", "srv"],
-        cappuccinoValues = [coId, coRev, coAttachments, prevRev, prevActiveRev, state, domain, nameservers_array, hostmaster, refresh,
+        cappuccinoValues = [coId, coRev, coAttachments, activeRev, prevActiveRev, state, domain, nameservers_array, hostmaster, refresh,
                             retry, expire, ttl, clientId, templateId, a_array, aaaa_array, cname_array, mx_array, txt_array, srv_array];
 
     for (var i = 0; i < couchKeys.length; i++)
