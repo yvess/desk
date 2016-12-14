@@ -78,19 +78,29 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
             help="name of the domain to process, or nothing for all domains (needs confirmation)",
         )
 
+        rebuild_powerdns_parser.add_argument(
+            "-d", "--only-delete", dest="only_delete",
+            action="store_true", default=False,
+            help="""only delete all domains, no recreate"""
+        )
+
         return rebuild_powerdns_parser
 
-    def _rebuild(self, domain):
+    def _rebuild(self, domain, pre_delete=True):
         unmerged_doc = self.db.view(
             self._cmd("domain_by_name"), include_docs=True, key=domain
         ).one()['doc']
         doc = MergedDoc(self.db, unmerged_doc).doc
         self.pdns.doc = doc
-        self.pdns.set_domain(domain)
-        last_serial = self.pdns.get_soa_serial()
-        self.pdns.del_domain(domain)
-        self.pdns.create()
-        self.pdns.update_soa(serial=last_serial)
+        if pre_delete:
+            self.pdns.set_domain(domain)
+            last_serial = self.pdns.get_soa_serial()
+            self.pdns.del_domain(domain)
+            self.pdns.create()
+            self.pdns.update_soa(serial=last_serial)
+        else:
+            self.pdns.create()
+            self.pdns.update_soa(serial=None)
 
     def run(self):
         conf = {
@@ -101,14 +111,21 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
         lookup_map_doc = self.db.get(self.pdns.map_doc_id)
         self.pdns.set_lookup_map(lookup_map_doc)
 
-        domains = self.pdns.get_domains()
+        domains = []
+        for domain in self.db.view(
+            self._cmd("domain_by_name"), include_docs=True
+        ):
+            domains.append(domain['key'])
         if self.settings.target:
-            # if self.settings.target in domains:
             self._rebuild(self.settings.target)
         else:
             sys.stdout.write("Do you really want to procced and rebuild all domains? yes/no: ")
             choice = raw_input().lower()
             if choice == 'yes':
-                for domain in domains:
-                    self._rebuild(domain)
-
+                self.pdns.del_domains()
+                if not self.settings.only_delete:
+                    for domain in domains:
+                        print("adding:", domain)
+                        self._rebuild(domain, pre_delete=False)
+                else:
+                    print("only deletion of data was requestd")

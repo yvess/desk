@@ -181,6 +181,7 @@ class MigrateCommand(SettingsCommand):
             if hasattr(migrations, next_migration_name):
                 do_migration = getattr(migrations, next_migration_name)
                 doc = db.get(doc_id)
+                print('updating to:', new_version, doc_type, doc_id)
                 do_migration(doc, doc_type, db)
                 next_migration(new_version, doc_id, doc_type)
 

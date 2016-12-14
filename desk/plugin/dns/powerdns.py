@@ -122,6 +122,10 @@ class Powerdns(DnsBase):
         )
         error, result = self._db("DELETE FROM domains WHERE id={}".format(self.domain_id))
 
+    def del_domains(self):
+        error, result = self._db("DELETE FROM records")
+        error, result = self._db("DELETE FROM domains")
+
     def _prepare_record_value(self, value):
         if hasattr(value, 'startswith') and value.startswith('@ip_'):  # get ip value from hashmap
             value = self.lookup_map[value]
