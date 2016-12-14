@@ -47,7 +47,7 @@ class DnsValidator(object):
                     is_fqdn = True
                 answers.append(answer_value)
             item_value = unicode(item[item_key])
-            if item_value.startswith('@ip_'):
+            if item_value.startswith('$ip_'):
                 item_value = self.lookup_map[item_value]
             if is_fqdn and not item_value.endswith("."):
                 if record_type == "MX":
