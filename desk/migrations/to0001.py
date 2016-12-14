@@ -9,6 +9,19 @@ def main(doc, doc_type, db):
             for a in doc['a']:
                 if a['ip'].startswith('@ip_'):
                     a['ip'] = a['ip'].replace('@ip_', '$ip_')
+        # convert TXT txt -> content
+        if 'txt' in doc:
+            new_txt = []
+            for txt in doc['txt']:
+                if 'txt' in txt:
+                    new_entry = {
+                        'name': txt['name'],
+                        'content': txt['txt']
+                    }
+                else:
+                    new_entry = txt
+                new_txt.append(new_entry)
+            doc['txt'] = new_txt
         # type, sort key
         record_types = [
             ('a', 'host'),
@@ -26,14 +39,16 @@ def main(doc, doc_type, db):
                 )
         # remove all frontend created attachments from doc
         if '_attachments' in doc:
-            del doc['attachments']
+            del doc['_attachments']
         # delete not needed properties
         if 'prev_rev' in doc:
             del doc['prev_rev']
         if 'prev_active_rev' in doc:
             del doc['prev_active_rev']
+        if 'active_rev' in doc:
+            del doc['active_rev']
         # set state to new
-        # doc['state'] = 'new'
+        doc['state'] = 'new'
 
     def mapMigration(doc):
         new_map = {}
