@@ -160,6 +160,14 @@
         "include_docs": "true"
     }
 }, {
+    "to": "../../_changes",
+    "from": "/orders/new",
+    "query": {
+        "feed": "eventsource",
+        "filter": "desk_drawer/orders_new",
+        "include_docs": "true"
+    }
+}, {
     "to": "_list/list_docs/order",
     "from": "/orders",
     "method": "GET",

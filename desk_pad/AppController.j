@@ -119,7 +119,8 @@ var defaultGrowlCenter = nil;
     [self switchTabFromButton:@"Clients"];
 
     [defaultGrowlCenter setView:mainTabView];
-    var doNotification = function(data) {
+
+    var doNotificationOrdersDone = function(data) {
         var title = @"order processed";
         var message = [CPString stringWithFormat:@"id: %@ \nstate:%@ \nsender:%@", data.id, data.doc.state, data.doc.sender];
         if (data.doc.hasOwnProperty('text')) {
@@ -132,12 +133,21 @@ var defaultGrowlCenter = nil;
         }
     }
 
+    var doNotificationOrdersNew = function(data) {
+        var title = @"new order in queue";
+        var message = [CPString stringWithFormat:@"id: %@ \nstate:%@ \nsender:%@", data.id, data.doc.state, data.doc.sender];
+        if (data.doc.hasOwnProperty('text')) {
+            message = [CPString stringWithFormat:@"%@\n\n%@", message, data.doc.text];
+        }
+        [defaultGrowlCenter pushNotificationWithTitle:title message:message];
+    }
+
     if (!!window.EventSource)
     {
-        var source = new EventSource("/orders/done/?since=now");
-        source.addEventListener('message', function(e) {
+        var sourceOrdersDone = new EventSource("/orders/done/?since=now");
+        sourceOrdersDone.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
-          doNotification(data);
+          doNotificationOrdersDone(data);
           if (data.doc['type'] == 'order')
           {
             var currentDomainIndex = [domainViewController selectionIndex];
@@ -146,11 +156,17 @@ var defaultGrowlCenter = nil;
           }
         }, false);
 
-        source.addEventListener('open', function(e) {
+        var sourceOrdersNew = new EventSource("/orders/new/?since=now");
+        sourceOrdersNew.addEventListener('message', function(e) {
+          var data = JSON.parse(e.data);
+          doNotificationOrdersNew(data);
+        }, false);
+
+        sourceOrdersNew.addEventListener('open', function(e) {
           // Connection was opened.
         }, false);
 
-        source.addEventListener('error', function(e) {
+        sourceOrdersNew.addEventListener('error', function(e) {
           if (e.readyState == EventSource.CLOSED)
           {
             // Connection was closed.
