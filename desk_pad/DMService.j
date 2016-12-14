@@ -278,6 +278,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     /* default ivars for couchdb */
     CPString coId @accessors;
     CPString coRev  @accessors;
+    CPNumber version   @accessors;
     CPString clientId @accessors;
 
     CPString serviceType @accessors;
@@ -305,6 +306,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     if (self)
     {
         [self setServiceType:@"NEW"];
+        [self setVersion:1];
     }
     return self;
 }

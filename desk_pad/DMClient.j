@@ -7,9 +7,10 @@
     CPString coRev   @accessors;
 
     /* custom ivars */
-    CPString name     @accessors;
-    CPString state         @accessors;
-    CPString extcrmId    @accessors;
+    CPNumber version   @accessors;
+    CPString name      @accessors;
+    CPString state     @accessors;
+    CPString extcrmId  @accessors;
     CPString extcrmContactId    @accessors;
     CPString lastInvoiceEndDate @accessors;
     BOOL isBillable @accessors;
@@ -20,6 +21,16 @@
 {
     var cType = [[self class] underscoreName];
     return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
+- (id)init
+{
+    self = [super init];
+    if (self)
+    {
+        [self setVersion:1];
+    }
+    return self;
 }
 
 - (CPString)nameIdentifierString
