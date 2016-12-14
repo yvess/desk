@@ -153,10 +153,10 @@
         srv_array = [];
 
     function createCompare(sortkey) {
-        var compare = function (a,b) {
-            if (a[sortkey] < b[sortkey])
+        var compare = function (x, y) {
+            if (x[sortkey] < y[sortkey])
                 return -1;
-            if (a[sortkey] > b[sortkey])
+            if (x[sortkey] > y[sortkey])
                 return 1;
             return 0;
         }
