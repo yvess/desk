@@ -10,6 +10,7 @@ from couchdbkit.resource import ResourceNotFound
 from desk.utils import ObjectDict
 from desk import Worker, Foreman
 from desk.utils import CouchdbUploader
+from desk import migrations
 
 
 class SettingsCommand(object):
@@ -153,6 +154,39 @@ class InstallWorkerCommand(SettingsCommand):
             "provides": provides
         }
         db.save_doc(d)
+
+
+class MigrateCommand(SettingsCommand):
+    def setup_parser(self, subparsers, config_parser):
+        migrate_parser = subparsers.add_parser(
+            'migrate',
+            help="""upgrade all documents to the latest verision""",
+        )
+        migrate_parser.add_argument(
+            *config_parser['args'], **config_parser['kwargs']
+        )
+
+        return migrate_parser
+
+    def _cmd(self, cmd):
+        return "{}/{}".format(self.settings.couchdb_db, cmd)
+
+    def run(self):
+        server = Server(self.settings.couchdb_uri)
+        db = server.get_db(self.settings.couchdb_db)
+
+        def next_migration(version, doc_id, doc_type):
+            new_version = version + 1
+            next_migration_name = "to%04d" % new_version
+            if hasattr(migrations, next_migration_name):
+                do_migration = getattr(migrations, next_migration_name)
+                doc = db.get(doc_id)
+                do_migration(doc, doc_type, db)
+                next_migration(new_version, doc_id, doc_type)
+
+        for item in db.view(self._cmd("version")):
+            version, doc_id, doc_type = item['key'], item['id'], item['value']
+            next_migration(version, doc_id, doc_type)
 
 
 class DocsProcessor(SettingsCommand):

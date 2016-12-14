@@ -11,7 +11,7 @@ import argparse
 import codecs
 from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
-from desk.command import WorkerCommand, UploadJsonCommand
+from desk.command import WorkerCommand, UploadJsonCommand, MigrateCommand
 from desk.plugin.dns.cmd import ImportDnsCommand, LdifPlainDnsCommand
 from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
@@ -85,6 +85,7 @@ class SetupWorkerParser(object):
         self.commands = OrderedDict([
             ('install-db', InstallDbCommand),
             ('install-worker', InstallWorkerCommand),
+            ('migrate', MigrateCommand),
             ('upload-json', UploadJsonCommand),
             ('dns-import', ImportDnsCommand),
             ('dns-ldifplain', LdifPlainDnsCommand),
