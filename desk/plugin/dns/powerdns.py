@@ -195,18 +195,18 @@ class Powerdns(DnsBase):
                     else:
                         key = item[key_id]
 
-                    if 'value_trans' in rtype:
-                        value = rtype['value_trans'](
-                            item[value_id], self.domain
-                        )
-
                     # special case for multi value ids
                     if ',' in value_id:
                         value = {}
                         for v in value_id.split(','):
                             value[v] = item[v]
                     else:
-                        value = item[value_id]
+                        if 'value_trans' in rtype:
+                            value = rtype['value_trans'](
+                                item[value_id], self.domain
+                            )
+                        else:
+                            value = item[value_id]
 
                     # added the records
                     if name.upper() == "MX":
