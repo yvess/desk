@@ -26,13 +26,21 @@ class MergedDoc(object):
         if len(MergedDoc.cache.keys()) > 50:
             MergedDoc.cache = {}
         merged_doc = None
+        empty_keys = []
         if 'template_id' in doc:
             merged_doc = deepcopy(self.get_template(doc['template_id'], cache_key))
             doc_no_empty = {}
             for item_key in doc.keys():
                 if doc[item_key]:
                     doc_no_empty[item_key] = deepcopy(doc[item_key])
+                else:
+                    empty_keys.append(item_key)
             merged_doc.update(doc_no_empty)
+            for key in empty_keys:
+                if key in merged_doc and merged_doc['key']:
+                    pass
+                else:
+                    merged_doc[key] = []
             del merged_doc['template_id']
         self.doc = merged_doc if merged_doc else doc
 
@@ -106,11 +114,13 @@ class Updater(object):
         return doc
 
     def _create_diff(self):
-        old_doc = json.dumps(self._remove_attachment(self.active_doc))
-        new_doc = json.dumps(self._remove_attachment(self.doc))
+        old_doc = self._remove_attachment(self.active_doc)
+        new_doc = self._remove_attachment(self.doc)
+        old_doc_string = json.dumps(old_doc)
+        new_doc_string = json.dumps(new_doc)
         diffator = json_diff.Comparator(
-            StringIO(old_doc),
-            StringIO(new_doc),
+            StringIO(old_doc_string),
+            StringIO(new_doc_string),
             opts=OptionsClassDiff()
         )
         diff = diffator.compare_dicts()
