@@ -37,7 +37,7 @@ class MergedDoc(object):
                     empty_keys.append(item_key)
             merged_doc.update(doc_no_empty)
             for key in empty_keys:
-                if key in merged_doc and merged_doc['key']:
+                if key in merged_doc and merged_doc[key]:
                     pass
                 else:
                     merged_doc[key] = []
