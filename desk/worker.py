@@ -9,6 +9,7 @@ import signal
 from ConfigParser import SafeConfigParser
 import argparse
 import codecs
+import locale
 from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
 from desk.command import WorkerCommand, UploadJsonCommand, MigrateCommand
@@ -17,6 +18,8 @@ from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildC
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
 
+# Wrap sys.stdout into a StreamWriter to allow writing unicode.
+sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
 DEFAULTS = {
     "couchdb_uri": "http://localhost:5984",
