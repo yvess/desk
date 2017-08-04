@@ -78,6 +78,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     CPString rowtitle @accessors(readonly);
     CPString startDate @accessors;
     CPString endDate @accessors;
+    CPString itemSubType @accessors;
+    CPString itemSubLoc @accessors;
     CPString notes @accessors;
 }
 
@@ -90,6 +92,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         [self setItemType:@""];
         [self setStartDate:@""];
         [self setEndDate:@""];
+        [self setItemSubType:@""];
+        [self setItemSubLoc:@""];
         [self setNotes:@""];
     }
     return self;
@@ -151,6 +155,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         ov.itemType = [itemIncluded.itemType titleOfSelectedItem];
         ov.startDate = [itemIncluded.startDate stringValue];
         ov.endDate = [itemIncluded.endDate stringValue];
+        ov.itemSubType = [itemIncluded.itemSubType titleOfSelectedItem];
+        ov.itemSubLoc = [itemIncluded.itemSubLoc stringValue];
         ov.notes = [itemIncluded.notes stringValue];
         [self setObjectValue:ov];
         [itemIncluded.popoverIncluded close];
@@ -164,6 +170,11 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         }
         [itemIncluded.startDate setStringValue:[[self objectValue] startDate]];
         [itemIncluded.endDate setStringValue:[[self objectValue] endDate]];
+        if ([[self objectValue] itemSubType])
+        {
+            [itemIncluded.itemSubType setTitle:[[self objectValue] itemSubType]];
+            [itemIncluded.itemSubLoc setStringValue:[[self objectValue] itemSubLoc]];
+        }
         [itemIncluded.notes setStringValue:[[self objectValue] notes]];
     }
 }
@@ -385,7 +396,7 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
                 var includedArray = [];
                 [value enumerateObjectsUsingBlock:function(item) {
                     addObjectToArray(
-                        ['itemid', 'itemType', 'startDate', 'endDate', 'notes'],
+                        ['itemid', 'itemType', 'startDate', 'endDate', 'itemSubType', 'itemSubLoc', 'notes'],
                          item, includedArray
                     );
                 }];

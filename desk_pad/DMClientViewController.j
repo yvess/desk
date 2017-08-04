@@ -36,11 +36,12 @@
     @outlet              CPButton removeIncludedButton;
     @outlet              CPView viewIncluded;
     @outlet              CPPopover popoverIncluded;
-    @outlet              CPPopUpButton includedTypePUB;
     @outlet              CPTextField itemidInputIncluded;
     @outlet              CPPopUpButton itemTypeInputIncluded;
     @outlet              CPTextField startDateInputIncluded;
     @outlet              CPTextField endDateInputIncluded;
+    @outlet              CPPopUpButton itemSubTypeInputIncluded;
+    @outlet              CPTextField itemSubLocInputIncluded;
     @outlet              CPTextField notesInputIncluded;
 
     CPMutableArray       addonServiceItems @accessors;
@@ -49,7 +50,6 @@
     @outlet              CPButton removeAddonButton;
     @outlet              CPView viewAddon;
     @outlet              CPPopover popoverAddon;
-    @outlet              CPPopUpButton addonTypePUB;
     @outlet              CPTextField itemidInputAddon;
     @outlet              CPPopUpButton itemTypeInputAddon;
     @outlet              CPTextField startDateInputAddon;
@@ -192,6 +192,8 @@
     itemIncluded.itemType = itemTypeInputIncluded;
     itemIncluded.startDate = startDateInputIncluded;
     itemIncluded.endDate = endDateInputIncluded;
+    itemIncluded.itemSubType = itemSubTypeInputIncluded;
+    itemIncluded.itemSubLoc = itemSubLocInputIncluded;
     itemIncluded.notes = notesInputIncluded;
     itemIncluded.viewIncluded = viewIncluded;
     itemIncluded.popoverIncluded = popoverIncluded;
@@ -287,12 +289,22 @@
 
 - (void)updateServicePackageDefinition
 {
-    [[includedTypePUB menu] removeAllItems];
-    [[addonTypePUB menu] removeAllItems];
+    [[itemTypeInputIncluded menu] removeAllItems];
+    [[itemSubTypeInputIncluded menu] removeAllItems];
+    [[itemTypeInputAddon menu] removeAllItems];
     var currentDefinitionPackages = [[serviceDefinitionPackagePopUp selectedItem] representedObject];
     if (currentDefinitionPackages.hasOwnProperty("included"))
     {
-        [self buildMenu:includedTypePUB items:currentDefinitionPackages.included];
+        [self buildMenu:itemTypeInputIncluded items:currentDefinitionPackages.included];
+        if (currentDefinitionPackages.hasOwnProperty("included_sub_types"))
+        {
+            [itemSubTypeInputIncluded setEnabled:YES];
+            [itemSubLocInputIncluded setEnabled:YES];
+            [self buildMenu:itemSubTypeInputIncluded items:currentDefinitionPackages.included_sub_types];
+        } else {
+            [itemSubTypeInputIncluded setEnabled:NO];
+            [itemSubLocInputIncluded setEnabled:NO];
+        }
         [addIncludedButton setEnabled:YES];
         [removeIncludedButton setEnabled:YES];
     } else {
@@ -301,7 +313,7 @@
     }
     if (currentDefinitionPackages.hasOwnProperty("allowed_addons"))
     {
-        [self buildMenu:addonTypePUB items:currentDefinitionPackages.allowed_addons];
+        [self buildMenu:itemTypeInputAddon items:currentDefinitionPackages.allowed_addons];
         [addAddonButton setEnabled:YES];
         [removeAddonButton setEnabled:YES];
     } else {
