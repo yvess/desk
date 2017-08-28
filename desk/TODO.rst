@@ -12,6 +12,10 @@ TASKS
 - permission sqlitedb pdns_controll
 - update clients, without reload
 - cache map_ips
+- waring if unsaved content exists
+- check if domain is already taken
+- fix client assignment for new domains
+- empty sub loc field on close
 
 ENHANCEMENTS
 ============
