@@ -142,7 +142,6 @@ func (inspector *Inspector) checkWebVersion(item ItemWithSubKind) {
 		if pass {
 			versionString := strings.TrimSpace(string(versionOutput[:]))
 			versionParts := strings.Split(versionString, "|")
-			fmt.Printf("versionParts:%s\n", versionParts)
 			KindTitle := strings.TrimSpace(
 				inspector.config.Section("inspector_scripts").Key(item.subKind).String(),
 			)
