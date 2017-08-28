@@ -26,7 +26,7 @@ type ItemVersion struct {
 	KindTitle        string `json:"title"`
 	Path             string `json:"path"`
 	Version          string `json:"version"`
-	PackagesVersions string `json:"packages_versions"`
+	PackagesVersions string `json:"packages_versions,omitempty"`
 }
 
 type ItemVersionDoc struct {
