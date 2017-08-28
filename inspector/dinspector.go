@@ -103,17 +103,19 @@ func (inspector *Inspector) processWebItems() {
 		if err := rows.ScanValue(&doc); err != nil {
 			panic(err)
 		}
-		included_service_items := doc.(map[string]interface{})["included_service_items"]
-		for _, itemFromJson := range included_service_items.([]interface{}) {
-			itemMap := itemFromJson.(map[string]interface{})
-			if itemMap["itemSubType"] != nil && itemMap["itemSubLoc"] != nil {
-				item := ItemWithSubKind{
-					id:      itemMap["itemid"].(string),
-					kind:    itemMap["itemType"].(string),
-					subKind: itemMap["itemSubType"].(string),
-					subLoc:  strings.TrimSpace(itemMap["itemSubLoc"].(string)),
+		docMap := doc.(map[string]interface{})
+		if included_service_items, ok := docMap["included_service_items"]; ok {
+			for _, itemFromJson := range included_service_items.([]interface{}) {
+				itemMap := itemFromJson.(map[string]interface{})
+				if itemMap["itemSubType"] != nil && itemMap["itemSubLoc"] != nil {
+					item := ItemWithSubKind{
+						id:      itemMap["itemid"].(string),
+						kind:    itemMap["itemType"].(string),
+						subKind: itemMap["itemSubType"].(string),
+						subLoc:  strings.TrimSpace(itemMap["itemSubLoc"].(string)),
+					}
+					inspector.checkWebVersion(item)
 				}
-				inspector.checkWebVersion(item)
 			}
 		}
 	}
@@ -138,7 +140,9 @@ func (inspector *Inspector) checkWebVersion(item ItemWithSubKind) {
 			}
 		}
 		if pass {
-			versionParts := strings.Split(strings.TrimSpace(string(versionOutput[:])), "|")
+			versionString := strings.TrimSpace(string(versionOutput[:]))
+			versionParts := strings.Split(versionString, "|")
+			fmt.Printf("versionParts:%s\n", versionParts)
 			KindTitle := strings.TrimSpace(
 				inspector.config.Section("inspector_scripts").Key(item.subKind).String(),
 			)
@@ -175,7 +179,11 @@ func (inspector *Inspector) putItemVersionDoc(id string, rev string, hostname st
 
 func (inspector *Inspector) printWebVersions() {
 	for _, item := range inspector.itemVersions {
-		fmt.Printf("- %s:%s\n  %s:%s\n", item.Domain, item.Kind, item.PackagesVersions, item.KindTitle)
+		versions := item.Version
+		if item.PackagesVersions != "" {
+			versions = versions + "; " + item.PackagesVersions
+		}
+		fmt.Printf("- %s:%s - %s\n  %s\n", item.Domain, item.Kind, item.KindTitle, versions)
 	}
 }
 
