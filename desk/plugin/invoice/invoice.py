@@ -45,6 +45,7 @@ class Invoice(object):
         self.invoice_template_dir = settings.invoice_template_dir
         self.output_dir = settings.invoice_output_dir
         self.tax = float(settings.invoice_tax)
+        self.home_country = settings.invoice_home_country if hasattr(settings, 'invoice_home_country', ) else None
         self.jinja_env = Environment(
             loader=FileSystemLoader(self.invoice_template_dir)
         )
@@ -96,13 +97,18 @@ class Invoice(object):
         self.doc['services_list'] = sorted([k for k in self.doc['services'].iterkeys()])
         self.doc['address'] = self.crm.get_address(self.extcrm_id)
         self.doc['client_name'] = self.client_doc['name']
-        # import ipdb; ipdb.set_trace()
 
     def render_pdf(self):
+        total = self.doc['total']
+        if self.home_country:
+            invoice_country_iso = self.doc['address']['country_iso_alpha2']
+            if invoice_country_iso and invoice_country_iso != self.home_country:  # no tax in bill
+                total = self.doc['amount']
+                self.doc['total'] = total
         tpl = self.jinja_env.get_template('invoice_tpl.html')
         self.invoice_fname = "{date}_CHF{total:.2f}_Nr{nr}_hosting-{name}_ta".format(
             date=self.doc['date'].strftime("%Y-%m-%d"),
-            total=self.doc['total'],
+            total=total,
             nr=self.doc['nr'],
             name=self.client_name_normalized()
         )
