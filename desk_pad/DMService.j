@@ -173,8 +173,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
         if ([[self objectValue] itemSubType])
         {
             [itemIncluded.itemSubType setTitle:[[self objectValue] itemSubType]];
-            [itemIncluded.itemSubLoc setStringValue:[[self objectValue] itemSubLoc]];
         }
+        [itemIncluded.itemSubLoc setStringValue:[[self objectValue] itemSubLoc]]
         [itemIncluded.notes setStringValue:[[self objectValue] notes]];
     }
 }
