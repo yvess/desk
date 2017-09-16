@@ -128,7 +128,7 @@ func (inspector *Inspector) checkWebVersion(item ItemWithSubKind) {
 	scriptPath := fmt.Sprint(inspector.scriptsPath, "/", item.subKind, ".sh")
 	if _, err := os.Stat(scriptPath); !os.IsNotExist(err) {
 		cmd := exec.Command(scriptPath)
-		cmd.Dir = item.subLoc
+		cmd.Dir = strings.TrimSpace(item.subLoc)
 		versionOutput, err := cmd.Output()
 		pass := true
 		if err != nil {
