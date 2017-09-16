@@ -146,6 +146,8 @@ class Invoice(object):
             service_doc['included'] = self.add_included(service_doc, package)
             service_end_date = get_default(
                 'end_date', service_doc, self.doc)
+            if service_end_date > self.doc['end_date']:
+                service_end_date = self.doc['end_date']
             doc_amount = self.add_amount(
                 service_doc['price'], service_doc['start_date'], service_end_date)
             service_doc.update(doc_amount)
@@ -199,6 +201,8 @@ class Invoice(object):
                     'end_date', addon, end_date_doc,
                     special_attribute='endDate',
                 )
+                if addon['end_date'] > self.doc['end_date']:
+                    addon['end_date'] = self.doc['end_date']
                 addon.update(
                     self.add_amount(addon['price'], addon['start_date'], addon['end_date'])
                 )
