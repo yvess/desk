@@ -20,20 +20,24 @@
 @import "DMDomain.j"
 @import "DMDomainViewController.j"
 @import "DMOrder.j"
+@import "DMInspectorItem.j"
+@import "DMInspectorViewController.j"
 
 var defaultGrowlCenter = nil;
 
 @implementation AppController : CPObject
 {
-    CPWindow              theWindow; //this "outlet" is connected automatically by the Cib
+    CPWindow             theWindow; //this "outlet" is connected automatically by the Cib
 
     @outlet              CPTabView mainTabView;
     @outlet              CPButton clientsSwitchButton;
     @outlet              CPButton domainSwitchButton;
+    @outlet              CPButton inspectorSwitchButton;
     @outlet              CPButton orderButton;
 
-    DMClientViewController clientViewController;
-    DMDomainViewController domainViewController;
+    DMClientViewController    clientViewController;
+    DMDomainViewController    domainViewController;
+    DMInspectorViewController inspectorViewController;
     CPSet                popovers;
     TNGrowlCenter        growlCenter;
 }
@@ -49,6 +53,9 @@ var defaultGrowlCenter = nil;
         break;
     case @"DNS":
         [mainTabView selectTabViewItemAtIndex:1];
+        break;
+    case @"Inspector":
+        [mainTabView selectTabViewItemAtIndex:2];
         break;
     }
 }
@@ -98,13 +105,21 @@ var defaultGrowlCenter = nil;
                     growlCenter:defaultGrowlCenter
                     clients:[clientVC items]
                     clientLookup:[clientVC itemLookup]
+        ],
+        inspectorVC = [[DMInspectorViewController alloc]
+                    initWithCibName:@"InspectorView"
+                    bundle:nil
+                    modelClass:[DMInspectorItem class]
+                    growlCenter:defaultGrowlCenter
         ];
 
     self.clientViewController = clientVC;
     self.domainViewController = domainVC;
+    self.inspectorViewController = inspectorVC;
 
     [[mainTabView tabViewItemAtIndex:0] setView:[clientVC view]];
     [[mainTabView tabViewItemAtIndex:1] setView:[domainVC view]];
+    [[mainTabView tabViewItemAtIndex:2] setView:[inspectorVC view]];
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
@@ -112,6 +127,7 @@ var defaultGrowlCenter = nil;
     // This is called when the application is done loading.
     [clientsSwitchButton setAction:@selector(switchTabFromButton:)];
     [domainSwitchButton setAction:@selector(switchTabFromButton:)];
+    [inspectorSwitchButton setAction:@selector(switchTabFromButton:)];
     [orderButton setAction:@selector(pushUpdate)];
     [orderButton setTarget:self];
 
@@ -121,12 +137,14 @@ var defaultGrowlCenter = nil;
     [defaultGrowlCenter setView:mainTabView];
 
     var doNotificationOrdersDone = function(data) {
-        var title = @"order processed";
-        var message = [CPString stringWithFormat:@"id: %@ \nstate:%@ \nsender:%@", data.id, data.doc.state, data.doc.sender];
-        if (data.doc.hasOwnProperty('text')) {
+        var title = @"order processed",
+            message = [CPString stringWithFormat:@"id: %@ \nstate:%@ \nsender:%@", data.id, data.doc.state, data.doc.sender];
+        if (data.doc.hasOwnProperty('text'))
+        {
             message = [CPString stringWithFormat:@"%@\n\n%@", message, data.doc.text];
         }
-        if (data.doc.state == 'error') {
+        if (data.doc.state == 'error')
+        {
             [defaultGrowlCenter pushNotificationWithTitle:title message:message icon:TNGrowlIconError];
         } else {
             [defaultGrowlCenter pushNotificationWithTitle:title message:message];
@@ -134,9 +152,10 @@ var defaultGrowlCenter = nil;
     }
 
     var doNotificationOrdersNew = function(data) {
-        var title = @"new order in queue";
-        var message = [CPString stringWithFormat:@"id: %@ \nstate:%@ \nsender:%@", data.id, data.doc.state, data.doc.sender];
-        if (data.doc.hasOwnProperty('text')) {
+        var title = @"new order in queue",
+            message = [CPString stringWithFormat:@"id: %@ \nstate:%@ \nsender:%@", data.id, data.doc.state, data.doc.sender];
+        if (data.doc.hasOwnProperty('text'))
+        {
             message = [CPString stringWithFormat:@"%@\n\n%@", message, data.doc.text];
         }
         [defaultGrowlCenter pushNotificationWithTitle:title message:message];
