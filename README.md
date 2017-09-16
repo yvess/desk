@@ -1,6 +1,6 @@
 # desk #
 
-Tool for administration and Billing of Services, also a DNS editor.
+Tool for administration and billing of services, also a DNS editor.
 
 See also [desk-inspector](https://github.com/yvess/desk-inspector)
 
