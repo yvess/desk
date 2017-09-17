@@ -6,7 +6,10 @@
 
 @implementation DMInspectorViewController : COViewController
 {
-    @outlet              CPView view;
+    // @outlet     CPView view;
+    // @outlet     COArrayController arrayController;
+    // @outlet     CPTableView itemsTable;
+    // CPArray     items;
 }
 
 - (id)initWithCibName:(CPString) aCibNameOrNil
@@ -17,31 +20,21 @@
     self = [super initWithCibName:aCibNameOrNil bundle:aCibBundleOrNil modelClass:aModelClass growlCenter:aGrowlCenter];
     if (self)
     {
-        items = [modelClass allWithParams:@{} withPath:@"/domains_by_name"];
+        console.log("items", [self items]);
     }
     return self;
 }
 
 - (void)reloadItems
 {
-    [self setItems:[modelClass allWithParams:@{} withPath:@"/domains_by_name"]];
+    [self setItems:[modelClass allWithParams:{} withPath:@"/inspector_items"]];
 }
 
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-}
-
-- (void)domainWasRemoved:(CPNotification)notification
-{
-    var domainToDelete = [notification object];
-    if ([domainToDelete className] == @"DMDomain")
-    {
-        domainToDelete.state = @"delete";
-        var message = [CPString stringWithFormat:@"domain: %@ \nis scheduled for deletion\nsend order for execution", domainToDelete.domain];
-        [self.growlCenter pushNotificationWithTitle:@"deleted" message:message];
-    }
+    //[arrayController addObserver:self forKeyPath:@"selection.inspectorItems" options:nil context:@"inspectorItems"];
 }
 
 @end

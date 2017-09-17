@@ -101,6 +101,10 @@
         "include_docs": "true"
     }
 }, {
+    "to": "_list/list_items/inspector_items",
+    "from": "/inspector_items",
+    "method": "GET"
+}, {
     "to": "../../*",
     "from": "/projects",
     "method": "POST"

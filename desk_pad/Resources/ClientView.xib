@@ -59,7 +59,6 @@
         <arrayController objectClassName="DMClient" id="90" userLabel="Clients AC" customClass="COArrayController">
             <declaredKeys>
                 <string>name</string>
-                <string>city</string>
             </declaredKeys>
             <connections>
                 <binding destination="-2" name="contentArray" keyPath="items" id="125"/>
@@ -84,15 +83,15 @@
                             <rect key="frame" x="0.0" y="0.0" width="240" height="536"/>
                             <autoresizingMask key="autoresizingMask"/>
                             <subviews>
-                                <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="51">
-                                    <rect key="frame" x="20" y="50" width="200" height="466"/>
+                                <scrollView misplaced="YES" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="51">
+                                    <rect key="frame" x="20" y="50" width="200" height="434"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <clipView key="contentView" id="0FP-KW-5y6">
-                                        <rect key="frame" x="1" y="0.0" width="198" height="465"/>
+                                        <rect key="frame" x="1" y="0.0" width="198" height="433"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" headerView="58" id="56">
-                                                <rect key="frame" x="0.0" y="0.0" width="198" height="448"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="198" height="416"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                                 <size key="intercellSpacing" width="3" height="2"/>
                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -197,6 +196,15 @@
                                         <action selector="remove:" target="90" id="120"/>
                                     </connections>
                                 </button>
+                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" id="IZS-Td-XYA">
+                                    <rect key="frame" x="18" y="492" width="85" height="24"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Clients" id="Usm-tD-DQH">
+                                        <font key="font" metaFont="systemBold" size="20"/>
+                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                    </textFieldCell>
+                                </textField>
                             </subviews>
                         </customView>
                         <customView id="49">
@@ -543,7 +551,7 @@
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <clipView key="contentView" id="lws-lt-H9Z">
                         <rect key="frame" x="1" y="1" width="336" height="87"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" multipleSelection="NO" emptySelection="NO" autosaveColumns="NO" typeSelect="NO" rowHeight="28" rowSizeStyle="automatic" viewBased="YES" id="ksZ-Zl-HR7" userLabel="PackageProperties TV">
                                 <rect key="frame" x="0.0" y="0.0" width="336" height="87"/>
@@ -798,7 +806,7 @@
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" heightSizable="YES" flexibleMaxY="YES"/>
                     <clipView key="contentView" id="jJq-NT-eja">
                         <rect key="frame" x="1" y="1" width="336" height="209"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="Edc-Es-I0i" userLabel="AddonServiceItems">
                                 <rect key="frame" x="0.0" y="0.0" width="336" height="209"/>
@@ -879,7 +887,7 @@
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <clipView key="contentView" id="JhU-vf-yc5">
                         <rect key="frame" x="1" y="1" width="336" height="95"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" id="cPC-2W-c22" userLabel="includedServiceItems">
                                 <rect key="frame" x="0.0" y="0.0" width="336" height="95"/>

@@ -2,15 +2,25 @@
 
 @implementation DMInspectorItem : COResource
 {
-    /* default ivars for couchdb */
-    CPString coId    @accessors;
-    CPString coRev   @accessors;
+    CPString hostname;
+    CPString subType;
+    CPString itemDomain;
+    CPString itemType;
+    CPString itemTitle;
+    CPString itemPath;
+    CPString itemVersion;
+    CPString itemPackagesVersions;
 }
 
 + (id)couchId
 {
     var cType = [[self class] underscoreName];
     return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
++ (CPArray)allItemsFor:(CPObject) aModelClass
+{
+    return [aModelClass allWithParams:{} withPath:@"/inspector_items"];
 }
 
 - (id)init
@@ -25,7 +35,7 @@
 
 - (CPString)nameIdentifierString
 {
-    return @"coId";
+    return @"itemDomain";
 }
 
 @end

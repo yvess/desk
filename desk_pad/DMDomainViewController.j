@@ -259,7 +259,7 @@
     var selectedTemplateId = [[[tplForDomainPopUp selectedItem] representedObject] coId];
     [item setTemplateId:selectedTemplateId];
 
-    switch(item.state)
+    switch (item.state)
     {
         case @"active":
             [item setState:@"changed"];
