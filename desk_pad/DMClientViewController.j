@@ -261,7 +261,7 @@
             });
         }
     } catch (err) { // object / hashmap case
-        for (key in someItems)
+        for (var key in someItems)
         {
             filler(key, someItems[key]);
         }

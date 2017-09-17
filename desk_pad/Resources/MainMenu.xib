@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment version="1050" identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7706"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -38,6 +39,12 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 </view>
                             </tabViewItem>
+                            <tabViewItem label="Inspector" identifier="" id="Mme-0p-jW1">
+                                <view key="view" id="W5H-VG-zcz">
+                                    <rect key="frame" x="10" y="7" width="788" height="525"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                </view>
+                            </tabViewItem>
                         </tabViewItems>
                     </tabView>
                     <button verticalHuggingPriority="750" id="623" userLabel="Clients Button">
@@ -64,6 +71,14 @@
                             <font key="font" metaFont="system"/>
                         </buttonCell>
                     </button>
+                    <button verticalHuggingPriority="750" misplaced="YES" id="xhC-WP-qGW" userLabel="Inspector Button">
+                        <rect key="frame" x="242" y="556" width="110" height="25"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <buttonCell key="cell" type="roundTextured" title="Inspector" bezelStyle="texturedRounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="sIS-HZ-MLD">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                    </button>
                 </subviews>
             </view>
         </window>
@@ -71,6 +86,7 @@
             <connections>
                 <outlet property="clientsSwitchButton" destination="623" id="784"/>
                 <outlet property="domainSwitchButton" destination="838" id="980"/>
+                <outlet property="inspectorSwitchButton" destination="xhC-WP-qGW" id="Ugf-T6-9vU"/>
                 <outlet property="mainTabView" destination="547" id="973"/>
                 <outlet property="orderButton" destination="974" id="979"/>
                 <outlet property="theWindow" destination="371" id="459"/>
