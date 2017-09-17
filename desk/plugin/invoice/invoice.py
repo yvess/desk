@@ -56,8 +56,10 @@ class Invoice(object):
         try:
             self.extcrm_id = client_doc['extcrm_id']
         except KeyError:
-            print(client_doc)
-            raise KeyError
+            extcrm_id = client_doc['extcrm_id'] if 'extcrm_id' in client_doc else "None"
+            print('\nNOT creating invoice missing extcrm_id:%s, %s' % (extcrm_id, client_doc['name']), client_doc)
+            self.client_doc = None
+            return 
         self.client_doc = client_doc
         self.settings = settings
         self.invoice_cycle = invoice_cycle
@@ -95,7 +97,11 @@ class Invoice(object):
                 self.client_doc['last_invoice_end_date'], force_day='end')
         self.doc['services'] = self.get_services()
         self.doc['services_list'] = sorted([k for k in self.doc['services'].iterkeys()])
-        self.doc['address'] = self.crm.get_address(self.extcrm_id)
+        try:
+            self.doc['address'] = self.crm.get_address(self.extcrm_id)
+        except KeyError:
+            self.client_doc = None
+            return
         self.doc['client_name'] = self.client_doc['name']
 
     def render_pdf(self):
