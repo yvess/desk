@@ -140,7 +140,7 @@ class Todoyu(ExtCrmBase):
         try:
             return self._address_map[pk]
         except KeyError:
-            print(self._address_map)
+            print(self._address_map.keys())
             print("key error", pk)
             raise KeyError
 
