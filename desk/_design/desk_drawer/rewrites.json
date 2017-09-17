@@ -6,21 +6,6 @@
     "from": "/desk_drawer/*",
     "method": "POST"
 }, {
-    "to": "_list/list_docs/work_time",
-    "from": "/work_times",
-    "method": "GET",
-    "query": {
-        "reduce": "false",
-        "include_docs": "true"
-    }
-}, {
-    "to": "../../*",
-    "from": "/work_times",
-    "method": "POST"
-}, {
-    "to": "../../*",
-    "from": "/work_times/*"
-}, {
     "to": "_list/list_docs/client",
     "from": "/clients",
     "method": "GET",
@@ -93,13 +78,6 @@
 }, {
     "to": "../../*",
     "from": "/domains/*"
-}, {
-    "to": "_list/list_docs/project",
-    "from": "/projects",
-    "method": "GET",
-    "query": {
-        "include_docs": "true"
-    }
 }, {
     "to": "_list/list_items/inspector_items",
     "from": "/inspector_items",
