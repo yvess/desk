@@ -1,5 +1,9 @@
 function(doc) {
-    if (doc.type == 'client' && doc.state.indexOf('delete') < 0 && doc.is_billable == 1 ) {
-        emit(doc._id, doc._rev);
+    if (doc.type == 'client' && doc.is_billable == 1 ) {
+        if (doc.state && doc.state.indexOf('delete') > 0) {
+            // do nothing
+        } else {
+            emit(doc._id, doc._rev);
+        }
     }
 }
