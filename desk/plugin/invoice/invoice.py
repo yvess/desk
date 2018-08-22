@@ -59,7 +59,7 @@ class Invoice(object):
             extcrm_id = client_doc['extcrm_id'] if 'extcrm_id' in client_doc else "None"
             print('\nNOT creating invoice missing extcrm_id:%s, %s' % (extcrm_id, client_doc['name']), client_doc)
             self.client_doc = None
-            return 
+            return
         self.client_doc = client_doc
         self.settings = settings
         self.invoice_cycle = invoice_cycle
@@ -103,6 +103,8 @@ class Invoice(object):
             self.client_doc = None
             return
         self.doc['client_name'] = self.client_doc['name']
+        self.doc['tax'] = round(self.doc['amount'] * self.tax, 1)
+        self.doc['total'] = self.doc['amount'] + self.doc['tax']
 
     def render_pdf(self):
         total = self.doc['total']
@@ -245,11 +247,10 @@ class Invoice(object):
             months = 0
         item['months'] = months
         item['amount'] = months * price
-        item['tax'] = round(item['amount'] * self.tax, 1)
+        item['tax'] = item['amount'] * self.tax
         item['total'] = item['amount'] + item['tax']
         self.doc['amount'] += item['amount']
         self.doc['tax'] += item['tax']
-        self.doc['total'] += item['total']
         return item
 
 
