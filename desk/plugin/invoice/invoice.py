@@ -162,6 +162,7 @@ class Invoice(object):
                 'end_date', service_doc, self.doc)
             if service_end_date > self.doc['end_date']:
                 service_end_date = self.doc['end_date']
+            service_doc['end_date'] = service_end_date
             doc_amount = self.add_amount(
                 service_doc['price'], service_doc['start_date'], service_end_date)
             service_doc.update(doc_amount)
