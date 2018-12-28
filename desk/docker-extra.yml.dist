@@ -1,0 +1,6 @@
+cdb:
+  volumes:
+    - /{your path}/cappuccino:/opt/src/cappuccino
+    - /{your path}/GrowlCappuccino:/opt/src/GrowlCappuccino
+    - /{your path}/CouchResource:/opt/src/CouchResource
+    - /{your path}/cappuccino:/opt/env/cappuccino

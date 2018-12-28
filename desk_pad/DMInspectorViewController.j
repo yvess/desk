@@ -20,7 +20,6 @@
     self = [super initWithCibName:aCibNameOrNil bundle:aCibBundleOrNil modelClass:aModelClass growlCenter:aGrowlCenter];
     if (self)
     {
-        console.log("items", [self items]);
     }
     return self;
 }

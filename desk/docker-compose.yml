@@ -5,16 +5,15 @@ cdb:
     - TERM=xterm-256color
     - COUCHDB_ADMIN=admin
     - COUCHDB_ADMINPASS=admin
-    - COUCHDB_LOCAL_HTTPD="[httpd]\nvhost_global_handlers = _utils, _uuids, _session, _oauth, _users, _rewrite, _desk_pad"
-    - COUCHDB_LOCAL_HTTPD_GLOBAL_HANDLERS="[httpd_global_handlers]\n_desk_pad = {couch_httpd_misc_handlers, handle_utils_dir_req, "/opt/app/desk_pad"}"
-    - COUCHDB_LOCAL_VHOSTS="[vhosts]\ndesk.docker:5984 = /desk_drawer/_design/desk_drawer/_rewrite/"
+    - COUCHDB_LOCAL_HTTPD=[httpd]\nvhost_global_handlers = _utils, _uuids, _session, _oauth, _users, _rewrite, _desk_pad
+    - COUCHDB_LOCAL_HTTPD_GLOBAL_HANDLERS=[httpd_global_handlers]\n_desk_pad = {couch_httpd_misc_handlers, handle_utils_dir_req, "/opt/app/desk_pad"}
+    - COUCHDB_LOCAL_VHOSTS=[vhosts]\ndesk.docker:5984 = /desk_drawer/_design/desk_drawer/_rewrite/
   volumes:
     - ../:/opt/app/
-    - ./src:/opt/src
-    - ./env:/opt/env
     - ./var:/var/services
   ports:
     - "5984:5984"
+  # command: tail -f /dev/null
 
 dnsa:
   image: yvess/desk-dns
@@ -23,6 +22,8 @@ dnsa:
     - TERM=xterm-256color
     - COUCHDB_ADMIN=admin
     - COUCHDB_ADMINPASS=admin
+    - START_WORKER=YES
+    - START_PDNS=YES
   volumes:
     - ../:/opt/app/
     - ./var:/var/services
@@ -39,6 +40,8 @@ dnsb:
     - TERM=xterm-256color
     - COUCHDB_ADMIN=admin
     - COUCHDB_ADMINPASS=admin
+    - START_WORKER=YES
+    - START_PDNS=YES
   volumes:
     - ../:/opt/app/
     - ./var:/var/services
@@ -55,6 +58,7 @@ foreman:
     - TERM=xterm-256color
     - COUCHDB_ADMIN=admin
     - COUCHDB_ADMINPASS=admin
+    - START_WORKER=YES
   volumes:
     - ../:/opt/app/
     - ./var:/var/services
