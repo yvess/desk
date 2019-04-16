@@ -17,6 +17,14 @@ images:
 	cd images/foreman && docker build -t yvess/desk_foreman . && cd - &
 	cd images/dns && docker build -t yvess/desk_dns . && cd -
 
+stop_worker:
+	s6-svc -d /var/run/s6/services/worker
+
+start_worker:
+	s6-svc -d /var/run/s6/services/worker
+
+start_worker_fg:
+	./dworker run -v
 
 play:
 	docker run -it --rm --volumes-from=projects -w /projects/desk/desk/images/playbooks \
