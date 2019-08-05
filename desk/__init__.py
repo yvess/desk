@@ -2,6 +2,7 @@
 from __future__ import absolute_import, print_function, unicode_literals, division  # python3
 
 import os
+import socket
 import time
 import gevent
 import logging
@@ -23,7 +24,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class Worker(object):
-    def __init__(self, settings, hostname=os.uname()[1]):
+    def __init__(self, settings, hostname=socket.getfqdn()):
         if isinstance(settings, dict):
             settings = ObjectDict(**settings)
         self.hostname = hostname

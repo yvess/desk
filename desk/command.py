@@ -2,6 +2,7 @@
 from __future__ import absolute_import, print_function, unicode_literals, division  # python3
 
 import os
+import socket
 import logging
 import time
 from couchdbkit.loaders import FileSystemDocsLoader
@@ -14,7 +15,7 @@ from desk import migrations
 
 
 class SettingsCommand(object):
-    def set_settings(self, settings, hostname=os.uname()[1]):
+    def set_settings(self, settings, hostname=socket.getfqdn()):
         if isinstance(settings, dict):
             settings = ObjectDict(**settings)
         self.hostname = hostname
@@ -26,7 +27,7 @@ class SettingsCommand(object):
 
 
 class SettingsCommandDb(SettingsCommand):
-    def set_settings(self, settings, hostname=os.uname()[1]):
+    def set_settings(self, settings, hostname=socket.getfqdn()):
         super(SettingsCommandDb, self).set_settings(settings, hostname)
         self.server = Server(uri=self.settings.couchdb_uri)
         self.db = self.server.get_db(self.settings.couchdb_db)
