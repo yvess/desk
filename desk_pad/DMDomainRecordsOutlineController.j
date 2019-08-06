@@ -9,6 +9,8 @@
     DMDomain domainRecord @accessors(readonly);
     CPOutlineView domainOutline @accessors(readonly);
     CPPopover popover @accessors;
+    id popoverItem @accessors;
+    CPButton popoverButton @accessors;
     CPMutableDictionary lookupDomainEntries @accessors;
     CPMutableDictionary viewRecordTypes @accessors(readonly);
 }
@@ -23,6 +25,8 @@
         domainRecord = aDomain;
         domainOutline = aDomainOutline;
         popover = aPopover;
+        popoverItem = nil;
+        popoverButton = nil;
         viewRecordTypes = aViewRecordTypes;
         [self setLookupForDomainEntries];
     }
@@ -69,15 +73,20 @@
 - (void)showPopover:(id)sender
 {
     [popover setAnimates:NO];
+    //[popover setBehavior:CPPopoverBehaviorTransient];
     var domainEntry = sender.domainEntry;
+    if ([popover isShown] && sender.domainEntry != [self popoverItem])
+    {
+        [popover close];
+    }
     if (![popover isShown])
     {
         [domainOutline selectRowIndexes:[CPIndexSet indexSetWithIndex:[domainOutline rowForItem:domainEntry]] byExtendingSelection:NO];
         var viewDomainEntry = nil,
             viewRecordType = [viewRecordTypes objectForKey:[domainEntry className]];
-        // [[popover contentViewController] setView:viewRecordType]; // switched to set view controller
+        // [[popover contentViewController] setView:[viewRecordType copy]]; // switched to set view controller
         var popViewController = [[CPViewController alloc] init];
-        [popViewController setView:viewRecordType];
+        [popViewController setView:[viewRecordType copy]];
         [popover setContentViewController:popViewController];
         var viewDomainEntry = [[popover contentViewController] view];
         [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
@@ -121,50 +130,57 @@
             }
         }];
         [popover showRelativeToRect:nil ofView:sender preferredEdge:nil];
+        [self setPopoverItem:domainEntry];
+        [self setPopoverButton:sender];
     } else  {
-        var viewDomainEntry = [[popover contentViewController] view];
-        [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
-            if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
-            {
-                switch ([view placeholderString])
+        if (sender.domainEntry == [self popoverItem]) {
+            var viewDomainEntry = [[popover contentViewController] view];
+            [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
+                if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
                 {
-                case @"host":
-                    [domainEntry setHost:[view objectValue]];
-                    break;
-                case @"targethost":
-                    [domainEntry setTargethost:[view objectValue]];
-                    break;
-                case @"ip":
-                    [domainEntry setIp:[view objectValue]];
-                    break;
-                case @"alias":
-                    [domainEntry setAlias:[view objectValue]];
-                    break;
-                case @"priority":
-                    [domainEntry setPriority:[view objectValue]];
-                    break;
-                case @"ipv6":
-                    [domainEntry setIpv6:[view objectValue]];
-                    break;
-                case @"name":
-                    [domainEntry setName:[view objectValue]];
-                    break;
-                case @"content":
-                    [domainEntry setContent:[view objectValue]];
-                    break;
-                case @"weight":
-                    [domainEntry setWeight:[view objectValue]];
-                    break;
-                case @"port":
-                    [domainEntry setPort:[view objectValue]];
-                    break;
+                    switch ([view placeholderString])
+                    {
+                    case @"host":
+                        [domainEntry setHost:[view objectValue]];
+                        break;
+                    case @"targethost":
+                        [domainEntry setTargethost:[view objectValue]];
+                        break;
+                    case @"ip":
+                        [domainEntry setIp:[view objectValue]];
+                        break;
+                    case @"alias":
+                        [domainEntry setAlias:[view objectValue]];
+                        break;
+                    case @"priority":
+                        [domainEntry setPriority:[view objectValue]];
+                        break;
+                    case @"ipv6":
+                        [domainEntry setIpv6:[view objectValue]];
+                        break;
+                    case @"name":
+                        [domainEntry setName:[view objectValue]];
+                        break;
+                    case @"content":
+                        [domainEntry setContent:[view objectValue]];
+                        break;
+                    case @"weight":
+                        [domainEntry setWeight:[view objectValue]];
+                        break;
+                    case @"port":
+                        [domainEntry setPort:[view objectValue]];
+                        break;
+                    }
                 }
-            }
-        }];
-        [popover close];
-        [popover setContentViewController:nil];
-        [self setLookupForDomainEntries];
-        [domainOutline reloadData];
+            }];
+            [popover close];
+            [popover setContentViewController:nil];
+            [self setLookupForDomainEntries];
+            [domainOutline reloadData];
+            [popover resignFirstResponder];
+        } else {
+            [popover close];
+        }
     }
     // [domainOutline selectRowIndexes:[CPIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
 }
