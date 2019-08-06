@@ -110,7 +110,7 @@
                     value = [domainEntry weight];
                     break;
                 case @"port":
-                    value = [domainEntry weight];
+                    value = [domainEntry port];
                     break;
                 }
                 [view setObjectValue:value];

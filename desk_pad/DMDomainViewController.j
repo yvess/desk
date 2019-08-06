@@ -127,11 +127,11 @@
 {
     [[[[self currentDomain] srv] items] addObject:[[DMDomainSrv alloc]
         initWithJSObject:{
-            "name": "_service._proto.name.",
-            "priority": 10,
-            "weight": 10,
+            "name": "_service._proto.mydomain.com",
+            "priority": 1,
+            "weight": 100,
             "port": 8080,
-            "targethost": "my.server." }
+            "targethost": "my.server.com" }
         ]];
     [[domainOutline delegate] setLookupForDomainEntries];
     [domainOutline reloadData];
@@ -172,8 +172,10 @@
     var domainOutlineController = [[DMDomainRecordsOutlineController alloc] initWithDomain:aItem
         domainOutline:domainOutline popover:popoverDomain
         viewRecordTypes: @{
-            @"DMDomainA":viewDomainA, @"DMDomainAaaa":viewDomainAaaa,
-            @"DMDomainCname":viewDomainCname, @"DMDomainMx":viewDomainMx,
+            @"DMDomainA":viewDomainA,
+            @"DMDomainAaaa":viewDomainAaaa,
+            @"DMDomainCname":viewDomainCname,
+            @"DMDomainMx":viewDomainMx,
             @"DMDomainTxt":viewDomainTxt,
             @"DMDomainSrv":viewDomainSrv
         }];
