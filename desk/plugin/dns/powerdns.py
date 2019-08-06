@@ -37,6 +37,7 @@ class Powerdns(DnsBase):
 
     def _db(self, sql):
         error = None
+        # print(sql)
         try:
             self.logger.debug(sql)
             self._cursor.execute(sql)
@@ -45,6 +46,8 @@ class Powerdns(DnsBase):
             error = "%s\n\n" % sql
             error += traceback.format_exc()
             self.logger.error(error)
+
+        # print(error)
         return (error, self._cursor)
 
     def check_domain(self, domain):
@@ -133,10 +136,13 @@ class Powerdns(DnsBase):
 
     def add_record(self, key, value, rtype='A', ttl=3600,
                    priority='NULL', domain=None):
+        # print('add_record', 'key:"%s", value:"%s", rtype:"%s", domain:"%s"' % (key, value, rtype, domain or self.domain))
         if domain:
             self.set_domain(domain)
         # TOOD set ttl
         value = self._prepare_record_value(value)
+        # print('test MX')
+        # print('test SRV')
         sql = """
         INSERT INTO records
             (domain_id, name, content, type, ttl, prio)
@@ -187,6 +193,7 @@ class Powerdns(DnsBase):
             name, key_id, value_id = (
                 rtype['name'], rtype['key_id'], rtype['value_id']
             )
+            # print('name:"%s", key_id:"%s", value_id:"%s"' % (name, key_id, value_id))
             if name in self.doc and (not only_rtype or name == only_rtype):
                 for item in self.doc[name]:  # TODO merge with create logic
                     # do key/value transformations
@@ -269,6 +276,7 @@ class Powerdns(DnsBase):
                 )
                 if ',' in value_id:
                     value_id = value_id.split(',')[0]
+                # print('name:"%s", key_id:"%s", value_id:"%s"' % (name, key_id, value_id))
                 remove, append = [], []
 
                 # remove records

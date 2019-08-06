@@ -183,6 +183,7 @@ class Updater(object):
 
     def do_task(self):
         was_successfull = False
+        # print('do_task', self.task)
         if self.task:
             was_successfull = self.task()
         return was_successfull
