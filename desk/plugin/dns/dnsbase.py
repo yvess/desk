@@ -171,7 +171,7 @@ class DnsBase(object):
         {
             'name': 'mx',
             'key_id': 'host',
-            'value_id': 'priority'
+            'value_id': 'host,priority'
         },
         {
             'name': 'txt',
@@ -182,7 +182,7 @@ class DnsBase(object):
         {
             'name': 'srv',
             'key_id': 'name',
-            'key_trans': host_to_fqdn,
+            # 'key_trans': host_to_fqdn, # don't add domains automatically
             'value_id': 'priority,weight,port,targethost'
         }
     ]

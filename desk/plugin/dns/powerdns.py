@@ -74,7 +74,7 @@ class Powerdns(DnsBase):
         serial_number += 1
         return "{}{:02d}".format(serial_date, serial_number)
 
-    def add_soa(self, domain=None):
+    def add_soa(self):
         serial = self._calc_serial(previous=None)
         self.add_record(
             self.domain,
@@ -115,7 +115,7 @@ class Powerdns(DnsBase):
         error, result = self._db("""INSERT INTO domains (name, type)
                     VALUES ('{}', 'NATIVE')""".format(self.domain))
         self.domain_id = self._cursor.lastrowid
-        self.add_soa(domain)
+        self.add_soa()
 
     def del_domain(self, domain=None):
         if domain:
@@ -139,10 +139,23 @@ class Powerdns(DnsBase):
         # print('add_record', 'key:"%s", value:"%s", rtype:"%s", domain:"%s"' % (key, value, rtype, domain or self.domain))
         if domain:
             self.set_domain(domain)
-        # TOOD set ttl
-        value = self._prepare_record_value(value)
+        priority = 'NULL'
+        value_sql = None
+
+        # MX
         # print('test MX')
+        if rtype.upper() == 'MX':
+            key = self.domain
+            value_sql = value['host']
+            priority=int(value['priority'])
+
+        # SRV
         # print('test SRV')
+        if rtype.upper() == 'SRV':
+            value_sql = "{weight} {port} {targethost}".format(**value)
+            priority=int(value['priority'])
+
+        value_sql = self._prepare_record_value(value_sql or value)
         sql = """
         INSERT INTO records
             (domain_id, name, content, type, ttl, prio)
@@ -150,7 +163,7 @@ class Powerdns(DnsBase):
             ({domain_id},'{key}','{value}','{rtype}',{ttl},{priority})
         """.format(
             domain_id=self.domain_id,
-            key=key, value=value,
+            key=key, value=value_sql,
             rtype=rtype, ttl=ttl, priority=priority
         )
         error, result = self._db(sql)
@@ -168,7 +181,7 @@ class Powerdns(DnsBase):
         sql = """
         UPDATE records
         SET domain_id={domain_id}, name='{key}', content='{value}',
-            ttl={ttl},prio={priority}
+            ttl={ttl}, prio={priority}
         WHERE {lookup} AND type='{rtype}'
         """.format(
             domain_id=self.domain_id, key=key, value=value,
@@ -188,6 +201,20 @@ class Powerdns(DnsBase):
         )
         error, result = self._db(sql)
 
+    def _value_trans(self, value_id, rtype=None, item=None):
+        if ',' in value_id:
+            value = {}
+            for v in value_id.split(','):
+                value[v] = item[v]
+        else:
+            if 'value_trans' in rtype:
+                value = rtype['value_trans'](
+                    item[value_id], self.domain
+                )
+            else:
+                value = item[value_id]
+        return value
+
     def _create_records(self, only_rtype=None):
         for rtype in self.structure:
             name, key_id, value_id = (
@@ -203,38 +230,11 @@ class Powerdns(DnsBase):
                         key = item[key_id]
 
                     # special case for multi value ids
-                    if ',' in value_id:
-                        value = {}
-                        for v in value_id.split(','):
-                            value[v] = item[v]
-                    else:
-                        if 'value_trans' in rtype:
-                            value = rtype['value_trans'](
-                                item[value_id], self.domain
-                            )
-                        else:
-                            value = item[value_id]
+                    value = self._value_trans(value_id, rtype=rtype, item=item)
 
-                    # added the records
-                    if name.upper() == "MX":
-                        self.add_record(
-                            self.domain, key,
-                            priority=int(value),
-                            rtype="MX",
-                            ttl=self.get_ttl(self.doc)
-                        )
-                    elif name.upper() == "SRV":
-                        record_value = "{weight} {port} {targethost}".format(**value)
-                        self.add_record(
-                            key, value=record_value,
-                            priority=int(value['priority']),
-                            rtype="SRV",
-                            ttl=self.get_ttl(self.doc)
-                        )
-                    else:
-                        self.add_record(
-                            key, value, rtype=name.upper(), ttl=self.get_ttl(self.doc)
-                        )
+                    self.add_record(
+                        key, value, rtype=name.upper(), ttl=self.get_ttl(self.doc)
+                    )
 
     def del_records(self, rtype, domain=None):
         if domain:
@@ -245,12 +245,10 @@ class Powerdns(DnsBase):
             """.format(domain_id=self.domain_id, rtype=rtype.upper())
         )
 
-    def _trans(self, key, value, rtype=None):
+    def _key_trans(self, key, rtype=None):
         if 'key_trans' in rtype:
             key = rtype['key_trans'](key, self.domain)
-        if 'value_trans' in rtype:
-            value = rtype['value_trans'](value, self.domain)
-        return (key, value)
+        return key
 
     def create(self):
         was_sucessfull = False
@@ -268,14 +266,13 @@ class Powerdns(DnsBase):
         was_sucessfull = False
         if self.doc:
             self.set_domain(self.doc['domain'])
+
         if self.diff:
             # TODO nameserver record
             for rtype in self.structure:
                 name, key_id, value_id = (
                     rtype['name'], rtype['key_id'], rtype['value_id']
                 )
-                if ',' in value_id:
-                    value_id = value_id.split(',')[0]
                 # print('name:"%s", key_id:"%s", value_id:"%s"' % (name, key_id, value_id))
                 remove, append = [], []
 
@@ -283,9 +280,8 @@ class Powerdns(DnsBase):
                 if name in self.diff['remove']:
                     remove = self.diff['remove'][name]
                     for item in remove:
-                        key, value = self._trans(
-                            item[key_id], item[value_id], rtype=rtype
-                        )
+                        key = self._key_trans(item[key_id], rtype=rtype)
+                        value = self._value_trans(value_id, rtype=rtype, item=item)
                         self.del_record(key, value, rtype=name.upper())
 
                 # update/reset records
@@ -297,12 +293,10 @@ class Powerdns(DnsBase):
                 elif name in self.diff['append']:
                     append = self.diff['append'][name]
                     for item in append:
-                        key, value = self._trans(
-                            item[key_id], item[value_id], rtype=rtype
-                        )
+                        key = self._key_trans(item[key_id], rtype=rtype)
+                        value = self._value_trans(value_id, rtype=rtype, item=item)
                         self.add_record(
-                            key, value, rtype=name.upper(),
-                            ttl=self.get_ttl(self.doc)
+                            key, value, rtype=name.upper(), ttl=self.get_ttl(self.doc)
                         )
             self.update_soa()
             was_sucessfull = True
