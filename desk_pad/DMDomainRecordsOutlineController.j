@@ -72,9 +72,13 @@
     var domainEntry = sender.domainEntry;
     if (![popover isShown])
     {
+        [domainOutline selectRowIndexes:[CPIndexSet indexSetWithIndex:[domainOutline rowForItem:domainEntry]] byExtendingSelection:NO];
         var viewDomainEntry = nil,
             viewRecordType = [viewRecordTypes objectForKey:[domainEntry className]];
-        [[popover contentViewController] setView:viewRecordType];
+        // [[popover contentViewController] setView:viewRecordType]; // switched to set view controller
+        var popViewController = [[CPViewController alloc] init];
+        [popViewController setView:viewRecordType];
+        [popover setContentViewController:popViewController];
         var viewDomainEntry = [[popover contentViewController] view];
         [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
             if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
@@ -158,10 +162,11 @@
             }
         }];
         [popover close];
+        [popover setContentViewController:nil];
         [self setLookupForDomainEntries];
         [domainOutline reloadData];
     }
-    [domainOutline selectRowIndexes:[CPIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
+    // [domainOutline selectRowIndexes:[CPIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
 }
 @end
 
