@@ -169,7 +169,8 @@
         context:aItem];
     [tplForDomainPopUp selectItemAtIndex:(templateIndex == -1) ? 0 : templateIndex + 1];
 
-    var domainOutlineController = [[DMDomainRecordsOutlineController alloc] initWithDomain:aItem
+    var domainOutlineController = [[DMDomainRecordsOutlineController alloc]
+        initWithDomain:aItem
         domainOutline:domainOutline popover:popoverDomain
         viewRecordTypes: @{
             @"DMDomainA":viewDomainA,
