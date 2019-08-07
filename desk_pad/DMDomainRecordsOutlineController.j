@@ -129,6 +129,8 @@
             }
         }];
         [popover showRelativeToRect:nil ofView:sender preferredEdge:nil];
+        [sender setTitle: @"save"];
+        [popoverButton setTitle: @"edit"];
         [self setPopoverItem:domainEntry];
         [self setPopoverButton:sender];
     } else  {
@@ -173,11 +175,13 @@
                 }
             }];
             [popover close];
+            [sender setTitle: @"edit"];
             [self setPopover:[[CPPopover alloc] init]];
             [self setLookupForDomainEntries];
             [domainOutline reloadData];
         } else {
             [popover close];
+            [sender setTitle: @"edit"];
             [self setPopover:[[CPPopover alloc] init]];
         }
     }
