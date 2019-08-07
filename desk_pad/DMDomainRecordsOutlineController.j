@@ -24,7 +24,7 @@
     {
         domainRecord = aDomain;
         domainOutline = aDomainOutline;
-        popover = aPopover;
+        popover = [[CPPopover alloc] init];
         popoverItem = nil;
         popoverButton = nil;
         viewRecordTypes = aViewRecordTypes;
@@ -84,7 +84,6 @@
         [domainOutline selectRowIndexes:[CPIndexSet indexSetWithIndex:[domainOutline rowForItem:domainEntry]] byExtendingSelection:NO];
         var viewDomainEntry = nil,
             viewRecordType = [viewRecordTypes objectForKey:[domainEntry className]];
-        // [[popover contentViewController] setView:[viewRecordType copy]]; // switched to set view controller
         var popViewController = [[CPViewController alloc] init];
         [popViewController setView:[viewRecordType copy]];
         [popover setContentViewController:popViewController];
@@ -174,15 +173,14 @@
                 }
             }];
             [popover close];
-            [popover setContentViewController:nil];
+            [self setPopover:[[CPPopover alloc] init]];
             [self setLookupForDomainEntries];
             [domainOutline reloadData];
-            [popover resignFirstResponder];
         } else {
             [popover close];
+            [self setPopover:[[CPPopover alloc] init]];
         }
     }
-    // [domainOutline selectRowIndexes:[CPIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
 }
 @end
 
