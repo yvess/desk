@@ -151,6 +151,20 @@
     }
 }
 
+- (void)setClientId:(id)sender
+{
+    var item = [self lastSelectedObject],
+        selectedClientId = [[[clientsForDomainPopUp selectedItem] representedObject] coId];
+    [item setClientId:selectedClientId];
+}
+
+- (void)setSelectedTemplateId:(id)sender
+{
+    var item = [self lastSelectedObject],
+        selectedTemplateId = [[[tplForDomainPopUp selectedItem] representedObject] coId];
+    [item setTemplateId:selectedTemplateId];
+}
+
 - (void)updateDomainOutline:(id) aItem
 {
     [popoverDomain close];
@@ -217,6 +231,8 @@
         var menuItem = [clientsForDomainPopUp itemWithTitle:[item name]];
         [menuItem setRepresentedObject:item];
     }];
+    [clientsForDomainPopUp setTarget:self];
+    [clientsForDomainPopUp setAction:@selector(setClientId:)];
     [tplForDomainPopUp addItemWithTitle:@" "];
     [self setDomainRecordTemplates:[DMTemplate all]];
     [[self domainRecordTemplates] enumerateObjectsUsingBlock:function(item) {
@@ -224,6 +240,8 @@
         var menuItem = [tplForDomainPopUp itemWithTitle:[item name]];
         [menuItem setRepresentedObject:item];
     }];
+    [tplForDomainPopUp setTarget:self];
+    [tplForDomainPopUp setAction:@selector(setSelectedTemplateId:)];
     [arrayController addObserver:self forKeyPath:@"selection.domain" options:nil context:@"domain"];
     [[CPNotificationCenter defaultCenter] addObserver:self
         selector:@selector(domainWasRemoved:)
@@ -255,12 +273,7 @@
 
 - (void)saveModel:(id)sender
 {
-    var item = [self lastSelectedObject],
-        selectedClientId = [[[clientsForDomainPopUp selectedItem] representedObject] coId];
-    [item setClientId:selectedClientId];
-
-    var selectedTemplateId = [[[tplForDomainPopUp selectedItem] representedObject] coId];
-    [item setTemplateId:selectedTemplateId];
+    var item = [self lastSelectedObject];
 
     switch (item.state)
     {
