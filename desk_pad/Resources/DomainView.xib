@@ -592,11 +592,11 @@
             </webPreferences>
         </webView>
         <customView id="124" userLabel="ViewDomainA">
-            <rect key="frame" x="0.0" y="0.0" width="290" height="104"/>
+            <rect key="frame" x="0.0" y="0.0" width="322" height="198"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <textField verticalHuggingPriority="750" id="125">
-                    <rect key="frame" x="26" y="60" width="31" height="17"/>
+                    <rect key="frame" x="26" y="154" width="31" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="host" id="126">
                         <font key="font" metaFont="system"/>
@@ -605,7 +605,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="129">
-                    <rect key="frame" x="63" y="57" width="200" height="22"/>
+                    <rect key="frame" x="63" y="151" width="239" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="host" drawsBackground="YES" id="130">
                         <font key="font" metaFont="system"/>
@@ -614,7 +614,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="131">
-                    <rect key="frame" x="63" y="25" width="200" height="22"/>
+                    <rect key="frame" x="63" y="62" width="239" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="ip" drawsBackground="YES" id="132">
                         <font key="font" metaFont="system"/>
@@ -623,7 +623,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="133">
-                    <rect key="frame" x="28" y="28" width="30" height="17"/>
+                    <rect key="frame" x="28" y="65" width="30" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="ipv4" id="134">
                         <font key="font" metaFont="system"/>
@@ -631,15 +631,67 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="gs5-Cd-qnj">
+                    <rect key="frame" x="61" y="92" width="240" height="51"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="HIi-Hq-fkb">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- e.g. "test"
+- domain name gets appended
+- "@" for main domain name</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="SIU-eR-JCi">
+                    <rect key="frame" x="61" y="20" width="249" height="34"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="Jro-3M-vIx">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- e.g. "123.123.11.11"
+- "$...", e.g. "$ip_host_fo" for ip variables</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
             </subviews>
-            <point key="canvasLocation" x="44" y="974"/>
+            <point key="canvasLocation" x="46" y="1028"/>
         </customView>
         <customView id="150" userLabel="ViewDomainCname">
-            <rect key="frame" x="0.0" y="0.0" width="322" height="100"/>
+            <rect key="frame" x="0.0" y="0.0" width="322" height="223"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
+                <textField verticalHuggingPriority="750" id="153">
+                    <rect key="frame" x="95" y="178" width="200" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="alias" drawsBackground="YES" id="162">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField verticalHuggingPriority="750" id="152">
+                    <rect key="frame" x="57" y="181" width="32" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="alias" id="163">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="mLA-gn-k6H">
+                    <rect key="frame" x="93" y="136" width="204" height="34"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="ttu-2g-Zf0">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- e.g. "www"
+- domain name gets appended</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
                 <textField verticalHuggingPriority="750" id="155">
-                    <rect key="frame" x="18" y="26" width="71" height="17"/>
+                    <rect key="frame" x="18" y="109" width="71" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="target host" id="160">
                         <font key="font" metaFont="system"/>
@@ -648,41 +700,37 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="154">
-                    <rect key="frame" x="95" y="23" width="200" height="22"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                    <rect key="frame" x="95" y="106" width="200" height="22"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="host" drawsBackground="YES" id="161">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField verticalHuggingPriority="750" id="153">
-                    <rect key="frame" x="95" y="55" width="200" height="22"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="alias" drawsBackground="YES" id="162">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="WDE-VP-Q2k">
+                    <rect key="frame" x="93" y="20" width="231" height="85"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="3tG-K6-uCh">
                         <font key="font" metaFont="system"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <string key="title">- e.g. "test"
+- domain name gets appended
+- "@" for main domain name,
+- ending with "." for absolute domain
+   e.g. "other.com."</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField verticalHuggingPriority="750" id="152">
-                    <rect key="frame" x="57" y="58" width="32" height="17"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="alias" id="163">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
             </subviews>
-            <point key="canvasLocation" x="28" y="786"/>
+            <point key="canvasLocation" x="46" y="737.5"/>
         </customView>
         <customView id="264" userLabel="ViewDomainMx">
-            <rect key="frame" x="0.0" y="0.0" width="290" height="104"/>
+            <rect key="frame" x="0.0" y="0.0" width="322" height="194"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <textField verticalHuggingPriority="750" id="265">
-                    <rect key="frame" x="33" y="60" width="31" height="17"/>
+                    <rect key="frame" x="33" y="150" width="31" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="host" id="274">
                         <font key="font" metaFont="system"/>
@@ -691,7 +739,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="266">
-                    <rect key="frame" x="70" y="57" width="200" height="22"/>
+                    <rect key="frame" x="70" y="147" width="232" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="host" drawsBackground="YES" id="273">
                         <font key="font" metaFont="system"/>
@@ -699,8 +747,21 @@
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="9ID-eU-RoV">
+                    <rect key="frame" x="68" y="73" width="241" height="68"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="jzB-V6-xPE">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- e.g. "mail"
+- domain name gets appended
+- ending with "." for absolute domain
+  e.g. "mx1.emailsrvr.com."</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
                 <textField verticalHuggingPriority="750" id="267">
-                    <rect key="frame" x="70" y="25" width="200" height="22"/>
+                    <rect key="frame" x="70" y="45" width="232" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="priority" drawsBackground="YES" id="272">
                         <font key="font" metaFont="system"/>
@@ -709,7 +770,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="268">
-                    <rect key="frame" x="18" y="28" width="46" height="17"/>
+                    <rect key="frame" x="18" y="48" width="46" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="priority" id="271">
                         <font key="font" metaFont="system"/>
@@ -717,15 +778,24 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="Vq7-i6-UIx">
+                    <rect key="frame" x="68" y="20" width="229" height="17"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="- e.g. &quot;10&quot; or &quot;20&quot;" id="M5F-kt-Iqv">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
             </subviews>
-            <point key="canvasLocation" x="418" y="786"/>
+            <point key="canvasLocation" x="452" y="723"/>
         </customView>
         <customView id="7Zn-os-xFM" userLabel="ViewDomainAAAA">
-            <rect key="frame" x="0.0" y="0.0" width="290" height="104"/>
+            <rect key="frame" x="0.0" y="0.0" width="322" height="198"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <textField verticalHuggingPriority="750" id="Kbf-vG-u3g">
-                    <rect key="frame" x="26" y="60" width="31" height="17"/>
+                    <rect key="frame" x="26" y="154" width="31" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="host" id="1PR-G8-eLp">
                         <font key="font" metaFont="system"/>
@@ -734,7 +804,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="fc4-zL-wqe">
-                    <rect key="frame" x="63" y="57" width="200" height="22"/>
+                    <rect key="frame" x="63" y="151" width="239" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="host" drawsBackground="YES" id="MHL-pH-r8G">
                         <font key="font" metaFont="system"/>
@@ -742,8 +812,31 @@
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="MhJ-pO-ayK">
+                    <rect key="frame" x="61" y="92" width="240" height="51"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="GHF-2j-iT6">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- e.g. "test"
+- domain name gets appended
+- "@" for main domain name</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="0V1-0Q-q5B">
+                    <rect key="frame" x="55" y="20" width="264" height="34"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="HPy-gN-5s1">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- e.g. "2001:db8:1::ab9:C0A8:102"
+- "$...", e.g. "$ipv6_host_fo" for ip variables</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
                 <textField verticalHuggingPriority="750" id="vLk-XC-JWW">
-                    <rect key="frame" x="63" y="25" width="200" height="22"/>
+                    <rect key="frame" x="60" y="62" width="239" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="ipv6" drawsBackground="YES" id="UTJ-Ed-Tli">
                         <font key="font" metaFont="system"/>
@@ -752,7 +845,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="O3e-Hs-63f">
-                    <rect key="frame" x="28" y="28" width="30" height="17"/>
+                    <rect key="frame" x="25" y="65" width="30" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="ipv6" id="6BC-t7-aVz">
                         <font key="font" metaFont="system"/>
@@ -761,14 +854,14 @@
                     </textFieldCell>
                 </textField>
             </subviews>
-            <point key="canvasLocation" x="418" y="974"/>
+            <point key="canvasLocation" x="452" y="1028"/>
         </customView>
         <customView id="EzZ-0Q-QOh" userLabel="ViewDomainTXT">
-            <rect key="frame" x="0.0" y="0.0" width="290" height="104"/>
+            <rect key="frame" x="0.0" y="0.0" width="322" height="210"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <textField verticalHuggingPriority="750" id="0uG-4b-88N">
-                    <rect key="frame" x="19" y="60" width="38" height="17"/>
+                    <rect key="frame" x="19" y="166" width="38" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="name" id="8Z1-yT-I9V">
                         <font key="font" metaFont="system"/>
@@ -777,7 +870,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="ymx-al-tjc">
-                    <rect key="frame" x="63" y="57" width="200" height="22"/>
+                    <rect key="frame" x="63" y="163" width="239" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="name" drawsBackground="YES" id="Ss4-0U-Fky">
                         <font key="font" metaFont="system"/>
@@ -786,7 +879,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="3v1-Vh-0GD">
-                    <rect key="frame" x="63" y="25" width="200" height="22"/>
+                    <rect key="frame" x="63" y="74" width="239" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="content" drawsBackground="YES" id="nbC-ES-H9V">
                         <font key="font" metaFont="system"/>
@@ -795,7 +888,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="nEb-qa-3cR">
-                    <rect key="frame" x="7" y="28" width="51" height="17"/>
+                    <rect key="frame" x="7" y="77" width="51" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="content" id="Sv4-vp-qLe">
                         <font key="font" metaFont="system"/>
@@ -803,15 +896,38 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="V44-3b-vOy">
+                    <rect key="frame" x="61" y="104" width="240" height="51"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="Irr-1r-Zxn">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- e.g. "test"
+- domain name gets appended
+- "@" for main domain name</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="lEy-3a-evI">
+                    <rect key="frame" x="61" y="15" width="243" height="51"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="dk0-47-zsd">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- e.g. "v=spf1 include:_spf.taywa.ch 
+include:emailsrvr.com ~all"</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
             </subviews>
-            <point key="canvasLocation" x="44" y="1169"/>
+            <point key="canvasLocation" x="46" y="1348"/>
         </customView>
         <customView id="rCZ-py-Krg" userLabel="ViewDomainSRV">
-            <rect key="frame" x="0.0" y="0.0" width="321" height="188"/>
+            <rect key="frame" x="0.0" y="0.0" width="321" height="230"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <textField verticalHuggingPriority="750" id="lQZ-gE-2rS">
-                    <rect key="frame" x="50" y="144" width="38" height="17"/>
+                    <rect key="frame" x="50" y="186" width="38" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="name" id="uPU-d8-TCU">
                         <font key="font" metaFont="system"/>
@@ -820,7 +936,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="DSf-2A-HMx">
-                    <rect key="frame" x="94" y="141" width="200" height="22"/>
+                    <rect key="frame" x="94" y="183" width="200" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="name" drawsBackground="YES" id="3ui-ds-WQy">
                         <font key="font" metaFont="system"/>
@@ -829,7 +945,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="8S8-CG-gDR">
-                    <rect key="frame" x="94" y="111" width="200" height="22"/>
+                    <rect key="frame" x="94" y="153" width="200" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="priority" drawsBackground="YES" id="WPz-67-6ng">
                         <font key="font" metaFont="system"/>
@@ -838,7 +954,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="AtQ-gx-hHs">
-                    <rect key="frame" x="42" y="114" width="46" height="17"/>
+                    <rect key="frame" x="42" y="156" width="46" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="priority" id="XSK-72-amo">
                         <font key="font" metaFont="system"/>
@@ -847,7 +963,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="njC-oE-wDF">
-                    <rect key="frame" x="94" y="81" width="200" height="22"/>
+                    <rect key="frame" x="94" y="123" width="200" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="weight" drawsBackground="YES" id="SLw-2j-HTQ">
                         <font key="font" metaFont="system"/>
@@ -856,7 +972,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="D9I-gs-g6h">
-                    <rect key="frame" x="44" y="84" width="45" height="17"/>
+                    <rect key="frame" x="44" y="126" width="45" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="weight" id="SYv-wr-9YJ">
                         <font key="font" metaFont="system"/>
@@ -865,7 +981,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="c1d-GQ-NgA">
-                    <rect key="frame" x="94" y="51" width="200" height="22"/>
+                    <rect key="frame" x="94" y="93" width="200" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="port" drawsBackground="YES" id="V8j-CV-q9E">
                         <font key="font" metaFont="system"/>
@@ -874,7 +990,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="8id-JW-AqQ">
-                    <rect key="frame" x="59" y="54" width="30" height="17"/>
+                    <rect key="frame" x="59" y="96" width="30" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="port" id="bD3-yj-bQs">
                         <font key="font" metaFont="system"/>
@@ -883,7 +999,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="Pec-P3-mWe">
-                    <rect key="frame" x="94" y="20" width="200" height="22"/>
+                    <rect key="frame" x="94" y="62" width="200" height="22"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="targethost" drawsBackground="YES" id="JeU-bC-NWe">
                         <font key="font" metaFont="system"/>
@@ -892,7 +1008,7 @@
                     </textFieldCell>
                 </textField>
                 <textField verticalHuggingPriority="750" id="12y-EQ-XER">
-                    <rect key="frame" x="18" y="23" width="71" height="17"/>
+                    <rect key="frame" x="18" y="65" width="71" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="target host" id="yCc-9U-J6C">
                         <font key="font" metaFont="system"/>
@@ -900,8 +1016,19 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="LBE-Cu-TWW">
+                    <rect key="frame" x="92" y="20" width="204" height="34"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" id="miE-vG-sJe">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">- all content get insert as is
+- no magic happening</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
             </subviews>
-            <point key="canvasLocation" x="402.5" y="1211"/>
+            <point key="canvasLocation" x="451.5" y="1358"/>
         </customView>
     </objects>
 </document>
