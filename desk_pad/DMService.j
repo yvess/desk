@@ -452,6 +452,8 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     [serviceItem.addServiceButton setHidden:YES];
     var ov = [self objectValue];
+    var servicesTV = serviceItem.servicesTV;
+    [servicesTV selectRowIndexes:[CPIndexSet indexSetWithIndex:[servicesTV rowForView:[sender nextResponder]]] byExtendingSelection:NO];
     if ([serviceItem.popoverService isShown])
     {
         ov.serviceType = [serviceItem.serviceType titleOfSelectedItem];
