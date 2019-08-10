@@ -1,8 +1,10 @@
-@import "DMDomain.j"
 @import <AppKit/CPPopover.j>
 @import <AppKit/CPOutlineView.j>
+@import <AppKit/CPViewController.j>
 @import <CouchResource/COResource.j>
 @import <CouchResource/COItemsParent.j>
+@import "DMPopover.j"
+@import "DMDomain.j"
 
 @implementation DMDomainRecordsOutlineController : CPObject
 {
@@ -24,18 +26,13 @@
     {
         domainRecord = aDomain;
         domainOutline = aDomainOutline;
-        popover = [[CPPopover alloc] init];
+        popover = nil; //[[DMPopover alloc] init];
         popoverItem = nil;
         popoverButton = nil;
         viewRecordTypes = aViewRecordTypes;
         [self setLookupForDomainEntries];
     }
     return self;
-}
-
-- (void)awakeFromCib
-{
-    [window.popovers addObject:popover];
 }
 
 - (CPMutableDictionary)setLookupForDomainEntries
@@ -70,16 +67,95 @@
     [domainOutline reloadData];
 }
 
+- (void)objectValuesForView:(CPView)view entry:(id)domainEntry
+{
+    if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
+    {
+        var value = @"";
+        switch ([view placeholderString])
+        {
+        case @"host":
+            value = [domainEntry host];
+            break;
+        case @"targethost":
+            value = [domainEntry targethost];
+            break;
+        case @"ip":
+            value = [domainEntry ip];
+            break;
+        case @"alias":
+            value = [domainEntry alias];
+            break;
+        case @"priority":
+            value = [domainEntry priority];
+            break;
+        case @"ipv6":
+            value = [domainEntry ipv6];
+            break;
+        case @"name":
+            value = [domainEntry name];
+            break;
+        case @"content":
+            value = [domainEntry content];
+            break;
+        case @"weight":
+            value = [domainEntry weight];
+            break;
+        case @"port":
+            value = [domainEntry port];
+            break;
+        }
+        [view setObjectValue:value];
+    }
+}
+
+- (void)objectValuesFromView:(CPView)view entry:(id)domainEntry
+{
+    if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
+    {
+        switch ([view placeholderString])
+        {
+        case @"host":
+            [domainEntry setHost:[view objectValue]];
+            break;
+        case @"targethost":
+            [domainEntry setTargethost:[view objectValue]];
+            break;
+        case @"ip":
+            [domainEntry setIp:[view objectValue]];
+            break;
+        case @"alias":
+            [domainEntry setAlias:[view objectValue]];
+            break;
+        case @"priority":
+            [domainEntry setPriority:[view objectValue]];
+            break;
+        case @"ipv6":
+            [domainEntry setIpv6:[view objectValue]];
+            break;
+        case @"name":
+            [domainEntry setName:[view objectValue]];
+            break;
+        case @"content":
+            [domainEntry setContent:[view objectValue]];
+            break;
+        case @"weight":
+            [domainEntry setWeight:[view objectValue]];
+            break;
+        case @"port":
+            [domainEntry setPort:[view objectValue]];
+            break;
+        }
+    }
+}
+
 - (void)showPopover:(id)sender
 {
-    [popover setAnimates:NO];
-    //[popover setBehavior:CPPopoverBehaviorTransient];
     var domainEntry = sender.domainEntry;
-    if ([popover isShown] && sender.domainEntry != [self popoverItem])
-    {
-        [popover close];
+    if (popover == nil) {
+        popover = [[DMPopover alloc] initWithButton:sender];
     }
-    if (![popover isShown])
+    if ([sender title] == @'edit' && ![popover isShown])
     {
         [domainOutline selectRowIndexes:[CPIndexSet indexSetWithIndex:[domainOutline rowForItem:domainEntry]] byExtendingSelection:NO];
         var viewDomainEntry = nil,
@@ -89,101 +165,28 @@
         [popover setContentViewController:popViewController];
         var viewDomainEntry = [[popover contentViewController] view];
         [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
-            if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
-            {
-                var value = @"";
-                switch ([view placeholderString])
-                {
-                case @"host":
-                    value = [domainEntry host];
-                    break;
-                case @"targethost":
-                    value = [domainEntry targethost];
-                    break;
-                case @"ip":
-                    value = [domainEntry ip];
-                    break;
-                case @"alias":
-                    value = [domainEntry alias];
-                    break;
-                case @"priority":
-                    value = [domainEntry priority];
-                    break;
-                case @"ipv6":
-                    value = [domainEntry ipv6];
-                    break;
-                case @"name":
-                    value = [domainEntry name];
-                    break;
-                case @"content":
-                    value = [domainEntry content];
-                    break;
-                case @"weight":
-                    value = [domainEntry weight];
-                    break;
-                case @"port":
-                    value = [domainEntry port];
-                    break;
-                }
-                [view setObjectValue:value];
-            }
+            [self objectValuesForView:view entry:domainEntry];
         }];
+
         [popover showRelativeToRect:nil ofView:sender preferredEdge:nil];
         [sender setTitle: @"save"];
-        [popoverButton setTitle: @"edit"];
+        [popoverButton setTitle: @"edit"]; // previous Button
         [self setPopoverItem:domainEntry];
         [self setPopoverButton:sender];
-    } else  {
-        if (sender.domainEntry == [self popoverItem]) {
-            var viewDomainEntry = [[popover contentViewController] view];
-            [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
-                if ([view respondsToSelector:@selector(placeholderString)] && [view placeholderString] != nil)
-                {
-                    switch ([view placeholderString])
-                    {
-                    case @"host":
-                        [domainEntry setHost:[view objectValue]];
-                        break;
-                    case @"targethost":
-                        [domainEntry setTargethost:[view objectValue]];
-                        break;
-                    case @"ip":
-                        [domainEntry setIp:[view objectValue]];
-                        break;
-                    case @"alias":
-                        [domainEntry setAlias:[view objectValue]];
-                        break;
-                    case @"priority":
-                        [domainEntry setPriority:[view objectValue]];
-                        break;
-                    case @"ipv6":
-                        [domainEntry setIpv6:[view objectValue]];
-                        break;
-                    case @"name":
-                        [domainEntry setName:[view objectValue]];
-                        break;
-                    case @"content":
-                        [domainEntry setContent:[view objectValue]];
-                        break;
-                    case @"weight":
-                        [domainEntry setWeight:[view objectValue]];
-                        break;
-                    case @"port":
-                        [domainEntry setPort:[view objectValue]];
-                        break;
-                    }
-                }
-            }];
-            [popover close];
-            [sender setTitle: @"edit"];
-            [self setPopover:[[CPPopover alloc] init]];
-            [self setLookupForDomainEntries];
-            [domainOutline reloadData];
-        } else {
-            [popover close];
-            [sender setTitle: @"edit"];
-            [self setPopover:[[CPPopover alloc] init]];
-        }
+    } else if ([sender title] == @'save' && sender.domainEntry == [self popoverItem]) {
+        var viewDomainEntry = [[popover contentViewController] view];
+        [[viewDomainEntry subviews] enumerateObjectsUsingBlock:function(view) {
+            [self objectValuesFromView:view entry:domainEntry];
+        }];
+        [sender setTitle: @"edit"];
+        [popover close];
+        popover = nil;
+        [self setLookupForDomainEntries];
+        [domainOutline reloadData];
+    } else {
+        // just close in other cases
+        [popover close];
+        popover = nil;
     }
 }
 @end
