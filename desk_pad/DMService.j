@@ -143,6 +143,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 - (void)showEditIncluded:(id)sender
 {
+    var includedTV = [[sender nextResponder] nextResponder];
+    [includedTV selectRowIndexes:[CPIndexSet indexSetWithIndex:[includedTV rowForView:[sender nextResponder]]] byExtendingSelection:NO];
+
     [[itemIncluded.popoverIncluded contentViewController] setView:itemIncluded.viewIncluded];
     if ([itemIncluded.popoverIncluded isShown])
     {
@@ -253,6 +256,9 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 
 - (void)showEditAddon:(id)sender
 {
+    var addonTV = [[sender nextResponder] nextResponder];
+    [addonTV selectRowIndexes:[CPIndexSet indexSetWithIndex:[addonTV rowForView:[sender nextResponder]]] byExtendingSelection:NO];
+
     [[itemAddon.popoverAddon contentViewController] setView:itemAddon.viewAddon];
     if ([itemAddon.popoverAddon isShown])
     {
