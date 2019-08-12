@@ -30,6 +30,7 @@
     CPMutableArray        domainRecordTemplates @accessors;
     CPMutableDictionary   clientLookup;
     CPMutableDictionary   itemLookup @accessors;
+    TNGrowlCenter         growlCenter;
     DMDomain              currentDomain @accessors;
 }
 
@@ -47,6 +48,7 @@
         clientLookup = aClientLookup;
         itemLookup = [self createLookup];
         items = [modelClass allWithParams:@{} withPath:@"/domains_by_name"];
+        growlCenter = aGrowlCenter;
     }
     return self;
 }
@@ -266,10 +268,15 @@
     if ([domainToDelete className] == @"DMDomain")
     {
         domainToDelete.state = @"delete";
-        var message = [CPString stringWithFormat:@"domain: %@ \nis scheduled for deletion\nsend order for execution", domainToDelete.domain];
-        [self.growlCenter pushNotificationWithTitle:@"deleted" message:message];
+        var message = [CPString stringWithFormat:@"domain: %@ \nis scheduled for deletion\n-> SEND ORDER <- for execution", domainToDelete.domain];
+        [growlCenter pushNotificationWithTitle:@"deleted" message:message];
     }
 }
+
+- (CPString)saveMessage:(id)item {
+    return [CPString stringWithFormat:@"%@\n-> SEND ORDER <- for execution", [super saveMessage:item]];
+}
+
 
 - (void)saveModel:(id)sender
 {

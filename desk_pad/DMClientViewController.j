@@ -63,6 +63,7 @@
     CPMutableArray       domainItems @accessors;
     @outlet              CPTableView domainsTV;
     @outlet              CPArrayController domainsAC;
+   TNGrowlCenter         growlCenter;
 }
 
 - (id)initWithCibName:(CPString) aCibNameOrNil
@@ -79,7 +80,9 @@
         addonServiceItems = [[CPMutableArray alloc] init];
         serviceDefinitions = [DMServiceDefinition all];
         serviceItems = [[CPMutableArray alloc] init];
-        domainItems = [[CPMutableArray alloc] init];    }
+        domainItems = [[CPMutableArray alloc] init];
+        growlCenter = aGrowlCenter;
+    }
     return self;
 }
 
@@ -383,7 +386,7 @@
     {
         clientToDelete.state = @"deleted";
         var message = [CPString stringWithFormat:@"client: %@ \nis marked as deleted", clientToDelete.name];
-        [self.growlCenter pushNotificationWithTitle:@"deleted" message:message];
+        [growlCenter pushNotificationWithTitle:@"deleted" message:message];
     }
 }
 
