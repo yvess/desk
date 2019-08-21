@@ -8,7 +8,7 @@
 @import "DMTemplate.j"
 @import "DMDomainRecordsOutlineController.j"
 
-@implementation DMDomainViewController : COViewController
+@implementation DMDomainViewController : COViewController <CPControlTextEditingDelegate>
 {
     @outlet              CPButton addRecordButton;
     @outlet              CPPopUpButton recordPopUp;
@@ -213,6 +213,7 @@
 
     if ([aItem class] == [self modelClass])
     {
+        [saveModelButton setTextColor:[CPColor darkGrayColor]];
         [aItem isSelected];
         [self updateDomainOutline:aItem];
     }
@@ -299,4 +300,7 @@
     [super saveModel:sender];
 }
 
+- (void)controlTextDidChange:(CPNotification) aNotification {
+    [saveModelButton setTextColor:[CPColor orangeColor]];
+}
 @end

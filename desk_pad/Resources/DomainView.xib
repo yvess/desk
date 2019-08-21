@@ -231,6 +231,7 @@
                                     </textFieldCell>
                                     <connections>
                                         <binding destination="47" name="value" keyPath="selection.domain" id="78"/>
+                                        <outlet property="delegate" destination="-2" id="fr6-qS-g4n"/>
                                     </connections>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="192">
@@ -255,6 +256,7 @@
                                     </textFieldCell>
                                     <connections>
                                         <binding destination="47" name="value" keyPath="selection.nameservers" id="258"/>
+                                        <outlet property="delegate" destination="-2" id="kje-NS-9Hx"/>
                                     </connections>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="219">
@@ -279,6 +281,7 @@
                                     </textFieldCell>
                                     <connections>
                                         <binding destination="47" name="value" keyPath="selection.hostmaster" id="259"/>
+                                        <outlet property="delegate" destination="-2" id="bgw-fm-elD"/>
                                     </connections>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="225">
@@ -303,6 +306,7 @@
                                     </textFieldCell>
                                     <connections>
                                         <binding destination="47" name="value" keyPath="selection.refresh" id="260"/>
+                                        <outlet property="delegate" destination="-2" id="K0D-cD-pU9"/>
                                     </connections>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="231">
@@ -327,6 +331,7 @@
                                     </textFieldCell>
                                     <connections>
                                         <binding destination="47" name="value" keyPath="selection.retry" id="261"/>
+                                        <outlet property="delegate" destination="-2" id="3Ap-tK-56x"/>
                                     </connections>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="245">
@@ -351,6 +356,7 @@
                                     </textFieldCell>
                                     <connections>
                                         <binding destination="47" name="value" keyPath="selection.expire" id="262"/>
+                                        <outlet property="delegate" destination="-2" id="zxq-Fr-Fop"/>
                                     </connections>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="247">
@@ -409,6 +415,7 @@
                                     </textFieldCell>
                                     <connections>
                                         <binding destination="47" name="value" keyPath="selection.ttl" id="263"/>
+                                        <outlet property="delegate" destination="-2" id="2yx-p9-2tj"/>
                                     </connections>
                                 </textField>
                                 <textField verticalHuggingPriority="750" id="198">
@@ -561,7 +568,7 @@
                     </holdingPriorities>
                 </splitView>
             </subviews>
-            <point key="canvasLocation" x="360" y="137"/>
+            <point key="canvasLocation" x="159" y="132"/>
         </customView>
         <arrayController objectClassName="DMDomain" id="47" userLabel="Domain AC" customClass="COArrayController">
             <declaredKeys>
@@ -612,6 +619,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="5gk-dA-86h"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="131">
                     <rect key="frame" x="63" y="62" width="239" height="22"/>
@@ -621,6 +631,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="tG6-C0-bKy"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="133">
                     <rect key="frame" x="28" y="65" width="30" height="17"/>
@@ -669,6 +682,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="dj2-jQ-NBV"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="152">
                     <rect key="frame" x="57" y="181" width="32" height="17"/>
@@ -707,6 +723,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="s2m-iD-9WT"/>
+                    </connections>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="WDE-VP-Q2k">
                     <rect key="frame" x="93" y="20" width="231" height="85"/>
@@ -746,6 +765,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="9gF-Ht-9VY"/>
+                    </connections>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="9ID-eU-RoV">
                     <rect key="frame" x="68" y="73" width="241" height="68"/>
@@ -768,6 +790,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="eTc-3D-znL"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="268">
                     <rect key="frame" x="18" y="48" width="46" height="17"/>
@@ -811,6 +836,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="ePa-Hr-HY9"/>
+                    </connections>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" id="MhJ-pO-ayK">
                     <rect key="frame" x="61" y="92" width="240" height="51"/>
@@ -843,6 +871,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="ulW-1F-jum"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="O3e-Hs-63f">
                     <rect key="frame" x="25" y="65" width="30" height="17"/>
@@ -877,6 +908,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="eqW-PH-nYs"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="3v1-Vh-0GD">
                     <rect key="frame" x="63" y="74" width="239" height="22"/>
@@ -886,6 +920,9 @@
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="G3a-JJ-9Wz"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="nEb-qa-3cR">
                     <rect key="frame" x="7" y="77" width="51" height="17"/>
@@ -943,6 +980,9 @@ include:emailsrvr.com ~all"</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="yvD-Qb-pfC"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="8S8-CG-gDR">
                     <rect key="frame" x="94" y="153" width="200" height="22"/>
@@ -952,6 +992,9 @@ include:emailsrvr.com ~all"</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="TFk-cq-fBC"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="AtQ-gx-hHs">
                     <rect key="frame" x="42" y="156" width="46" height="17"/>
@@ -970,6 +1013,9 @@ include:emailsrvr.com ~all"</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="Gb7-mf-5Cv"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="D9I-gs-g6h">
                     <rect key="frame" x="44" y="126" width="45" height="17"/>
@@ -988,6 +1034,9 @@ include:emailsrvr.com ~all"</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="NFk-mB-CC1"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="8id-JW-AqQ">
                     <rect key="frame" x="59" y="96" width="30" height="17"/>
@@ -1006,6 +1055,9 @@ include:emailsrvr.com ~all"</string>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="delegate" destination="-2" id="3Af-od-5X1"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" id="12y-EQ-XER">
                     <rect key="frame" x="18" y="65" width="71" height="17"/>

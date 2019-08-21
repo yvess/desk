@@ -5,7 +5,7 @@
 @import "DMClient.j"
 @import "DMDomain.j"
 
-@implementation DMClientViewController : COViewController
+@implementation DMClientViewController : COViewController <CPControlTextEditingDelegate>
 {
     CPMutableArray       serviceItems @accessors;
     @outlet              CPButton addServiceButton;
@@ -63,7 +63,7 @@
     CPMutableArray       domainItems @accessors;
     @outlet              CPTableView domainsTV;
     @outlet              CPArrayController domainsAC;
-   TNGrowlCenter         growlCenter;
+    TNGrowlCenter        growlCenter;
 }
 
 - (id)initWithCibName:(CPString) aCibNameOrNil
@@ -132,6 +132,7 @@
 {
     if (aContext == @"client")
     {
+        [saveModelButton setTextColor:[CPColor darkGrayColor]];
         var selectedClient = [[anObject selectedObjects] lastObject];
         [self loadServicesByClient:selectedClient];
         [self loadDomainsByClient:selectedClient];
@@ -402,5 +403,10 @@
         //[clientsForProjectsPopUp addItemWithTitle:[client name]];
         [itemLookup setObject:item forKey:[item coId]];
     }
+    [saveModelButton setTextColor:[CPColor darkGrayColor]];
+}
+
+- (void)controlTextDidChange:(CPNotification) aNotification {
+    [saveModelButton setTextColor:[CPColor orangeColor]];
 }
 @end
