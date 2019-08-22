@@ -202,12 +202,11 @@ class Invoice(object):
                     'start_date', addon, service,
                     special_attribute='startDate', date_force_day='start'
                 )
-                if 'last_invoice_end_date' in self.doc:
-                    if addon['start_date'] < self.doc['last_invoice_end_date']:
+                last_invoice_end_date = self.doc['last_invoice_end_date'] if 'last_invoice_end_date' in self.doc else None
+                doc_start_date = self.doc['start_date']
+                if last_invoice_end_date:
+                    if addon['start_date'] < last_invoice_end_date:
                         addon['start_date'] = cycle_start_date
-                else:
-                    if addon['start_date'] < self.doc['start_date']:
-                        addon['start_date'] = self.doc['start_date']
                 if 'end_date' in service:
                     end_date_doc = service
                 else:
