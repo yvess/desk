@@ -82,7 +82,7 @@ class Invoice(object):
         self.doc = {
             'start_date': self.invoice_cycle.doc['start_date'],
             'end_date': self.invoice_cycle.doc['end_date'],
-            'date': date.today(),
+            'date': date(*[int(part) for part in self.settings.invoice_date.split('-')]),
             'nr': self.invoice_nr,
             'ref_nr': "%s%s" % (
                 self.invoice_nr,

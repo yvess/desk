@@ -33,7 +33,11 @@ class CreateInvoicesCommand(SettingsCommand):
             default=date.today().year, type=int,
             help="year to bill"
         )
-
+        invoices_create_parser.add_argument(
+            "-id", "--invoice-date", dest="invoice_date",
+            default=str(date.today()),
+            help="overwrite invoice date (default: today)"
+        )
         invoices_create_parser.add_argument(
             "-m", "--max", dest="max",
             default=0, type=int,
