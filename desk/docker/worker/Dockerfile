@@ -1,57 +1,42 @@
-FROM alpine:3.4
+FROM alpine:3.10
 MAINTAINER Yves Serrano <y@yas.ch>
+ARG S6_OVERLAY_VERSION=v1.22.1.0
 
-RUN apk add --no-cache \
+RUN apk update && apk add \
         curl \
-        python \
-        py-pip \
+        python3 \
+        python3-dev \
+        py3-lxml \
+        py3-pillow \
+        ipython \
         make \
         readline \
         openssl \
-        wget \
-        python-dev \
-        libxml2 \
-        libxslt \
-        openldap \
-        libffi \
         pango \
+        cairo \
         bind-tools \
         ttf-freefont \
-        jq
-
-# s6 overlay
-RUN curl -Ls -o /tmp/s6-overlay.tar.gz https://github.com/just-containers/s6-overlay/releases/download/v1.18.1.5/s6-overlay-amd64.tar.gz && \
-    tar xvfz /tmp/s6-overlay.tar.gz -C / && \
-    rm -f /tmp/s6-overlay.tar.gz
-
-ADD requirements.txt /tmp/requirements.txt
-RUN apk add --no-cache \
+        jq && \
+    pip3 install --upgrade pip
+RUN curl -Ls https://github.com/just-containers/s6-overlay/releases/download/$S6_OVERLAY_VERSION/s6-overlay-amd64.tar.gz | tar xz -C /
+ADD requirements3.txt /tmp/requirements3.txt
+RUN apk add \
+        build-base \
+        readline-dev \
         git \
-        gcc \
-        g++ \
-        openssl-dev \
-        readline-dev \
-        libxml2-dev \
-        libxslt-dev \
-        openldap-dev \
-        libffi-dev \
         pango-dev \
-        cairo \
-        pango-dev \
-        && \
-    cat /tmp/requirements.txt |grep -v "^#"| xargs -n 1 pip install && \
+        cairo-dev \
+       && \
+    pip3 install -r /tmp/requirements3.txt && \
     apk del \
-        gcc \
-        g++ \
+        build-base \
         openssl-dev \
         readline-dev \
-        libxml2-dev \
-        libxslt-dev \
-        openldap-dev \
         libffi-dev \
         pango-dev \
-        && \
-    rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
+        cairo-dev
+    #     && \
+    # rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 ADD etc.tar.gz /
 ENV WORKER_TYPE foreman
 ENTRYPOINT ["/init"]
