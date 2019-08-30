@@ -1,5 +1,5 @@
 # coding: utf-8
-from __future__ import absolute_import, print_function, unicode_literals, division  # python3
+  # python3
 
 import os
 import socket
@@ -58,7 +58,7 @@ class Worker(object):
     def _process_tasks(self, tasks):
         self.logger.info("ready for processing tasks")
         provider_lookup = {}
-        for (service_type, services) in self.provides.viewitems():
+        for (service_type, services) in self.provides.items():
             for service in services:
                 provider_lookup[service['name']] = service_type
         for task in tasks:
@@ -207,7 +207,7 @@ class Foreman(Worker):
             order_doc = self.db.get(task_doc['order_id'])
             if 'providers_done' not in order_doc:
                 order_doc['providers_done'] = []
-            providers = order_doc['providers'].keys()
+            providers = list(order_doc['providers'].keys())
             providers_done = order_doc['providers_done']
             providers_done.append(task_doc['provider'])
             task_doc['state'] = 'done_checked'
@@ -219,7 +219,7 @@ class Foreman(Worker):
             if sorted(providers) == sorted(providers_done):
                 order_doc['state'] = 'done'
                 update_docs_id = []
-                [update_docs_id.extend(v) for v in order_doc['providers'].viewvalues()]
+                [update_docs_id.extend(v) for v in order_doc['providers'].values()]
                 update_docs_id = list(set(update_docs_id))
                 for doc_id in update_docs_id:
                     doc = self.db.get(doc_id)

@@ -1,5 +1,5 @@
 # coding: utf-8
-from __future__ import absolute_import, print_function, division, unicode_literals
+
 from desk.plugin.extcrm.extcrmbase import ExtCrmBase, ContactBase
 import pymysql
 
@@ -71,7 +71,7 @@ class Todoyu(ExtCrmBase):
         cursor.execute(SQL)
         for r in cursor.fetchall():
             fields = [f.replace('.', '_') for f in (address + person_fields + company)]
-            data = dict(zip(fields, r))
+            data = dict(list(zip(fields, r)))
             pk_keys = (data['p_id'], 'p'), (data['company_id'], 'c')
             pk = "-".join(["%s%s" % (key, pk) for pk, key in pk_keys if pk])
             if pk:
@@ -114,7 +114,7 @@ class Todoyu(ExtCrmBase):
         cursor.execute(SQL)
         for item in cursor.fetchall():
             fields = [f.replace('.', '_') for f in (contactinfo + person_fields)]
-            data = dict(zip(fields, item))
+            data = dict(list(zip(fields, item)))
             pk = "p%s" % data['p_id']
             if pk:
                 if (pk not in self._contact_map):
@@ -140,7 +140,7 @@ class Todoyu(ExtCrmBase):
         try:
             return self._address_map[pk]
         except KeyError:
-            print(self._address_map.keys())
+            print(list(self._address_map.keys()))
             print("key error", pk)
             raise KeyError
 

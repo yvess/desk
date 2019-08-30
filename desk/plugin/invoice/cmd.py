@@ -1,7 +1,7 @@
 # coding: utf-8
 # python3
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division
+
+
 from datetime import date
 from couchdbkit import Server
 from desk.command import SettingsCommand
@@ -74,7 +74,7 @@ class CreateInvoicesCommand(SettingsCommand):
                     invoice_cycle=invoice_cycle
                 )
                 invoice_start_date = min(
-                    [d['start_date'] for d in invoice.doc['services'].itervalues()]
+                    [d['start_date'] for d in invoice.doc['services'].values()]
                 )
                 if invoice_start_date < invoice_cycle.doc['end_date']:
                     invoice.render_pdf()

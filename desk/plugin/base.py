@@ -1,6 +1,6 @@
 # coding: utf-8
-from __future__ import absolute_import, print_function, division, unicode_literals
-from StringIO import StringIO
+
+from io import StringIO
 from copy import copy, deepcopy
 import logging
 from couchdbkit.exceptions import ResourceNotFound
@@ -23,14 +23,14 @@ class MergedDoc(object):
 
     def __init__(self, db, doc, cache_key=None):
         self.db = db
-        if len(MergedDoc.cache.keys()) > 50:
+        if len(list(MergedDoc.cache.keys())) > 50:
             MergedDoc.cache = {}
         merged_doc = None
         empty_keys = []
         if 'template_id' in doc:
             merged_doc = deepcopy(self.get_template(doc['template_id'], cache_key))
             doc_no_empty = {}
-            for item_key in doc.keys():
+            for item_key in list(doc.keys()):
                 if doc[item_key]:
                     doc_no_empty[item_key] = deepcopy(doc[item_key])
                 else:

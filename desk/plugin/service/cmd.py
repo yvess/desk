@@ -1,6 +1,6 @@
 # coding: utf-8
 # python3
-from __future__ import absolute_import, print_function, unicode_literals, division
+
 from couchdbkit import Server
 from desk.command import SettingsCommand
 from desk.utils import get_crm_module

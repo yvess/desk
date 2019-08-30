@@ -1,6 +1,6 @@
 # coding: utf-8
-from __future__ import absolute_import, print_function
-from __future__ import division, unicode_literals
+
+
 from ldif import LDIFParser
 import hashlib
 from couchdbkit import Server
@@ -142,11 +142,11 @@ class DnsDocsProcessor(DocsProcessor):
     replace_id = 'replace-cnames'
 
     def postprocess_tpl(self, doc):
-        [doc.pop(key) for key in doc.keys() if key.startswith('soa_')]
+        [doc.pop(key) for key in list(doc.keys()) if key.startswith('soa_')]
         return doc
 
     def postprocess_doc(self, doc):
-        reverse_map_dict = {v: k for k, v in self.map_dict.iteritems()}
+        reverse_map_dict = {v: k for k, v in self.map_dict.items()}
         if 'a' in doc:
             for a_record in doc['a']:
                 if a_record['ip'] in reverse_map_dict:

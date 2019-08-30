@@ -1,5 +1,5 @@
 # coding: utf-8
-from __future__ import absolute_import, print_function, unicode_literals, division  # python3
+  # python3
 
 import os
 import socket
@@ -143,9 +143,7 @@ class InstallWorkerCommand(SettingsCommand):
         provides = {}
         if hasattr(self.settings, 'worker_dns'):
             provides['domain'], worker_dns = [], self.settings.worker_dns
-            dns_servers = map(
-                lambda x: x.strip().split(':'), worker_dns.split(',')
-            )
+            dns_servers = [x.strip().split(':') for x in worker_dns.split(',')]
             for backend, name in dns_servers:
                 provides['domain'].append({'backend': backend, 'name': name})
 
@@ -222,10 +220,10 @@ class DocsProcessor(SettingsCommand):
             self.template_docs = self.get_templates(template_ids)
         if self.map_id:
             self.map_dict = self.get_map()
-            self.map_keys = self.map_dict.keys()
+            self.map_keys = list(self.map_dict.keys())
         if self.replace_id:
             self.replace_dict = self.get_replace()
-            self.replace_keys = self.replace_dict.keys()
+            self.replace_keys = list(self.replace_dict.keys())
         self.docs = docs
 
     def clean_template(self, template_doc):
@@ -280,7 +278,7 @@ class DocsProcessor(SettingsCommand):
 
     def is_child_of(self, parent, child):
         def is_child_of_inner(parent, child):
-            for key, value in child.iteritems():
+            for key, value in child.items():
                 if key in parent and (parent[key] == value or key == '_id'):
                     yield True
                 else:
@@ -289,7 +287,7 @@ class DocsProcessor(SettingsCommand):
         return is_child
 
     def replace_with_template(self, doc, template):
-        for key in template.keys():
+        for key in list(template.keys()):
             if key != '_id':
                 del doc[key]
         doc['template_id'] = template['_id']

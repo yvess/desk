@@ -1,6 +1,6 @@
 # coding: utf-8
 # python3
-from __future__ import absolute_import, print_function, unicode_literals, division
+
 import ast
 import os
 import shutil
@@ -78,7 +78,7 @@ class ImportServices(object):
                     else:
                         value = cell.value
                     cell_values.append(value)
-                row_dict = dict(zip(self.header[:self.nr_cols], cell_values))
+                row_dict = dict(list(zip(self.header[:self.nr_cols], cell_values)))
                 services.append(row_dict)
             else:
                 break

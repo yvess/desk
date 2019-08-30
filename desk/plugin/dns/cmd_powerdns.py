@@ -1,6 +1,6 @@
 # coding: utf-8
 # python3
-from __future__ import absolute_import, print_function, unicode_literals, division
+
 import sys
 
 from desk.command import SettingsCommand, SettingsCommandDb
@@ -47,7 +47,7 @@ class PowerdnsExportCommand(SettingsCommand):
             records = pdns.get_records(domain)
             for rtype in records:
                 for record in records[rtype]:
-                    entry = u"{dname} {rtype} {key} {value}\n".format(
+                    entry = "{dname} {rtype} {key} {value}\n".format(
                             dname=domain, rtype=rtype.upper(),
                             key=record[0], value=record[1]
                     )
@@ -120,7 +120,7 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
             self._rebuild(self.settings.target)
         else:
             sys.stdout.write("Do you really want to procced and rebuild all domains? yes/no: ")
-            choice = raw_input().lower()
+            choice = input().lower()
             if choice == 'yes':
                 self.pdns.del_domains()
                 if not self.settings.only_delete:

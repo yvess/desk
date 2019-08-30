@@ -1,6 +1,6 @@
 # coding: utf-8
 # python3
-from __future__ import absolute_import, print_function, unicode_literals, division
+
 import codecs
 import os
 from collections import OrderedDict
@@ -96,7 +96,7 @@ class Invoice(object):
             self.doc['last_invoice_end_date'] = parse_date(
                 self.client_doc['last_invoice_end_date'], force_day='end')
         self.doc['services'] = self.get_services()
-        self.doc['services_list'] = sorted([k for k in self.doc['services'].iterkeys()])
+        self.doc['services_list'] = sorted([k for k in self.doc['services'].keys()])
         try:
             self.doc['address'] = self.crm.get_address(self.extcrm_id)
         except KeyError:
@@ -180,7 +180,7 @@ class Invoice(object):
                     servicesOrdered[name] = services[name]
                     del services[name]
             if services:
-                for k, v in services.iteritems():
+                for k, v in services.items():
                     servicesOrdered[k] = v
             return servicesOrdered
         return services
@@ -190,7 +190,7 @@ class Invoice(object):
         cycle_start_date = self.invoice_cycle.doc['start_date']
         if 'addon_service_items' in service:
             for addon in service['addon_service_items']:
-                if isinstance(addon, basestring):
+                if isinstance(addon, str):
                     addon = {'name': addon}
                 elif isinstance(addon, dict):
                     pass

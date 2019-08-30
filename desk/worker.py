@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
-from __future__ import absolute_import, print_function, unicode_literals, division  # python3
+  # python3
 
 from gevent import monkey; monkey.patch_all()
 import sys
 import re
 import signal
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 import argparse
 import codecs
 import locale
@@ -99,7 +99,7 @@ class SetupWorkerParser(object):
             ('service-query', QueryServiceCommand),
         ])
 
-        for command_name, command in self.commands.items():
+        for command_name, command in list(self.commands.items()):
             name_snake = to_snake_case(command.__name__)
             command_instance = command()
             command_parser = command_instance.setup_parser(

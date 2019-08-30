@@ -1,6 +1,6 @@
 # coding: utf-8
 # python3
-from __future__ import absolute_import, print_function, unicode_literals, division
+
 
 from os import mkdir, listdir, path, unlink
 import sys
@@ -74,7 +74,7 @@ class ImportDnsCommand(SettingsCommand):
                 sys.stdout, editor=auth[0]
             )
             client_ldif.parse()
-            data = [(k, v) for k, v in client_ldif.clients.iteritems()]
+            data = [(k, v) for k, v in client_ldif.clients.items()]
             json_files = FilesForCouch(data, dest)
             json_files.create()
             dns_ldif = IspmanDnsLDIF(
@@ -94,7 +94,7 @@ class ImportDnsCommand(SettingsCommand):
                     hostname = None
                 print("ip:{} ({}), \ndomains:{}\n".format(
                     ip, hostname, dns_ldif.a_record_hosts[ip]))
-        data = [[k, v] for k, v in dns_ldif.domains.iteritems()]
+        data = [[k, v] for k, v in dns_ldif.domains.items()]
         docs_processor = DnsDocsProcessor(self.settings, data)
         docs_processor.process()
         json_files = FilesForCouch(data, dest, use_id_in_data=True)
@@ -108,7 +108,7 @@ class ImportDnsCommand(SettingsCommand):
         if src.split("/")[-1].endswith(".ldif"):  # ldif as input file
             if dest_at_src:
                 dest = "{}/couch".format(path.dirname(src))
-                map(unlink, [path.join(dest, f) for f in listdir(dest)])
+                list(map(unlink, [path.join(dest, f) for f in listdir(dest)]))
             else:
                 temp_dir = tempfile.mkdtemp()
                 dest = "{}/couch".format(temp_dir)
@@ -168,7 +168,7 @@ class LdifPlainDnsCommand(SettingsCommand):
                     value = record[key_id]
                 if value == '.':
                     value = ''
-                entry = u"{dname} {rtype} {key} {value}\n".format(
+                entry = "{dname} {rtype} {key} {value}\n".format(
                     dname=dname, rtype=rtype.upper(), key=key, value=value
                 )
                 items.append(entry)
@@ -181,13 +181,13 @@ class LdifPlainDnsCommand(SettingsCommand):
             open(src, 'r'), sys.stdout, self.settings
         )
         self.dns_ldif.parse()
-        domains = [[k, v] for k, v in self.dns_ldif.domains.iteritems()]
+        domains = [[k, v] for k, v in self.dns_ldif.domains.items()]
         domains = sorted(domains, key=lambda x: x[0])
         for domain in domains:
             for rtype in ['a', 'aaaa', 'cname', 'mx', 'ns', 'txt', 'srv']:
                 dname, records = domain[0], domain[1]
                 if rtype == 'ns':
-                    output.extend([u"%s NS @ %s\n" % (dname, n) for n in records['nameservers']])
+                    output.extend(["%s NS @ %s\n" % (dname, n) for n in records['nameservers']])
                 else:
                     output.extend(self.plain_text_records(dname, rtype, records))
         output.sort()

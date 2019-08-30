@@ -1,5 +1,5 @@
 # coding: utf-8
-from __future__ import absolute_import, print_function, division  # unicode_literals
+  # unicode_literals
 import time
 from datetime import date, datetime
 import uuid
@@ -113,7 +113,7 @@ def create_order_doc(uploader):
     now = datetime.now()
     # same format as javascript
     current_time = "%s.%sZ" % (now.strftime('%Y-%m-%dT%H:%M:%S'), "%03.0f" % (now.microsecond / 1000.0))
-    order_id = "order-{}".format(unicode(uuid.uuid1()).replace('-',''))
+    order_id = "order-{}".format(str(uuid.uuid1()).replace('-',''))
 
     order_doc = {
         "_id": order_id,
