@@ -1,5 +1,3 @@
-# coding: utf-8
-
 import abc
 from socket import gethostbyname
 import dns.resolver

@@ -1,12 +1,8 @@
-# coding: utf-8
-# python3
-
 import codecs
 import os
 from collections import OrderedDict
 from datetime import date, datetime
 from unicodedata import normalize
-from couchdbkit import Server
 from weasyprint import HTML
 from desk.plugin.invoice import filters
 from desk.plugin.base import MergedDoc

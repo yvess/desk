@@ -1,13 +1,7 @@
-# coding: utf-8
-  # python3
-
 import os
 import socket
 import logging
 import time
-from couchdbkit.loaders import FileSystemDocsLoader
-from couchdbkit import Server
-from couchdbkit.resource import ResourceNotFound
 from desk.utils import ObjectDict
 from desk import Worker, Foreman
 from desk.utils import CouchdbUploader

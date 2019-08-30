@@ -1,16 +1,8 @@
-# coding: utf-8
-  # python3
-
 import os
 import socket
 import time
-import gevent
 import logging
 import json
-from couchdbkit import Server, Consumer
-from couchdbkit.changes import ChangesStream
-from restkit.conn import Connection
-from socketpool.pool import ConnectionPool
 from desk.utils import ObjectDict
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
@@ -29,8 +21,8 @@ class Worker(object):
             settings = ObjectDict(**settings)
         self.hostname = hostname
         self.settings = settings
-        self.pool = ConnectionPool(factory=Connection, backend="gevent")
-        self.server = Server(uri=settings.couchdb_uri, pool=self.pool)
+        # self.pool = ConnectionPool(factory=Connection, backend="gevent")
+        # self.server = Server(uri=settings.couchdb_uri, pool=self.pool)
         self.db = self.server[settings.couchdb_db]
         self.provides = {}
         self._setup_worker()
@@ -127,7 +119,7 @@ class Worker(object):
             self._process_tasks, run_once=False,
             **self.queue_kwargs['tasks_open']
         )
-        gevent.joinall([gevent.spawn(queue_tasks_open)], raise_error=True)
+        # gevent.joinall([gevent.spawn(queue_tasks_open)], raise_error=True)
 
     def run_once(self):
         queue_tasks_open = self._create_queue(
@@ -263,11 +255,11 @@ class Foreman(Worker):
             self._update_order, one=False,
             **self.queue_kwargs['tasks_done']
         )
-        gevent.joinall([
-            gevent.spawn(queue_orders_open),
-            gevent.spawn(queue_tasks_open),
-            gevent.spawn(queue_tasks_done)
-        ], raise_error=True)
+        # gevent.joinall([
+        #     gevent.spawn(queue_orders_open),
+        #     gevent.spawn(queue_tasks_open),
+        #     gevent.spawn(queue_tasks_done)
+        # ], raise_error=True)
 
     def run_once(self):
         queue_orders_open = self._create_queue(

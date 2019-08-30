@@ -1,7 +1,3 @@
-# coding: utf-8
-  # python3
-
-
 def main(doc, doc_type, db):
     def domainMigration(doc):
         # convert @ip_ -> $ip_ variables

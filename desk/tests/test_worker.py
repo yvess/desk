@@ -1,10 +1,6 @@
-# coding: utf-8
-  # unicode_literals
-
 import os
 import sys
 import unittest
-from couchdbkit import Server
 from desk.utils import CouchdbUploader
 import time
 import json

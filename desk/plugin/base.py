@@ -1,9 +1,6 @@
-# coding: utf-8
-
 from io import StringIO
 from copy import copy, deepcopy
 import logging
-from couchdbkit.exceptions import ResourceNotFound
 import json
 import json_diff
 
@@ -97,11 +94,13 @@ class Updater(object):
             self.active_doc = MergedDoc(db, json.loads(active_doc_json)).doc
         service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
-            try:
-                lookup_map_doc = db.get(service.map_doc_id)
-                service.set_lookup_map(lookup_map_doc)
-            except ResourceNotFound:
-                pass
+            pass
+            # TODO:fix
+            # try:
+            #     lookup_map_doc = db.get(service.map_doc_id)
+            #     service.set_lookup_map(lookup_map_doc)
+            # except ResourceNotFound:
+            #     pass
         self.service = service
         if self.active_doc and doc['state'] == 'changed':
             diff = self._create_diff()

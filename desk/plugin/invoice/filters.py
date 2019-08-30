@@ -1,7 +1,3 @@
-# coding: utf-8
-# python3
-
-
 import re
 from jinja2 import evalcontextfilter, Markup, escape
 

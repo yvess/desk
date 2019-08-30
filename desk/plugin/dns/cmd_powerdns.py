@@ -1,6 +1,3 @@
-# coding: utf-8
-# python3
-
 import sys
 
 from desk.command import SettingsCommand, SettingsCommandDb

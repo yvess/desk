@@ -1,5 +1,4 @@
-# coding: utf-8
-  # unicode_literals
+
 import time
 from datetime import date, datetime
 import uuid

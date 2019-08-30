@@ -1,11 +1,6 @@
-# coding: utf-8
-# python3
-
 import ast
 import os
 import shutil
-import ezodf
-from couchdbkit import Server
 from desk.command import SettingsCommand
 from desk.utils import get_crm_module
 from desk.plugin.extcrm.todoyu import Todoyu

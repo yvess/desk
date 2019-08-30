@@ -1,9 +1,4 @@
-# coding: utf-8
-# python3
-
-
 from datetime import date
-from couchdbkit import Server
 from desk.command import SettingsCommand
 from desk.utils import get_crm_module
 from desk.plugin.invoice.invoice import Invoice, InvoiceCycle

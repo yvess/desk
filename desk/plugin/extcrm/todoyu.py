@@ -1,5 +1,3 @@
-# coding: utf-8
-
 from desk.plugin.extcrm.extcrmbase import ExtCrmBase, ContactBase
 import pymysql
 

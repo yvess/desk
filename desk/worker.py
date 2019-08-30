@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-  # python3
+#!/usr/bin/env python3
 
-from gevent import monkey; monkey.patch_all()
 import sys
 import re
 import signal
@@ -13,7 +10,6 @@ import locale
 from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
 from desk.command import WorkerCommand, UploadJsonCommand, MigrateCommand
-from desk.plugin.dns.cmd import ImportDnsCommand, LdifPlainDnsCommand
 from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
@@ -75,8 +71,8 @@ class SetupWorkerParser(object):
         self.commands_map = {}
 
         self.setup_commands()
-        self.merge_configfile()
-        self.update_parser()
+        # self.merge_configfile() # TODO:fix
+        # self.update_parser() # TODO:fix
 
     def setup_commands(self):
         self.worker_cmd = WorkerCommand()
@@ -90,12 +86,9 @@ class SetupWorkerParser(object):
             ('install-worker', InstallWorkerCommand),
             ('migrate', MigrateCommand),
             ('upload-json', UploadJsonCommand),
-            ('dns-import', ImportDnsCommand),
-            ('dns-ldifplain', LdifPlainDnsCommand),
             ('dns-export-powerdns', PowerdnsExportCommand),
             ('dns-rebuild-powerdns', PowerdnsRebuildCommand),
             ('invoices-create', CreateInvoicesCommand),
-            ('service-import', ImportServiceCommand),
             ('service-query', QueryServiceCommand),
         ])
 
@@ -157,10 +150,11 @@ signal.signal(signal.SIGHUP, signal_handler)
 
 if __name__ == "__main__":
     worker = SetupWorkerParser()
-    if worker.settings.command == 'run':
-        worker.worker_cmd.set_settings(worker.settings)
-        worker.worker_cmd.run()
-    elif worker.settings.command in worker.commands:
-        current_command = worker.commands[worker.settings.command]
-        current_command.set_settings(worker.settings)
-        current_command.run()
+    # TODO:fix
+    # if worker.settings.command == 'run':
+    #     worker.worker_cmd.set_settings(worker.settings)
+    #     worker.worker_cmd.run()
+    # elif worker.settings.command in worker.commands:
+    #     current_command = worker.commands[worker.settings.command]
+    #     current_command.set_settings(worker.settings)
+    #     current_command.run()

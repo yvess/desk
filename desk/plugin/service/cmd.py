@@ -1,10 +1,6 @@
-# coding: utf-8
-# python3
-
-from couchdbkit import Server
 from desk.command import SettingsCommand
 from desk.utils import get_crm_module
-from desk.plugin.service import ImportServices, QueryServices
+from desk.plugin.service import QueryServices
 
 
 class ImportServiceCommand(SettingsCommand):
