@@ -3,9 +3,8 @@
 import sys
 import re
 import signal
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 import argparse
-import codecs
 import locale
 from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
@@ -14,8 +13,6 @@ from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildC
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
 
-# Wrap sys.stdout into a StreamWriter to allow writing unicode.
-sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
 DEFAULTS = {
     "couchdb_uri": "http://localhost:5984",
@@ -71,8 +68,8 @@ class SetupWorkerParser(object):
         self.commands_map = {}
 
         self.setup_commands()
-        # self.merge_configfile() # TODO:fix
-        # self.update_parser() # TODO:fix
+        self.merge_configfile()
+        self.update_parser()
 
     def setup_commands(self):
         self.worker_cmd = WorkerCommand()
@@ -114,8 +111,9 @@ class SetupWorkerParser(object):
         # puts them into a dict format "section_option"
         merged_defaults = DEFAULTS.copy()
         if hasattr(args, 'config') and args.config:
-            config = SafeConfigParser()
-            config.readfp(codecs.open(args.config, "r", "utf8"))
+            config = ConfigParser()
+            with open(args.config, 'r') as file:
+                config.read_file(file)
             if not config:
                 print("Can't open file '{}'".format(args.config))
                 sys.exit(0)
