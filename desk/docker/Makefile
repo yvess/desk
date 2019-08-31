@@ -15,6 +15,8 @@ build_dns:
 	docker build -t yvess/desk-dns:$(dns_version) dns
 	rm dns/etc.tar.gz
 
+build: build_worker build_dns
+
 pull:
 	docker pull yvess/desk-worker
 	docker pull yvess/desk-dns

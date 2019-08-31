@@ -8,7 +8,6 @@ chardet==3.0.4
 cssselect2==0.2.1
 decorator==4.4.0
 defusedxml==0.6.0
-desk==0.1
 dnspython==1.16.0
 html5lib==1.0.1
 idna==2.8
