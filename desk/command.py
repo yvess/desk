@@ -2,7 +2,9 @@ import os
 import socket
 import logging
 import time
-from desk.utils import ObjectDict
+import glob
+import json
+from desk.utils import ObjectDict, CouchDBSession
 from desk import Worker, Foreman
 from desk.utils import CouchdbUploader
 from desk import migrations
@@ -22,9 +24,8 @@ class SettingsCommand(object):
 
 class SettingsCommandDb(SettingsCommand):
     def set_settings(self, settings, hostname=socket.getfqdn()):
-        super(SettingsCommandDb, self).set_settings(settings, hostname)
-        self.server = Server(uri=self.settings.couchdb_uri)
-        self.db = self.server.get_db(self.settings.couchdb_db)
+        super().set_settings(settings, hostname)
+        self.db = CouchDBSession.db(self.settings.couchdb_uri, db_name=self.settings.couchdb_db)
 
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
@@ -72,7 +73,25 @@ class WorkerCommand(SettingsCommand):
             self.worker.run_once()
 
 
-class InstallDbCommand(SettingsCommand):
+class FileDesignDocsLoader:
+    def nested_set(self, d, keys, value):
+        for key in keys[:-1]:
+            d = d.setdefault(key, {})
+        d[keys[-1].replace('.js', '')] = value
+
+    def __init__(self, path, rev=None):
+        design_doc = {}
+        files = sorted(glob.glob(f'{path}**/*.js', recursive=True))
+        for fname in files:
+            key_path = fname.replace(path, '').split('/')
+            with open(fname) as f:
+                self.nested_set(design_doc, key_path, f.read())
+        if rev:
+            design_doc['_rev'] = rev
+        self.design_doc = design_doc
+
+
+class InstallDbCommand(SettingsCommandDb):
     def setup_parser(self, subparsers, config_parser):
         install_parser = subparsers.add_parser(
             'install-db',
@@ -85,10 +104,10 @@ class InstallDbCommand(SettingsCommand):
         return install_parser
 
     def run(self):
-        server = Server(self.settings.couchdb_uri)
-        db = server.get_or_create_db(self.settings.couchdb_db)
-        loader = FileSystemDocsLoader('./_design')
-        loader.sync(db, verbose=True)
+        self.set_settings(self.settings)
+        rev = self.db.rev('_design/desk_drawer/')
+        loader = FileDesignDocsLoader('_design/desk_drawer/', rev=rev)
+        r = self.db.put('_design/desk_drawer/', json=loader.design_doc, params=dict(rebuild=True))
 
 
 class UploadJsonCommand(SettingsCommand):

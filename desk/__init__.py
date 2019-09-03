@@ -3,7 +3,8 @@ import socket
 import time
 import logging
 import json
-from desk.utils import ObjectDict
+import asyncio
+from desk.utils import ObjectDict, CouchDBSession, CouchDBSessionAsync
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
 
@@ -12,18 +13,18 @@ __version__ = '0.1'
 DOC_TYPES = {
     'domain': dns
 }
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 
 class Worker(object):
     def __init__(self, settings, hostname=socket.getfqdn()):
         if isinstance(settings, dict):
-            settings = ObjectDict(**settings)
+            self.settings = ObjectDict(**settings)
         self.hostname = hostname
         self.settings = settings
-        # self.pool = ConnectionPool(factory=Connection, backend="gevent")
-        # self.server = Server(uri=settings.couchdb_uri, pool=self.pool)
-        self.db = self.server[settings.couchdb_db]
+        self.db = CouchDBSession.db(settings.couchdb_uri, db_name=settings.couchdb_db)
+        self.db_async = CouchDBSessionAsync.db(settings.couchdb_uri, db_name=settings.couchdb_db)
+        self.db_design = CouchDBSession.db_design(settings.couchdb_uri, db_name=settings.couchdb_db)
         self.provides = {}
         self._setup_worker()
         self.queue_kwargs = {
@@ -39,13 +40,12 @@ class Worker(object):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def _setup_worker(self):
-        worker_result = self.db.list(
-            self._cmd("list_docs"),
-            "worker", include_docs=True,
-            keys=[self.hostname]
-        )
+        worker_result = self.db_design.get('_list/list_docs/worker', params=dict(
+            include_docs=True, keys=f'["{self.hostname}"]'
+        ))
+        worker_result.raise_for_status()
         if worker_result:
-            self.provides = worker_result[0]['provides']
+            self.provides = worker_result.json()[0]['provides']
 
     def _process_tasks(self, tasks):
         self.logger.info("ready for processing tasks")
@@ -100,18 +100,34 @@ class Worker(object):
     def _create_queue(self, item_function, run_once=False, **item_kwargs):
         if run_once is True:
             def queue_once():
-                c = Consumer(self.db)
-                items = c.fetch(since=0, **item_kwargs)['results']
-                if items:
-                    item_function(items)
+                params = dict(
+                    feed='normal', heartbeat="true", since=0
+                )
+                params.update(item_kwargs)
+                r = self.db.get('_changes', stream=False, params=params)
+                for line in r.iter_lines():
+                    if line:
+                        print(line)
+                # c = Consumer(self.db)
+                # items = c.fetch(since=0, **item_kwargs)['results']
+                # if items:
+                #     item_function(items)
             return queue_once
         else:
-            def queue():
-                with ChangesStream(
-                    self.db, feed="continuous",
-                    heartbeat=True, **item_kwargs
-                ) as task_items:
-                    item_function(task_items)
+            async def queue():
+                params = dict(
+                    feed='continuous', heartbeat="true", since="now"
+                )
+                params.update(item_kwargs)
+                r = await self.db_async.get('_changes', stream=True, params=params)
+                for line in r.iter_lines():
+                    if line:
+                        print(line)
+                # with ChangesStream(
+                #     self.db, feed="continuous",
+                #     heartbeat=True, **item_kwargs
+                # ) as task_items:
+                #     item_function(task_items)
             return queue
 
     def run(self):
@@ -119,7 +135,6 @@ class Worker(object):
             self._process_tasks, run_once=False,
             **self.queue_kwargs['tasks_open']
         )
-        # gevent.joinall([gevent.spawn(queue_tasks_open)], raise_error=True)
 
     def run_once(self):
         queue_tasks_open = self._create_queue(
@@ -131,7 +146,7 @@ class Worker(object):
 
 class Foreman(Worker):
     def __init__(self, *args, **kwargs):
-        super(Foreman, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.queue_kwargs['orders_open'] = {
             'include_docs': True, 'filter': self._cmd("orders_open")
         }
@@ -255,11 +270,16 @@ class Foreman(Worker):
             self._update_order, one=False,
             **self.queue_kwargs['tasks_done']
         )
-        # gevent.joinall([
-        #     gevent.spawn(queue_orders_open),
-        #     gevent.spawn(queue_tasks_open),
-        #     gevent.spawn(queue_tasks_done)
-        # ], raise_error=True)
+        loop = asyncio.new_event_loop()
+        tasks_open = loop.create_task(queue_tasks_open())
+        orders_open = loop.create_task(queue_orders_open())
+        tasks_done = loop.create_task(queue_tasks_done())
+
+        try:
+            loop.run_forever()
+        finally:
+            loop.run_until_complete(loop.shutdown_asyncgens())
+            loop.close()
 
     def run_once(self):
         queue_orders_open = self._create_queue(

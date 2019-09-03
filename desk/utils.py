@@ -6,6 +6,9 @@ import os
 import shutil
 import json
 import requests
+import requests_async
+import re
+from urllib.parse import urljoin
 from importlib import import_module
 
 
@@ -102,6 +105,78 @@ class CreateJsonFiles(object):
                 data="@{}".format(fname),
                 doc_id=fname[:-5]
             )
+
+
+class CouchDBSessionMixin:
+    base_url = None
+
+    def __init__(self, base_url=None, auth=None, db_name=None):
+        self.base_url = base_url
+        self.db_name = db_name
+        super().__init__()
+        self.auth = auth
+
+    @classmethod
+    def _basic_base_url(cls, couchdb_uri):
+        proto, user, password, host, port = re.split("://|:|@",couchdb_uri)
+        base_url = f'{proto}://{host}:{port}/'
+        auth = (user, password)
+        return base_url, auth
+
+    @classmethod
+    def db(cls, couchdb_uri=None, db_name=None):
+        base_url, auth = cls._basic_base_url(couchdb_uri)
+        base_url = f'{base_url}/{db_name}/'
+        return cls(base_url, auth, db_name)
+
+    @classmethod
+    def db_design(cls, couchdb_uri=None, db_name=None):
+        base_url, auth = cls._basic_base_url(couchdb_uri)
+        base_url = f'{base_url}/{db_name}/_design/{db_name}/'
+        return cls(base_url, auth, db_name)
+
+    def request(self, method, url, *args, **kwargs):
+        url = self.create_url(url)
+        print('normal request url', url)
+        response = super().request(
+            method, url, *args, **kwargs
+        )
+        if 'ETag' in response.headers: # set couchdb rev in respone
+            response.rev = response.headers['ETag'].replace('"','')
+        else:
+            response.rev = None
+        return response
+
+    def rev(self, url):
+        url = self.create_url(url)
+        response = self.request('head', url)
+        return response.rev
+
+    def create_url(self, url):
+        return urljoin(self.base_url, url)
+
+
+class CouchDBSession(CouchDBSessionMixin, requests.Session):
+    pass
+
+
+class CouchDBSessionAsync(CouchDBSessionMixin, requests_async.Session):
+    async def request(self, method, url, *args, **kwargs):
+        url = self.create_url(url)
+        print('async request url', url)
+        response = await super(requests_async.Session, self).request(
+            method, url, *args, **kwargs
+        )
+        if 'ETag' in response.headers: # set couchdb rev in respone
+            response.rev = response.headers['ETag'].replace('"','')
+        else:
+            response.rev = None
+        return response
+
+    async def rev(self, url):
+        url = self.create_url(url)
+        response = await self.request('head', url)
+        return response.rev
 
 
 def auth_from_uri(uri):

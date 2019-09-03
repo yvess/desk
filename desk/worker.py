@@ -148,11 +148,10 @@ signal.signal(signal.SIGHUP, signal_handler)
 
 if __name__ == "__main__":
     worker = SetupWorkerParser()
-    # TODO:fix
-    # if worker.settings.command == 'run':
-    #     worker.worker_cmd.set_settings(worker.settings)
-    #     worker.worker_cmd.run()
-    # elif worker.settings.command in worker.commands:
-    #     current_command = worker.commands[worker.settings.command]
-    #     current_command.set_settings(worker.settings)
-    #     current_command.run()
+    if worker.settings.command == 'run':
+        worker.worker_cmd.set_settings(worker.settings)
+        worker.worker_cmd.run()
+    elif worker.settings.command in worker.commands:
+        current_command = worker.commands[worker.settings.command]
+        current_command.set_settings(worker.settings)
+        current_command.run()
