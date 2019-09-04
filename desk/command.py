@@ -74,18 +74,23 @@ class WorkerCommand(SettingsCommand):
 
 
 class FileDesignDocsLoader:
-    def nested_set(self, d, keys, value):
+    def nested_set(self, d, keys, value, decode_json=False):
         for key in keys[:-1]:
             d = d.setdefault(key, {})
-        d[keys[-1].replace('.js', '')] = value
+        if decode_json:
+            value = json.loads(value)
+        json_key = keys[-1].replace('.json', '').replace('.js', '')
+        d[json_key] = value
 
     def __init__(self, path, rev=None):
         design_doc = {}
-        files = sorted(glob.glob(f'{path}**/*.js', recursive=True))
+        files = sorted(glob.glob(f'{path}**/*.js', recursive=True) + glob.glob(f'{path}**/*.json', recursive=True))
         for fname in files:
             key_path = fname.replace(path, '').split('/')
             with open(fname) as f:
-                self.nested_set(design_doc, key_path, f.read())
+                lines = [line for line in f.readlines() if '//' not in line]
+                decode_json = True if fname.endswith('.json') else False
+                self.nested_set(design_doc, key_path, ''.join(lines), decode_json=decode_json)
         if rev:
             design_doc['_rev'] = rev
         self.design_doc = design_doc
