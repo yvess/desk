@@ -47,7 +47,7 @@
         clients = aClientsArray;
         clientLookup = aClientLookup;
         itemLookup = [self createLookup];
-        items = [modelClass allWithParams:@{} withPath:@"/domains_by_name"];
+        items = [modelClass allWithParams:@{} withPath:@"/api/domains_by_name"];
         growlCenter = aGrowlCenter;
     }
     return self;
@@ -55,7 +55,7 @@
 
 - (void)reloadItems
 {
-    [self setItems:[modelClass allWithParams:@{} withPath:@"/domains_by_name"]];
+    [self setItems:[modelClass allWithParams:@{} withPath:@"/api/domains_by_name"]];
 }
 
 - (void)addRecord:(id)sender
@@ -142,7 +142,7 @@
 - (void)showTpl:(id)sender
 {
     var coId = [[[tplForDomainPopUp selectedItem] representedObject] coId];
-    [webviewTpl setMainFrameURL:[CPString stringWithFormat:@"/show/%@", coId]];
+    [webviewTpl setMainFrameURL:[CPString stringWithFormat:@"/api/showjson/%@", coId]];
     [popoverTpl setAnimates:NO];
     if (![popoverTpl isShown])
     {

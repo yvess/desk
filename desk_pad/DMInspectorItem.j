@@ -18,9 +18,14 @@
     return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
 }
 
++ (CPURL)resourcePath
+{
+    return [CPURL URLWithString:@"/api/" + [self underscoreName] + @"s"];
+}
+
 + (CPArray)allItemsFor:(CPObject) aModelClass
 {
-    return [aModelClass allWithParams:{} withPath:@"/inspector_items"];
+    return [aModelClass allWithParams:{} withPath:@"/api/inspector_items"];
 }
 
 - (id)init

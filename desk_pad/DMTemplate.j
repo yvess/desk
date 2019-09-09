@@ -15,4 +15,9 @@
 {
     return @"name";
 }
+
++ (CPURL)resourcePath
+{
+    return [CPURL URLWithString:@"/api/" + [self underscoreName] + @"s"];
+} 
 @end

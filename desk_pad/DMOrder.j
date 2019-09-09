@@ -19,6 +19,11 @@
     return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
 }
 
++ (CPURL)resourcePath
+{
+    return [CPURL URLWithString:@"/api/" + [self underscoreName] + @"s"];
+}
+
 - (CPString)nameIdentifierString
 {
     return @"date";

@@ -163,7 +163,7 @@ var defaultGrowlCenter = nil;
 
     if (!!window.EventSource)
     {
-        var sourceOrdersDone = new EventSource("/orders/done/?since=now");
+        var sourceOrdersDone = new EventSource("/api/orders/done/?since=now");
         sourceOrdersDone.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
           doNotificationOrdersDone(data);
@@ -175,7 +175,7 @@ var defaultGrowlCenter = nil;
           }
         }, false);
 
-        var sourceOrdersNew = new EventSource("/orders/new/?since=now");
+        var sourceOrdersNew = new EventSource("/api/orders/new/?since=now");
         sourceOrdersNew.addEventListener('message', function(e) {
           var data = JSON.parse(e.data);
           doNotificationOrdersNew(data);
