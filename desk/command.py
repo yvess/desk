@@ -143,7 +143,7 @@ class UploadJsonCommand(SettingsCommand):
             )
 
 
-class InstallWorkerCommand(SettingsCommand):
+class InstallWorkerCommand(SettingsCommandDb):
     def setup_parser(self, subparsers, config_parser):
         install_parser = subparsers.add_parser(
             'install-worker',
@@ -156,8 +156,7 @@ class InstallWorkerCommand(SettingsCommand):
         return install_parser
 
     def run(self):
-        server = Server(self.settings.couchdb_uri)
-        db = server.get_db(self.settings.couchdb_db)
+        self.set_settings(self.settings)
         provides = {}
         if hasattr(self.settings, 'worker_dns'):
             provides['domain'], worker_dns = [], self.settings.worker_dns
@@ -173,7 +172,7 @@ class InstallWorkerCommand(SettingsCommand):
         db.save_doc(d)
 
 
-class MigrateCommand(SettingsCommand):
+class MigrateCommand(SettingsCommandDb):
     def setup_parser(self, subparsers, config_parser):
         migrate_parser = subparsers.add_parser(
             'migrate',
@@ -189,8 +188,7 @@ class MigrateCommand(SettingsCommand):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def run(self):
-        server = Server(self.settings.couchdb_uri)
-        db = server.get_db(self.settings.couchdb_db)
+        self.set_settings(self.settings)
 
         def next_migration(version, doc_id, doc_type):
             new_version = version + 1
@@ -207,7 +205,7 @@ class MigrateCommand(SettingsCommand):
             next_migration(version, doc_id, doc_type)
 
 
-class DocsProcessor(SettingsCommand):
+class DocsProcessor(SettingsCommandDb):
     allowed_template_type = None  # needs to be set by subclass
     map_id = None  # needs to be set by subclass
     replace_id = None  # needs to be set by subclass
@@ -229,8 +227,6 @@ class DocsProcessor(SettingsCommand):
         self.set_settings(settings)
         template_ids, map_id = self.settings.template_ids, self.settings.map_id
         template_ids = template_ids.split(',') if template_ids else []
-        self.server = Server(uri=self.settings.couchdb_uri)
-        self.db = self.server.get_db(self.settings.couchdb_db)
         self.template_docs, self.map_keys = [], None
         if not template_ids:
             self.template_docs = self.get_all_templates()

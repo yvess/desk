@@ -118,7 +118,11 @@ class CouchDBSessionMixin:
 
     @classmethod
     def _basic_base_url(cls, couchdb_uri):
-        proto, user, password, host, port = re.split("://|:|@",couchdb_uri)
+        proto, user, password, host = re.split("://|:|@", couchdb_uri, maxsplit=3)
+        if ':' in host:
+            host, port = host.split(":")
+        else:
+            port = 80
         base_url = f'{proto}://{host}:{port}/'
         auth = (user, password)
         return base_url, auth

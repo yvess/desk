@@ -15,7 +15,8 @@ START_WORKER=${START_WORKER:-YES}
 WORKER_LOG=${WORKER_LOG:-/var/services/worker/log}
 COUCHDB_ADMIN=${COUCHDB_ADMIN:-admin}
 COUCHDB_ADMINPASS=${COUCHDB_ADMINPASS:-admin}
-COUCHDB_HOST=${COUCHDB_HOST:-cdb}
+COUCHDB_HOST=${COUCHDB_HOST:-capi}
+COUCHDB_PORT=${COUCHDB_PORT:-80}
 
 # CREATE DIRS
 mkdir -p "$WORKER_LOG"
@@ -27,16 +28,19 @@ if grep -q "COUCHDB_ADMINPASS" "/etc/desk/worker.conf"; then
         -e "s#-COUCHDB_ADMINPASS-#${COUCHDB_ADMINPASS}#" \
         -e "s#-COUCHDB_ADMIN-#${COUCHDB_ADMIN}#" \
         -e "s#-COUCHDB_HOST-#${COUCHDB_HOST}#" \
+        -e "s#-COUCHDB_PORT-#${COUCHDB_PORT}#" \
       /etc/desk/worker.conf
 fi
 
 # RUN STUFF FOR FOREMAN, CREATE DATABASE
+echo "WORKER_TYPE: $WORKER_TYPE"
+echo "uri http://$COUCHDB_HOST:$COUCHDB_PORT/"
 if [ $WORKER_TYPE = "foreman" ]; then
-    wget -q --retry-connrefused -t 10 http://$COUCHDB_HOST:5984/ # wait for couchdb to get up
+    wget -q --retry-connrefused -t 10 http://$COUCHDB_HOST:$COUCHDB_PORT/ # wait for couchdb to get up
     # creating desk_drawer database
-    curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://$COUCHDB_HOST:5984/desk_drawer|cat|grep -q -E "HTTP.*200|HTTP.*401"
+    curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer|cat|grep -q -E "HTTP.*200|HTTP.*401"
     if [ $? -ne 0 ]; then # db desk_drawer does not exist
-        cd /opt/app/desk && python ./dworker install-db
+        cd /opt/app/desk && python3 ./dworker install-db
         echo "* created desk_drawer database"
     fi
 
@@ -51,13 +55,13 @@ fi
 if [ "$TESTING" == "NO" ]; then
     # REGISTER WORKER
     # wait for db created
-    until $(curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://$COUCHDB_HOST:5984/desk_drawer|cat|grep -q -E "HTTP.*200"); do
+    until $(curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer|cat|grep -q -E "HTTP.*200"); do
         sleep 1
         echo "* wait desk_drawer db"
     done
-    curl -Is -u "${COUCHDB_ADMIN}:${COUCHDB_ADMINPASS}" "http://$COUCHDB_HOST:5984/desk_drawer/worker-${FQHOSTNAME}"|cat|grep -q -E "HTTP.*404"
+    curl -Is -u "${COUCHDB_ADMIN}:${COUCHDB_ADMINPASS}" "http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer/worker-${FQHOSTNAME}"|cat|grep -q -E "HTTP.*404"
     if [ $? -eq 0 ]; then # worker doesn't exist
-        cd /opt/app/desk && python ./dworker install-worker
+        cd /opt/app/desk && python3 ./dworker install-worker
         echo "* registred worker"
     fi
 fi
