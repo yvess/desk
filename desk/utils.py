@@ -141,7 +141,6 @@ class CouchDBSessionMixin:
 
     def request(self, method, url, *args, **kwargs):
         url = self.create_url(url)
-        print('normal request url', url)
         response = super().request(
             method, url, *args, **kwargs
         )

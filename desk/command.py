@@ -169,7 +169,7 @@ class InstallWorkerCommand(SettingsCommandDb):
             "_id": worker_id, "type": "worker", "hostname": self.hostname,
             "provides": provides
         }
-        db.save_doc(d)
+        self.db.save_doc(d)
 
 
 class MigrateCommand(SettingsCommandDb):
@@ -195,12 +195,12 @@ class MigrateCommand(SettingsCommandDb):
             next_migration_name = "to%04d" % new_version
             if hasattr(migrations, next_migration_name):
                 do_migration = getattr(migrations, next_migration_name)
-                doc = db.get(doc_id)
+                doc = self.db.get(doc_id)
                 print('updating to:', new_version, doc_type, doc_id)
                 do_migration(doc, doc_type, db)
                 next_migration(new_version, doc_id, doc_type)
 
-        for item in db.view(self._cmd("version")):
+        for item in self.db.view(self._cmd("version")):
             version, doc_id, doc_type = item['key'], item['id'], item['value']
             next_migration(version, doc_id, doc_type)
 
