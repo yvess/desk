@@ -133,6 +133,7 @@ class AttributeDict(collections.abc.MutableMapping):
     def toJSON(self):
         return json.dumps(self.__dict__)
 
+
 class CouchdbUploader(object):
     def __init__(self, couchdb_uri=None, couchdb_db=None, path=None, auth=()):
         self.uri = couchdb_uri
@@ -260,7 +261,6 @@ class CouchDBSessionMixin:
         response = super().request(
             method, url, *args, **kwargs
         )
-        print('URL:', response.request.url)
         if 'ETag' in response.headers: # set couchdb rev in respone
             response.rev = response.headers['ETag'].replace('"','')
         else:
@@ -356,7 +356,7 @@ def decode_json(data):
 
 def encode_json(data):
     try:
-        return json.dumps(data, cls=JSONDefaultDictEncoder,)
+        return json.dumps(data, cls=JSONDefaultDictEncoder)
     except TypeError:
         import ipdb; ipdb.set_trace()
 

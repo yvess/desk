@@ -72,14 +72,14 @@ class Worker(object):
             self.logger.info("do task %s" % task_id)
             was_successfull = self._do_task(doc)
             successfull_tasks.append(was_successfull)
-        task_doc = self.db.get(task_id)
+        task_doc = get_doc(self.db.get(task_id))
         if all(successfull_tasks):
-            task_doc['state'] = 'done'
-            self.db.put(url='', data=encode_json(task_doc))
+            task_doc.state = 'done'
+            self.db.put(url=task_doc._id, data=encode_json(task_doc))
             self.logger.info("task done doc_id: %s" % task_doc['_id'])
         else:
-            task_doc['state'] = 'error'
-            self.db.put(url='', data=encode_json(task_doc))
+            task_doc.state = 'error'
+            self.db.put(url=task_doc._id, data=encode_json(task_doc))
             self.logger.info("task error doc_id: %s" % task_doc['_id'])
 
     def _do_task(self, doc):
@@ -233,27 +233,27 @@ class Foreman(Worker):
 
     def _update_order(self, tasks):
         for task in tasks:
-            task_doc = task['doc']
-            order_doc = self.db.get(task_doc['order_id'])
+            task_doc = AttributeDict(task['doc'])
+            order_doc = get_doc(self.db.get(task_doc.order_id))
             if 'providers_done' not in order_doc:
-                order_doc['providers_done'] = []
-            providers = list(order_doc['providers'].keys())
-            providers_done = order_doc['providers_done']
-            providers_done.append(task_doc['provider'])
-            task_doc['state'] = 'done_checked'
-            self.db.put(url='', data=encode_json(task_doc))
-            self.db.put(url='', data=encode_json(order_doc))
+                order_doc.providers_done = []
+            providers = list(order_doc.providers.keys())
+            providers_done = order_doc.providers_done
+            providers_done.append(task_doc.provider)
+            task_doc.state = 'done_checked'
+            self.db.put(url=task_doc._id, data=encode_json(task_doc))
+            self.db.put(url=order_doc._id, data=encode_json(order_doc))
             self.logger.info(
-                "updating order for task %s, state: %s" % (task['doc']['_id'], order_doc['state'])
+                f'updating order for task {task_doc._id}, state: {order_doc.state}'
             )
             if sorted(providers) == sorted(providers_done):
-                order_doc['state'] = 'done'
+                order_doc.state = 'done'
                 update_docs_id = []
-                [update_docs_id.extend(v) for v in order_doc['providers'].values()]
+                [update_docs_id.extend(v) for v in order_doc.providers.values()]
                 update_docs_id = list(set(update_docs_id))
                 for doc_id in update_docs_id:
-                    doc = self.db.get(doc_id)
-                    state = doc['state']
+                    doc = get_doc(self.db.get(doc_id))
+                    state = doc.state
                     next_state = 'undefined'
                     if state == 'new':
                         next_state = 'active'
@@ -268,17 +268,18 @@ class Foreman(Worker):
                     )
                     if next_state == 'active':
                         # save attachment of active doc
-                        active_doc = self.db.get(doc_id)
-                        active_rev = active_doc['_rev']
-                        self.db.put_attachment(
-                            active_doc, json.dumps(active_doc),
-                            name=active_rev, content_type="application/json"
+                        active_doc = get_doc(self.db.get(doc_id))
+                        active_rev = active_doc._rev
+                        self.db.put(
+                            url=f'{active_doc._id}/{active_rev}',
+                            data=json.dumps(active_doc)
                         )
-                        self.db.update(
-                            f'{self.db_name}/set-active-rev', doc_id=doc_id, active_rev=active_rev
+                        self.db_design.put(
+                            url=f'_update/set-active-rev/{doc_id}',
+                            params=dict(active_rev=active_rev)
                         )
-                self.db.put(url='', data=encode_json(order_doc))
-                self.logger.info("order state: %s" % order_doc['state'])
+                self.db.put(url=order_doc._id, data=encode_json(order_doc))
+                self.logger.info("order state: %s" % order_doc.state)
 
     def run(self):
         queue_tasks_open = self._create_queue(

@@ -3,7 +3,7 @@ from copy import copy, deepcopy
 import logging
 import json
 import json_diff
-from ..utils import get_doc, AttributeDict
+from ..utils import get_doc, encode_json, AttributeDict
 
 
 class OptionsClassDiff(object):
@@ -62,11 +62,9 @@ class VersionDoc(object):
     def create_version(self):
         old_doc = self.db.get(self.doc['_id'])
         old_doc = MergedDoc(self.db, old_doc).doc
-        self.doc['state'] = 'changed'
+        self.doc.state = 'changed'
         self.doc['prev_rev'] = old_doc['_rev']
-        self.db.put_attachment(
-            old_doc, json.dumps(old_doc),
-            name=old_doc['_rev'], content_type="application/json"
+        self.db.put(f'{old_doc}/{old_doc.rev}', data=encode_json(old_doc)
         )
         new_doc_merged = self.db.get(self.doc['_id'])
         del self.doc['_rev']
@@ -85,14 +83,13 @@ class Updater(object):
         }
         self.task = None
         self.active_doc = None
-        if doc['state'] in choose_task:
-            self.task = choose_task[doc['state']]
+        if doc.state in choose_task:
+            self.task = choose_task[doc.state]
 
         self.merged_doc = MergedDoc(db, doc).doc
         if 'active_rev' in doc:
-            active_rev = doc['active_rev']
-            active_doc_json = db.fetch_attachment(doc['_id'], active_rev)
-            self.active_doc = MergedDoc(db, json.loads(active_doc_json)).doc
+            active_doc_json = get_doc(db.get(f'{doc._id}/{doc.active_rev}'))
+            self.active_doc = MergedDoc(db, active_doc_json).doc
         service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
             pass
@@ -103,7 +100,7 @@ class Updater(object):
             # except ResourceNotFound:
             #     pass
         self.service = service
-        if self.active_doc and doc['state'] == 'changed':
+        if self.active_doc and doc.state == 'changed':
             diff = self._create_diff()
             service.set_diff(diff)
 
@@ -116,8 +113,8 @@ class Updater(object):
     def _create_diff(self):
         old_doc = self._remove_attachment(self.active_doc)
         new_doc = self._remove_attachment(self.doc)
-        old_doc_string = json.dumps(old_doc)
-        new_doc_string = json.dumps(new_doc)
+        old_doc_string = encode_json(old_doc)
+        new_doc_string = encode_json(new_doc)
         diffator = json_diff.Comparator(
             StringIO(old_doc_string),
             StringIO(new_doc_string),
