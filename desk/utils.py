@@ -8,6 +8,8 @@ import json
 import requests
 import requests_async
 import re
+import collections
+from json import JSONEncoder
 from urllib.parse import urljoin
 from importlib import import_module
 
@@ -16,6 +18,120 @@ class ObjectDict(object):
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
+class JSONDefaultDictEncoder(JSONEncoder):
+        def default(self, o):
+            return o.__dict__
+
+# from https://github.com/obspy/obspy/blob/master/obspy/core/util/AttributeDict.py
+class AttributeDict(collections.abc.MutableMapping):
+    defaults = {}
+    readonly = []
+    warn_on_non_default_key = False
+    do_not_warn_on = []
+    _types = {}
+
+    def __init__(self, *args, **kwargs):
+        self.__dict__.update(self.defaults)
+        self.update(dict(*args, **kwargs))
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, self.__dict__)
+
+    def __getitem__(self, name, default=None):
+        try:
+            return self.__dict__[name]
+        except KeyError:
+            if name in self.defaults:
+                return self.defaults[name]
+            if default is None:
+                raise
+            return default
+
+    def __setitem__(self, key, value):
+        if key in self.readonly:
+            msg = 'Attribute "%s" in %s object is read only!'
+            raise AttributeError(msg % (key, self.__class__.__name__))
+        if self.warn_on_non_default_key and key not in self.defaults:
+            if key in self.do_not_warn_on:
+                pass
+            else:
+                msg = ('Setting attribute "{}" which is not a default '
+                       'attribute ("{}").').format(
+                    key, '", "'.join(self.defaults.keys()))
+                warnings.warn(msg)
+        if key in self._types and not isinstance(value, self._types[key]):
+            value = self._cast_type(key, value)
+
+        mapping_instance = isinstance(value,
+                                      collections.abc.Mapping)
+        attr_dict_instance = isinstance(value, AttributeDict)
+        if mapping_instance and not attr_dict_instance:
+            self.__dict__[key] = AttributeDict(value)
+        else:
+            self.__dict__[key] = value
+
+    def __delitem__(self, name):
+        del self.__dict__[name]
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, adict):
+        self.__dict__.update(self.defaults)
+        self.update(adict)
+
+    def __getattr__(self, name, default=None):
+        try:
+            return self.__getitem__(name, default)
+        except KeyError as e:
+            raise AttributeError(e.args[0])
+
+    __setattr__ = __setitem__
+    __delattr__ = __delitem__
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+        ad = self.__class__()
+        ad.update(copy.deepcopy(self.__dict__))
+        return ad
+
+    def update(self, adict={}):
+        for (key, value) in adict.items():
+            if key in self.readonly:
+                continue
+            self.__setitem__(key, value)
+
+    def _pretty_str(self, priorized_keys=[], min_label_length=16):
+        keys = list(self.keys())
+        try:
+            i = max(max([len(k) for k in keys]), min_label_length)
+        except ValueError:
+            return ""
+        pattern = "%%%ds: %%s" % (i)
+        other_keys = [k for k in keys if k not in priorized_keys]
+        keys = priorized_keys + sorted(other_keys)
+        head = [pattern % (k, self.__dict__[k]) for k in keys]
+        return "\n".join(head)
+
+    def _cast_type(self, key, value):
+        typ = self._types[key]
+        new_type = (
+            typ[0] if isinstance(typ, collections.abc.Sequence)
+            else typ)
+        msg = ('Attribute "%s" must be of type %s, not %s. Attempting to '
+               'cast %s to %s') % (key, typ, type(value), value, new_type)
+        warnings.warn(msg)
+        return new_type(value)
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def __len__(self):
+        return len(self.__dict__)
+
+    def toJSON(self):
+        return json.dumps(self.__dict__)
 
 class CouchdbUploader(object):
     def __init__(self, couchdb_uri=None, couchdb_db=None, path=None, auth=()):
@@ -144,6 +260,7 @@ class CouchDBSessionMixin:
         response = super().request(
             method, url, *args, **kwargs
         )
+        print('URL:', response.request.url)
         if 'ETag' in response.headers: # set couchdb rev in respone
             response.rev = response.headers['ETag'].replace('"','')
         else:
@@ -230,16 +347,27 @@ def get_crm_module(settings):
     return crm
 
 def decode_json(data):
-    return json.loads(data.decode('utf8'))
+    data = data if isinstance(data, str) else data.decode('utf8')
+    return json.loads(data)
+    # try:
+    #     return json.loads(data.decode('utf8'))
+    # except json.decoder.JSONDecodeError:
+    #     import ipdb; ipdb.set_trace()
 
 def encode_json(data):
-    return json.dumps(data)
+    try:
+        return json.dumps(data, cls=JSONDefaultDictEncoder,)
+    except TypeError:
+        import ipdb; ipdb.set_trace()
 
 def get_rows(response):
     return response.json()['rows']
 
 def get_doc(response):
-    return response.json()
+    data = response.json()
+    if isinstance(data, dict):
+        return AttributeDict(data)
+    return data
 
 def get_key(response, key):
     return response.json()[key]

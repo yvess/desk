@@ -3,7 +3,7 @@ from copy import copy, deepcopy
 import logging
 import json
 import json_diff
-from ..utils import get_doc
+from ..utils import get_doc, AttributeDict
 
 
 class OptionsClassDiff(object):
@@ -26,7 +26,7 @@ class MergedDoc(object):
         merged_doc = None
         empty_keys = []
         if 'template_id' in doc:
-            merged_doc = deepcopy(self.get_template(doc['template_id'], cache_key))
+            merged_doc = deepcopy(self.get_template(doc.template_id, cache_key))
             doc_no_empty = {}
             for item_key in list(doc.keys()):
                 if doc[item_key]:
@@ -39,7 +39,7 @@ class MergedDoc(object):
                     pass
                 else:
                     merged_doc[key] = []
-            del merged_doc['template_id']
+            del merged_doc.template_id
         self.doc = merged_doc if merged_doc else doc
 
     def get_template(self, template_id, cache_key):
@@ -51,7 +51,7 @@ class MergedDoc(object):
             if cache_key not in MergedDoc.cache:
                 MergedDoc.cache[cache_key] = {}
             MergedDoc.cache[cache_key][template_id] = template_doc
-        return template_doc
+        return AttributeDict(template_doc)
 
 
 class VersionDoc(object):

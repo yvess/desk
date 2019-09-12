@@ -5,7 +5,7 @@ import time
 import logging
 import json
 import asyncio
-from desk.utils import ObjectDict, CouchDBSession, CouchDBSessionAsync
+from desk.utils import ObjectDict, CouchDBSession, CouchDBSessionAsync, AttributeDict
 from desk.utils import get_rows, decode_json, encode_json, get_doc, get_key
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
@@ -24,12 +24,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("areq")
 logging.getLogger("chardet.charsetprober").disabled = True
-
-def decode_json(data):
-    return json.loads(data.decode('utf8'))
-
-def get_rows(response):
-    return response.json()['rows']
 
 class Worker(object):
     def __init__(self, settings, hostname=socket.getfqdn()):
@@ -60,20 +54,21 @@ class Worker(object):
         if worker_result:
             self.provides = worker_result.json()[0]['provides']
 
-    def _process_tasks(self, tasks):
+    def _process_task(self, task):
         self.logger.info("ready for processing tasks")
         provider_lookup = {}
+        task = AttributeDict(task)
         for (service_type, services) in self.provides.items():
             for service in services:
                 provider_lookup[service['name']] = service_type
-        for task in tasks:
-            if task['doc']['provider'] in provider_lookup:
-                self._run_tasks(task_id=task['id'], docs=task['doc']['docs'])
+
+            if task.doc.provider in provider_lookup:
+                self._run_tasks(task_id=task.id, docs=task.doc.docs)
 
     def _run_tasks(self, task_id, docs):
         successfull_tasks = []
         for doc_id in docs:
-            doc = self.db.get(doc_id)
+            doc = get_doc(self.db.get(doc_id))
             self.logger.info("do task %s" % task_id)
             was_successfull = self._do_task(doc)
             successfull_tasks.append(was_successfull)
@@ -88,10 +83,10 @@ class Worker(object):
             self.logger.info("task error doc_id: %s" % task_doc['_id'])
 
     def _do_task(self, doc):
-        if doc['type'] in self.provides:
-            for service_settings in self.provides[doc['type']]:
+        if doc.type in self.provides:
+            for service_settings in self.provides[doc.type]:
                 ServiceClass = None
-                doc_type = doc['type']
+                doc_type = doc.type
                 backend = service_settings['backend']
                 backend_class = backend.title()
                 try:
@@ -100,7 +95,7 @@ class Worker(object):
                         backend_class
                     )
                 except AttributeError:
-                    self.logger.error("not found: %s" % doc['_id'])
+                    self.logger.error("not found: %s" % doc._id)
                 if ServiceClass:
                     with ServiceClass(self.settings) as service:
                         updater = Updater(self.db, doc, service)
@@ -119,10 +114,11 @@ class Worker(object):
                 )
                 params.update(item_kwargs)
                 r = self.db.get('_changes', stream=True, params=params)
-                for line in r.iter_content(chunk_size=None, decode_unicode=True):
-                    if line:
-                        logger.info(f'once line {line}')
-                        item_function(decode_json(line))
+                for content in r.iter_content(chunk_size=None):
+                    for line in content.decode('utf8').split('\n'):
+                        if line:
+                            logger.info(f'once line {line}')
+                            item_function(decode_json(line))
                 # c = Consumer(self.db)
                 # items = c.fetch(since=0, **item_kwargs)['results']
                 # if items:
@@ -136,10 +132,11 @@ class Worker(object):
                 )
                 params.update(item_kwargs)
                 r = await self.db_async.get('_changes', stream=True, params=params)
-                for line in r.iter_content(chunk_size=None, decode_unicode=True):
-                    if line:
-                        logger.info(f'async once line {line}')
-                        item_function(decode_json(line))
+                for content in r.iter_content(chunk_size=None):
+                    for line in content.decode('utf8').split('\n'):
+                        if line:
+                            logger.info(f'once line {line}')
+                            item_function(decode_json(line))
                         # print(line)
                         # with ChangesStream(
                         #     self.db, feed="continuous",
@@ -150,7 +147,7 @@ class Worker(object):
 
     def run(self):
         queue_tasks_open = self._create_queue(
-            self._process_tasks, run_once=False,
+            self._process_task, run_once=False,
             **self.queue_kwargs['tasks_open']
         )
 
@@ -165,7 +162,7 @@ class Worker(object):
 
     def run_once(self):
         queue_tasks_open = self._create_queue(
-            self._process_tasks, run_once=True,
+            self._process_task, run_once=True,
             **self.queue_kwargs['tasks_open']
         )
         queue_tasks_open()
@@ -186,50 +183,51 @@ class Foreman(Worker):
         if not isinstance(orders, list):
             orders = [orders]
         for order in orders:
-            order_doc, editor = order['doc'], order['doc']['editor']
             providers, docs = {}, []
             already_processed_orders = []
-            for result in get_rows(self.db_design.get('_view/new_by_editor', params=dict(include_docs='true'))):
-                if result['doc']['_id'] not in already_processed_orders:
-                    doc = MergedDoc(self.db, result['doc'],
-                                    cache_key=order['doc']['_id']).doc
+            items = get_rows(self.db_design.get('_view/new_by_editor', params=dict(include_docs='true')))
+            order_doc = AttributeDict(order['doc'])
+            for item in map(AttributeDict, items):
+                if item.doc._id not in already_processed_orders:
+                    doc = MergedDoc(self.db, item.doc, cache_key=order_doc._id).doc
                     get_providers = getattr(
-                        DOC_TYPES[doc['type']], 'get_providers'
+                        DOC_TYPES[doc.type], 'get_providers'
                     )
                     doc_providers = get_providers(doc)
                     for provider in doc_providers:
                         if provider in providers:
-                            providers[provider].append(result['doc']['_id'])
+                            providers[provider].append(item.doc._id)
                         else:
-                            providers[provider] = [result['doc']['_id']]
+                            providers[provider] = [item.doc._id]
                         providers[provider].sort()
-                    docs.append(result['doc']['_id'])
-            order_doc['providers'] = providers
-            if self._create_tasks(providers=providers, order_id=order_doc["_id"]):
-                order_doc['state'] = 'new_created_tasks'
-            if order_doc['state'] == 'new':
+                    docs.append(item.doc._id)
+
+            order_doc.providers = providers
+            if self._create_tasks(providers=providers, order_id=order_doc._id):
+                order_doc.state = 'new_created_tasks'
+            if order_doc.state == 'new':
                 if providers:
-                    order_doc['state'] = 'error'
+                    order_doc.state = 'error'
                 else:
-                    order_doc['state'] = 'done'
-                    order_doc['text'] = 'empty order'
-            already_processed_orders.append(order_doc['_id'])
-            self.db.put(url='', data=encode_json(order_doc))
+                    order_doc.state = 'done'
+                    order_doc.text = 'empty order'
+            already_processed_orders.append(order_doc._id)
+            self.db.put(url=order_doc._id, data=encode_json(order_doc))
 
     def _create_tasks(self, providers=None, order_id=None):
         created = False
         for provider in providers:
             task_id = f"task-{provider}-{get_key(self.db.get('../_uuids'), 'uuids')[0]}"
             self.logger.info("create task %s" % task_id)
-            doc = {
-                "_id": task_id,
-                "type": "task",
-                "state": "new",
-                "order_id": order_id,
-                "docs": providers[provider],
-                "provider": provider
-            }
-            self.db.put(url='', data=encode_json(doc))
+            doc = AttributeDict(
+                _id=task_id,
+                type="task",
+                state="new",
+                order_id=order_id,
+                docs=providers[provider],
+                provider=provider
+            )
+            self.db.put(url=doc._id, data=encode_json(doc))
             created = True
         return created
 
@@ -284,7 +282,7 @@ class Foreman(Worker):
 
     def run(self):
         queue_tasks_open = self._create_queue(
-            self._process_tasks, one=False,
+            self._process_task, one=False,
             **self.queue_kwargs['tasks_open']
         )
         queue_orders_open = self._create_queue(
@@ -314,7 +312,7 @@ class Foreman(Worker):
         queue_orders_open()
 
         queue_tasks_open = self._create_queue(
-            self._process_tasks, run_once=True,
+            self._process_task, run_once=True,
             **self.queue_kwargs['tasks_open']
         )
         queue_tasks_open()
