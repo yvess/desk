@@ -134,52 +134,6 @@ class AttributeDict(collections.abc.MutableMapping):
         return json.dumps(self.__dict__)
 
 
-class CouchdbUploader(object):
-    def __init__(self, couchdb_uri=None, couchdb_db=None, path=None, auth=()):
-        self.uri = couchdb_uri
-        self.db = couchdb_db
-        self.path = path
-        self.auth = auth
-        if couchdb_uri.count('@') == 1:
-            self.auth = auth_from_uri(couchdb_uri)
-
-    def put(self, data, doc_id, only_status=True):
-        if data[0] == "@":
-            filename = "{}/{}".format(self.path, data[1:])
-            with open(filename, "r") as f:
-                # remove comments in json
-                data = "".join([
-                    l.strip() for l in f.readlines() if not (
-                        l.strip().find("//") == 0
-                    )
-                ])
-        url = "{}/{}/{}".format(
-            self.uri, self.db, doc_id.format(couchdb_db=self.db)
-        )
-        r = requests.put(
-            url, data=data,
-            headers={
-                'Content-type': 'application/json',
-                'Accept': 'text/plain'
-            },
-            auth=self.auth
-        )
-        return r.status_code if only_status else r
-
-    def update(self, handler, doc_id, only_status=True):
-        r = requests.put(
-            "{}/{}/_design/{}/_update/{}/{}".format(
-                self.uri, self.db, self.db, handler,
-                doc_id.format(couchdb_db=self.db)
-            ),
-            headers={
-                'Content-type': 'application/json', 'Accept': 'text/plain'
-            },
-            auth=self.auth
-        )
-        return r.status_code if only_status else r
-
-
 class FilesForCouch(object):
     def __init__(self, data, directory, prefix="", use_id_in_data=False):
         self.data = data
@@ -195,33 +149,6 @@ class FilesForCouch(object):
                 file_parts = self.directory, self.prefix, filename
             with open('{}/{}{}.json'.format(*file_parts), 'w') as outfile:
                 json.dump(content, outfile, indent=4)
-
-
-class CreateJsonFiles(object):
-    def __init__(self, path, docs, couchdb_uri=None, couchdb_db=None):
-        self.path, self.docs, self.couchdb_uri = path, docs, couchdb_uri
-        self.create_files()
-        if couchdb_uri and couchdb_db:
-            self.upload()
-
-    def create_files(self):
-        if os.path.exists(self.path):
-            shutil.rmtree(self.path)
-        os.mkdir(self.path)
-        json_files = FilesForCouch(self.docs, self.path)
-        json_files.create()
-
-    def upload(self):
-        couch_up = CouchdbUploader(
-            path=self.path, couchdb_uri=self.couchdb_uri,
-            couchdb_db=self.couchdb_db
-        )
-
-        for fname in os.listdir(self.path):
-            couch_up.put(
-                data="@{}".format(fname),
-                doc_id=fname[:-5]
-            )
 
 
 class CouchDBSessionMixin:

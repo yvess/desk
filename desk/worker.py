@@ -8,7 +8,7 @@ import argparse
 import locale
 from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
-from desk.command import WorkerCommand, UploadJsonCommand, MigrateCommand
+from desk.command import WorkerCommand, MigrateCommand
 from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
@@ -82,7 +82,6 @@ class SetupWorkerParser(object):
             ('install-db', InstallDbCommand),
             ('install-worker', InstallWorkerCommand),
             ('migrate', MigrateCommand),
-            ('upload-json', UploadJsonCommand),
             ('dns-export-powerdns', PowerdnsExportCommand),
             ('dns-rebuild-powerdns', PowerdnsRebuildCommand),
             ('invoices-create', CreateInvoicesCommand),

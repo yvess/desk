@@ -55,7 +55,7 @@ class Worker(object):
             self.provides = worker_result.json()[0]['provides']
 
     def _process_task(self, task):
-        self.logger.info("ready for processing tasks")
+        self.logger.info('ready for processing tasks')
         provider_lookup = {}
         task = AttributeDict(task)
         for (service_type, services) in self.provides.items():
@@ -69,18 +69,18 @@ class Worker(object):
         successfull_tasks = []
         for doc_id in docs:
             doc = get_doc(self.db.get(doc_id))
-            self.logger.info("do task %s" % task_id)
+            self.logger.info('do task %s' % task_id)
             was_successfull = self._do_task(doc)
             successfull_tasks.append(was_successfull)
         task_doc = get_doc(self.db.get(task_id))
         if all(successfull_tasks):
             task_doc.state = 'done'
             self.db.put(url=task_doc._id, data=encode_json(task_doc))
-            self.logger.info("task done doc_id: %s" % task_doc['_id'])
+            self.logger.info(f'task done doc_id: {task_doc._id}')
         else:
             task_doc.state = 'error'
             self.db.put(url=task_doc._id, data=encode_json(task_doc))
-            self.logger.info("task error doc_id: %s" % task_doc['_id'])
+            self.logger.info(f'task error doc_id: {task_doc._id}')
 
     def _do_task(self, doc):
         if doc.type in self.provides:
@@ -109,7 +109,7 @@ class Worker(object):
         if run_once is True:
             def queue_once():
                 params = dict(
-                    feed='continuous', heartbeat="true", since=0,
+                    feed='continuous', heartbeat='true', since=0,
                     timeout=50000
                 )
                 params.update(item_kwargs)
@@ -117,17 +117,12 @@ class Worker(object):
                 for content in r.iter_content(chunk_size=None):
                     for line in content.decode('utf8').split('\n'):
                         if line:
-                            logger.info(f'once line {line}')
                             item_function(decode_json(line))
-                # c = Consumer(self.db)
-                # items = c.fetch(since=0, **item_kwargs)['results']
-                # if items:
-                #     item_function(items)
             return queue_once
         else:
             async def queue():
                 params = dict(
-                    feed='continuous', heartbeat="true", since="now",
+                    feed='normal', heartbeat='true', since='now',
                     timeout=50000
                 )
                 params.update(item_kwargs)
@@ -135,14 +130,7 @@ class Worker(object):
                 for content in r.iter_content(chunk_size=None):
                     for line in content.decode('utf8').split('\n'):
                         if line:
-                            logger.info(f'once line {line}')
                             item_function(decode_json(line))
-                        # print(line)
-                        # with ChangesStream(
-                        #     self.db, feed="continuous",
-                        #     heartbeat=True, **item_kwargs
-                        # ) as task_items:
-                        #     item_function(task_items)
             return queue
 
     def run(self):
@@ -279,7 +267,7 @@ class Foreman(Worker):
                             params=dict(active_rev=active_rev)
                         )
                 self.db.put(url=order_doc._id, data=encode_json(order_doc))
-                self.logger.info("order state: %s" % order_doc.state)
+                self.logger.info('order state: %s' % order_doc.state)
 
     def run(self):
         queue_tasks_open = self._create_queue(

@@ -4,7 +4,7 @@ import shutil
 from desk.command import SettingsCommand
 from desk.utils import get_crm_module
 from desk.plugin.extcrm.todoyu import Todoyu
-from desk.utils import CouchdbUploader, FilesForCouch
+from desk.utils import FilesForCouch
 
 
 class QueryServices(object):
