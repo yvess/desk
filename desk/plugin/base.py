@@ -3,6 +3,7 @@ from copy import copy, deepcopy
 import logging
 import json
 import json_diff
+from ..utils import get_doc
 
 
 class OptionsClassDiff(object):
@@ -46,7 +47,7 @@ class MergedDoc(object):
            and template_id in MergedDoc.cache[cache_key]:
             template_doc = MergedDoc.cache[cache_key][template_id]
         else:
-            template_doc = self.db.get(template_id)
+            template_doc = get_doc(self.db.get(template_id))
             if cache_key not in MergedDoc.cache:
                 MergedDoc.cache[cache_key] = {}
             MergedDoc.cache[cache_key][template_id] = template_doc

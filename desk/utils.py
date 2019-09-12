@@ -166,7 +166,6 @@ class CouchDBSession(CouchDBSessionMixin, requests.Session):
 class CouchDBSessionAsync(CouchDBSessionMixin, requests_async.Session):
     async def request(self, method, url, *args, **kwargs):
         url = self.create_url(url)
-        print('async request url', url)
         response = await super(requests_async.Session, self).request(
             method, url, *args, **kwargs
         )
@@ -229,3 +228,18 @@ def get_crm_module(settings):
         Crm = getattr(crm_module, 'Dummy')
         crm = Crm()
     return crm
+
+def decode_json(data):
+    return json.loads(data.decode('utf8'))
+
+def encode_json(data):
+    return json.dumps(data)
+
+def get_rows(response):
+    return response.json()['rows']
+
+def get_doc(response):
+    return response.json()
+
+def get_key(response, key):
+    return response.json()[key]

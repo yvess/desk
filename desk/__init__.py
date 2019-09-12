@@ -1,10 +1,12 @@
 import os
+import sys
 import socket
 import time
 import logging
 import json
 import asyncio
 from desk.utils import ObjectDict, CouchDBSession, CouchDBSessionAsync
+from desk.utils import get_rows, decode_json, encode_json, get_doc, get_key
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
 
@@ -14,7 +16,20 @@ DOC_TYPES = {
     'domain': dns
 }
 # logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s:%(name)s: %(message)s",
+    level=logging.DEBUG,
+    datefmt="%H:%M:%S",
+    stream=sys.stderr,
+)
+logger = logging.getLogger("areq")
+logging.getLogger("chardet.charsetprober").disabled = True
 
+def decode_json(data):
+    return json.loads(data.decode('utf8'))
+
+def get_rows(response):
+    return response.json()['rows']
 
 class Worker(object):
     def __init__(self, settings, hostname=socket.getfqdn()):
@@ -22,6 +37,7 @@ class Worker(object):
             self.settings = ObjectDict(**settings)
         self.hostname = hostname
         self.settings = settings
+        self.db_name = self.settings.couchdb_db
         self.db = CouchDBSession.db(settings.couchdb_uri, db_name=settings.couchdb_db)
         self.db_async = CouchDBSessionAsync.db(settings.couchdb_uri, db_name=settings.couchdb_db)
         self.db_design = CouchDBSession.db_design(settings.couchdb_uri, db_name=settings.couchdb_db)
@@ -29,19 +45,16 @@ class Worker(object):
         self._setup_worker()
         self.queue_kwargs = {
             'tasks_open': {
-                'include_docs': True,
-                'filter': self._cmd("tasks_open")
+                'include_docs': 'true',
+                'filter': f'{self.db_name}/tasks_open'
             }
         }
 
         self.logger = logging.getLogger(__name__)
 
-    def _cmd(self, cmd):
-        return "{}/{}".format(self.settings.couchdb_db, cmd)
-
     def _setup_worker(self):
         worker_result = self.db_design.get('_list/list_docs/worker', params=dict(
-            include_docs=True, keys=f'["{self.hostname}"]'
+            include_docs='true', keys=f'["{self.hostname}"]'
         ))
         worker_result.raise_for_status()
         if worker_result:
@@ -67,11 +80,11 @@ class Worker(object):
         task_doc = self.db.get(task_id)
         if all(successfull_tasks):
             task_doc['state'] = 'done'
-            self.db.save_doc(task_doc)
+            self.db.put(url='', data=encode_json(task_doc))
             self.logger.info("task done doc_id: %s" % task_doc['_id'])
         else:
             task_doc['state'] = 'error'
-            self.db.save_doc(task_doc)
+            self.db.put(url='', data=encode_json(task_doc))
             self.logger.info("task error doc_id: %s" % task_doc['_id'])
 
     def _do_task(self, doc):
@@ -101,13 +114,15 @@ class Worker(object):
         if run_once is True:
             def queue_once():
                 params = dict(
-                    feed='normal', heartbeat="true", since=0
+                    feed='continuous', heartbeat="true", since=0,
+                    timeout=50000
                 )
                 params.update(item_kwargs)
-                r = self.db.get('_changes', stream=False, params=params)
-                for line in r.iter_lines():
+                r = self.db.get('_changes', stream=True, params=params)
+                for line in r.iter_content(chunk_size=None, decode_unicode=True):
                     if line:
-                        print(line)
+                        logger.info(f'once line {line}')
+                        item_function(decode_json(line))
                 # c = Consumer(self.db)
                 # items = c.fetch(since=0, **item_kwargs)['results']
                 # if items:
@@ -116,18 +131,21 @@ class Worker(object):
         else:
             async def queue():
                 params = dict(
-                    feed='continuous', heartbeat="true", since="now"
+                    feed='continuous', heartbeat="true", since="now",
+                    timeout=50000
                 )
                 params.update(item_kwargs)
                 r = await self.db_async.get('_changes', stream=True, params=params)
-                for line in r.iter_lines():
+                for line in r.iter_content(chunk_size=None, decode_unicode=True):
                     if line:
-                        print(line)
-                # with ChangesStream(
-                #     self.db, feed="continuous",
-                #     heartbeat=True, **item_kwargs
-                # ) as task_items:
-                #     item_function(task_items)
+                        logger.info(f'async once line {line}')
+                        item_function(decode_json(line))
+                        # print(line)
+                        # with ChangesStream(
+                        #     self.db, feed="continuous",
+                        #     heartbeat=True, **item_kwargs
+                        # ) as task_items:
+                        #     item_function(task_items)
             return queue
 
     def run(self):
@@ -135,6 +153,15 @@ class Worker(object):
             self._process_tasks, run_once=False,
             **self.queue_kwargs['tasks_open']
         )
+
+        loop = asyncio.new_event_loop()
+        tasks_open = loop.create_task(queue_tasks_open())
+
+        try:
+            loop.run_forever()
+        finally:
+            loop.run_until_complete(loop.shutdown_asyncgens())
+            loop.close()
 
     def run_once(self):
         queue_tasks_open = self._create_queue(
@@ -148,23 +175,21 @@ class Foreman(Worker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.queue_kwargs['orders_open'] = {
-            'include_docs': True, 'filter': self._cmd("orders_open")
+            'include_docs': 'true', 'filter': f'{self.db_name}/orders_open'
         }
         self.queue_kwargs['tasks_done'] = {
-            'include_docs': True, 'filter': self._cmd("tasks_done")
+            'include_docs': 'true', 'filter': f'{self.db_name}/tasks_done'
         }
 
     def _process_orders(self, orders):
         self.logger.info("ready for processing orders")
+        if not isinstance(orders, list):
+            orders = [orders]
         for order in orders:
-            self.logger.info("got order %s" % order['doc']['_id'])
             order_doc, editor = order['doc'], order['doc']['editor']
             providers, docs = {}, []
             already_processed_orders = []
-            for result in self.db.view(
-                self._cmd("new_by_editor"), include_docs=True  # process for all editors
-                # self._cmd("new_by_editor"), key=editor, include_docs=True
-            ):
+            for result in get_rows(self.db_design.get('_view/new_by_editor', params=dict(include_docs='true'))):
                 if result['doc']['_id'] not in already_processed_orders:
                     doc = MergedDoc(self.db, result['doc'],
                                     cache_key=order['doc']['_id']).doc
@@ -189,12 +214,12 @@ class Foreman(Worker):
                     order_doc['state'] = 'done'
                     order_doc['text'] = 'empty order'
             already_processed_orders.append(order_doc['_id'])
-            self.db.save_doc(order_doc)
+            self.db.put(url='', data=encode_json(order_doc))
 
     def _create_tasks(self, providers=None, order_id=None):
         created = False
         for provider in providers:
-            task_id = "task-{}-{}".format(provider, self.server.next_uuid())
+            task_id = f"task-{provider}-{get_key(self.db.get('../_uuids'), 'uuids')[0]}"
             self.logger.info("create task %s" % task_id)
             doc = {
                 "_id": task_id,
@@ -204,7 +229,7 @@ class Foreman(Worker):
                 "docs": providers[provider],
                 "provider": provider
             }
-            self.db.save_doc(doc)
+            self.db.put(url='', data=encode_json(doc))
             created = True
         return created
 
@@ -218,8 +243,8 @@ class Foreman(Worker):
             providers_done = order_doc['providers_done']
             providers_done.append(task_doc['provider'])
             task_doc['state'] = 'done_checked'
-            self.db.save_doc(task_doc)
-            self.db.save_doc(order_doc)
+            self.db.put(url='', data=encode_json(task_doc))
+            self.db.put(url='', data=encode_json(order_doc))
             self.logger.info(
                 "updating order for task %s, state: %s" % (task['doc']['_id'], order_doc['state'])
             )
@@ -241,7 +266,7 @@ class Foreman(Worker):
 
                     # update state
                     self.db.update(
-                        self._cmd('set-state'), doc_id=doc_id, state=next_state
+                        f'{self.db_name}/set-state', doc_id=doc_id, state=next_state
                     )
                     if next_state == 'active':
                         # save attachment of active doc
@@ -252,9 +277,9 @@ class Foreman(Worker):
                             name=active_rev, content_type="application/json"
                         )
                         self.db.update(
-                            self._cmd('set-active-rev'), doc_id=doc_id, active_rev=active_rev
+                            f'{self.db_name}/set-active-rev', doc_id=doc_id, active_rev=active_rev
                         )
-                self.db.save_doc(order_doc)
+                self.db.put(url='', data=encode_json(order_doc))
                 self.logger.info("order state: %s" % order_doc['state'])
 
     def run(self):
