@@ -273,28 +273,40 @@ def get_crm_module(settings):
         crm = Crm()
     return crm
 
-def decode_json(data):
+def decode_json(data, child=None):
     data = data if isinstance(data, str) else data.decode('utf8')
-    return json.loads(data)
+    json_data = json.loads(data)
+        if child:
+            return json_data[child]
+        return json_data
+    # for debug
     # try:
-    #     return json.loads(data.decode('utf8'))
+    #     json_data = json.loads(data)
+    #     if child:
+    #         return json_data[child]
+    #     return json_data
     # except json.decoder.JSONDecodeError:
     #     import ipdb; ipdb.set_trace()
 
 def encode_json(data):
-    try:
-        return json.dumps(data, cls=JSONDefaultDictEncoder)
-    except TypeError:
-        import ipdb; ipdb.set_trace()
+    return json.dumps(data, cls=JSONDefaultDictEncoder)
+    # for debug
+    # try:
+    #     return json.dumps(data, cls=JSONDefaultDictEncoder)
+    # except TypeError:
+    #     import ipdb; ipdb.set_trace()
 
 def get_rows(response):
     return response.json()['rows']
 
 def get_doc(response):
     data = response.json()
+    if 'doc' in data:
+        data = data['doc']
     if isinstance(data, dict):
         return AttributeDict(data)
     return data
 
 def get_key(response, key):
-    return response.json()[key]
+    json_data = response.json()[key]
+    return json_data

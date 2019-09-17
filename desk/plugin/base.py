@@ -92,13 +92,12 @@ class Updater(object):
             self.active_doc = MergedDoc(db, active_doc_json).doc
         service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
-            pass
-            # TODO:fix
-            # try:
-            #     lookup_map_doc = db.get(service.map_doc_id)
-            #     service.set_lookup_map(lookup_map_doc)
-            # except ResourceNotFound:
-            #     pass
+            TODO:fix
+            try:
+                lookup_map_doc = get_doc(self.db.get(service.map_doc_id))
+                service.set_lookup_map(lookup_map_doc)
+            except ResourceNotFound:
+                pass
         self.service = service
         if self.active_doc and doc.state == 'changed':
             diff = self._create_diff()
@@ -180,7 +179,6 @@ class Updater(object):
 
     def do_task(self):
         was_successfull = False
-        # print('do_task', self.task)
         if self.task:
             was_successfull = self.task()
         return was_successfull
