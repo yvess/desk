@@ -50,6 +50,8 @@ class QueryServices(object):
                 self._cmd(couchdb_view),
                 startkey=startkey, endkey=endkey, include_docs=True):
             if 'extcrm_id' in item['doc']:
+                if 'state' in item['doc'] and item['doc']['state'] == 'deleted':
+                   continue
                 client_doc  = item['doc']
                 extcrm_id = client_doc['extcrm_id']
                 service_name = '-'.join([part for part in item['key'] if part])
