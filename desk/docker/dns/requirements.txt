@@ -17,7 +17,7 @@ coverage==3.7.1
 cssselect==0.9.1
 #-e git+https://github.com/yvess/desk.git@f9cfcd166d8f89f9d8b4c88a37b43620b2d4f5ea#egg=desk-master
 dnspython==1.12.0
-ecdsa==0.11
+ecdsa==0.13.3
 ezodf==0.2.5
 gevent==1.1.1
 greenlet==0.4.4
