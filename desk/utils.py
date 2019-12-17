@@ -185,6 +185,7 @@ class CouchDBSessionMixin:
 
     def request(self, method, url, *args, **kwargs):
         url = self.create_url(url)
+        print('CouchDBSession', url)
         response = super().request(
             method, url, *args, **kwargs
         )
@@ -210,9 +211,11 @@ class CouchDBSession(CouchDBSessionMixin, requests.Session):
 class CouchDBSessionAsync(CouchDBSessionMixin, requests_async.Session):
     async def request(self, method, url, *args, **kwargs):
         url = self.create_url(url)
+        print('CouchDBSessionAsync', url, kwargs)
         response = await super(requests_async.Session, self).request(
             method, url, *args, **kwargs
         )
+        print('CouchDBSessionAsync response', response)
         if 'ETag' in response.headers: # set couchdb rev in respone
             response.rev = response.headers['ETag'].replace('"','')
         else:
@@ -276,9 +279,9 @@ def get_crm_module(settings):
 def decode_json(data, child=None):
     data = data if isinstance(data, str) else data.decode('utf8')
     json_data = json.loads(data)
-        if child:
-            return json_data[child]
-        return json_data
+    if child:
+        return json_data[child]
+    return json_data
     # for debug
     # try:
     #     json_data = json.loads(data)

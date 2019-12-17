@@ -1,6 +1,5 @@
-function(doc, req) {
+function(doc) {
     if (doc.type == 'order' && doc.state == 'new') {
-        return true;
+        emit(doc._id);
     }
-    return false;
 }

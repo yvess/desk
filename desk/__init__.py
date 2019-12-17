@@ -106,30 +106,25 @@ class Worker(object):
             self.logger.error("I doesn't provide the requested service")
             raise Exception("I doesn't provide the requested service")
 
-    def _create_queue(self, item_function, run_once=False, **item_kwargs):
+    def _create_queue(self, item_function, run_once=False, queue_name=''):
         if run_once is True:
             def queue_once():
-                params = dict(
-                    feed='normal', since=0
-                )
-                params.update(item_kwargs)
-                response = self.db.get('_changes', params=params)
-                results = get_key(response, key='results')
-                if results:
-                    item_function(results)
-                # for content in r.iter_content(chunk_size=None):
-                #     line = content.decode('utf8')
-                #     if line:
-                #         item_function(decode_json(line, child='results'))
+                items = get_rows(self.db_design.get(f'_view/{queue_name}', params={'include_docs': 'true'}))
+                if items:
+                    item_function(items)
             return queue_once
         else:
             async def queue():
+                items = get_rows(self.db_design.get(f'_view/{queue_name}', params={'include_docs': 'true'}))
+                if items:
+                    item_function(items)
+
                 params = dict(
-                    feed='continuous', heartbeat='true',
-                    since='now', timeout=50000
+                    feed='continuous', heartbeat='true', # continuous, eventsource
+                    since='now', timeout=60
                 )
-                params.update(item_kwargs)
-                response = await self.db_async.get('_changes', stream=True, params=params)
+                params.update(**self.queue_kwargs[queue_name])
+                response = await self.db_async.get('_changes', params=params)
                 for content in response.iter_content(chunk_size=None):
                     for line in content.decode('utf8').split('\n'):
                         if line:
@@ -138,8 +133,7 @@ class Worker(object):
 
     def run(self):
         queue_tasks_open = self._create_queue(
-            self._process_tasks, run_once=False,
-            **self.queue_kwargs['tasks_open']
+            self._process_tasks, run_once=False, queue_name='tasks_open'
         )
 
         loop = asyncio.new_event_loop()
@@ -153,8 +147,7 @@ class Worker(object):
 
     def run_once(self):
         queue_tasks_open = self._create_queue(
-            self._process_tasks, run_once=True,
-            **self.queue_kwargs['tasks_open']
+            self._process_tasks, run_once=True, queue_name='tasks_open'
         )
         queue_tasks_open()
 
@@ -278,16 +271,13 @@ class Foreman(Worker):
 
     def run(self):
         queue_tasks_open = self._create_queue(
-            self._process_tasks, one=False,
-            **self.queue_kwargs['tasks_open']
+            self._process_tasks, run_once=False, queue_name='tasks_open'
         )
         queue_orders_open = self._create_queue(
-            self._process_orders, one=False,
-            **self.queue_kwargs['orders_open']
+            self._process_orders, run_once=False, queue_name='orders_open'
         )
         queue_tasks_done = self._create_queue(
-            self._update_order, one=False,
-            **self.queue_kwargs['tasks_done']
+            self._update_order, run_once=False, queue_name='tasks_done'
         )
         loop = asyncio.new_event_loop()
         tasks_open = loop.create_task(queue_tasks_open())
@@ -302,19 +292,16 @@ class Foreman(Worker):
 
     def run_once(self):
         queue_orders_open = self._create_queue(
-            self._process_orders, run_once=True,
-            **self.queue_kwargs['orders_open']
+            self._process_orders, run_once=True, queue_name='orders_open'
         )
         queue_orders_open()
 
         queue_tasks_open = self._create_queue(
-            self._process_tasks, run_once=True,
-            **self.queue_kwargs['tasks_open']
+            self._process_tasks, run_once=True, queue_name='tasks_open'
         )
         queue_tasks_open()
 
         queue_tasks_done = self._create_queue(
-            self._update_order, run_once=True,
-            **self.queue_kwargs['tasks_done']
+            self._update_order, run_once=True, queue_name='tasks_done'
         )
         queue_tasks_done()

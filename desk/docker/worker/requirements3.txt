@@ -1,3 +1,4 @@
+aiohttp==3.6.2
 altgraph==0.16.1
 backcall==0.1.0
 cairocffi==1.0.2
