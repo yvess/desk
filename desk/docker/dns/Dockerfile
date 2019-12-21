@@ -1,4 +1,4 @@
-FROM yvess/desk-worker:0.2.0
+FROM yvess/desk-worker:0.2.1
 MAINTAINER Yves Serrano <y@yas.ch>
 
 RUN apk add --no-cache \
