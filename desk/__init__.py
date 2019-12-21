@@ -129,7 +129,8 @@ class Worker(object):
                     async for line in response.content:
                         line_str = line.decode('utf8').strip()
                         if line_str:
-                            item_function([decode_json(line_str)])
+                            data = decode_json(line_str)
+                            item_function([data])
             return queue
 
     def run(self):
@@ -138,7 +139,7 @@ class Worker(object):
         )
 
         loop = asyncio.get_event_loop()
-        asyncio.run(queue_tasks_open())
+        loop.create_task(queue_tasks_open())
 
         try:
             loop.run_forever()
@@ -282,9 +283,9 @@ class Foreman(Worker):
         )
 
         loop = asyncio.get_event_loop()
-        asyncio.run(queue_orders_open())
-        asyncio.run(queue_orders_open())
-        asyncio.run(queue_tasks_done())
+        loop.create_task(queue_tasks_open())
+        loop.create_task(queue_orders_open())
+        loop.create_task(queue_tasks_done())
 
         try:
             loop.run_forever()
