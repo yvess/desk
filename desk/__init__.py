@@ -33,8 +33,8 @@ class Worker(object):
         self.settings = settings
         self.db_name = self.settings.couchdb_db
         self.db = CouchDBSession.db(settings.couchdb_uri, db_name=settings.couchdb_db)
-        self.db_async = CouchDBSessionAsync.db(settings.couchdb_uri, db_name=settings.couchdb_db)
         self.db_design = CouchDBSession.db_design(settings.couchdb_uri, db_name=settings.couchdb_db)
+        self.db_async = lambda: CouchDBSessionAsync.db(settings.couchdb_uri, db_name=settings.couchdb_db)
         self.provides = {}
         self._setup_worker()
         self.queue_kwargs = {
@@ -107,6 +107,7 @@ class Worker(object):
             raise Exception("I doesn't provide the requested service")
 
     def _create_queue(self, item_function, run_once=False, queue_name=''):
+        # print('_create_queue', queue_name)
         if run_once is True:
             def queue_once():
                 items = get_rows(self.db_design.get(f'_view/{queue_name}', params={'include_docs': 'true'}))
@@ -124,11 +125,11 @@ class Worker(object):
                     since='now', timeout=60
                 )
                 params.update(**self.queue_kwargs[queue_name])
-                response = await self.db_async.get('_changes', params=params)
-                for content in response.iter_content(chunk_size=None):
-                    for line in content.decode('utf8').split('\n'):
-                        if line:
-                            item_function([decode_json(line)])
+                async with self.db_async().get('_changes', params=params) as response: # _changes
+                    async for line in response.content:
+                        line_str = line.decode('utf8').strip()
+                        if line_str:
+                            item_function([decode_json(line_str)])
             return queue
 
     def run(self):
@@ -136,8 +137,8 @@ class Worker(object):
             self._process_tasks, run_once=False, queue_name='tasks_open'
         )
 
-        loop = asyncio.new_event_loop()
-        tasks_open = loop.create_task(queue_tasks_open())
+        loop = asyncio.get_event_loop()
+        asyncio.run(queue_tasks_open())
 
         try:
             loop.run_forever()
@@ -279,10 +280,11 @@ class Foreman(Worker):
         queue_tasks_done = self._create_queue(
             self._update_order, run_once=False, queue_name='tasks_done'
         )
-        loop = asyncio.new_event_loop()
-        tasks_open = loop.create_task(queue_tasks_open())
-        orders_open = loop.create_task(queue_orders_open())
-        tasks_done = loop.create_task(queue_tasks_done())
+
+        loop = asyncio.get_event_loop()
+        asyncio.run(queue_orders_open())
+        asyncio.run(queue_orders_open())
+        asyncio.run(queue_tasks_done())
 
         try:
             loop.run_forever()
