@@ -5,7 +5,7 @@ Cython==0.21
 Jinja2==2.7.3
 MarkupSafe==0.23
 PyMySQL==0.6.2
-PyYAML==3.11
+PyYAML==5.4
 Pyphen==0.9.1
 WeasyPrint==0.23
 ansible==1.7.2
