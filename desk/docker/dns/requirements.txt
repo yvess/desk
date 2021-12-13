@@ -1,5 +1,5 @@
 ## The following requirements were added by pip --freeze:
-lxml==3.4.0
+lxml==4.6.5
 CairoSVG==1.0.9
 Cython==0.21
 Jinja2==2.7.3
