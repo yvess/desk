@@ -50,5 +50,8 @@ enter-ansible:
 	--link desk_cdb_1:cdb_1 --link desk_foreman_1:foreman_1 --link desk_dnsa_1:dnsa_1 --link desk_dnsb_1:dnsb_1 \
 	-h ansible --entrypoint bash yvess/ansible-master
 
+bundle:
+	pyinstaller -F -n dworker worker.py
+
 up:
 	docker-compose -f docker-compose.yml -f docker-extra.yml up -d

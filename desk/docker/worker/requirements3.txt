@@ -1,4 +1,5 @@
 aiohttp==3.6.2
+altgraph==0.17.2
 appdirs==1.4.4
 async-timeout==3.0.1
 attrs==21.4.0
@@ -13,7 +14,6 @@ colorama==0.4.4
 contextlib2==0.6.0
 cssselect2==0.4.1
 decorator==5.0.9
-desk==0.1
 distlib==0.3.1
 distro==1.5.0
 dnspython==2.2.0
@@ -47,6 +47,8 @@ ptyprocess==0.7.0
 pycparser==2.21
 pydyf==0.1.2
 Pygments==2.9.0
+pyinstaller==4.9
+pyinstaller-hooks-contrib==2022.2
 PyMySQL==1.0.2
 pyparsing==2.4.7
 pyphen==0.12.0

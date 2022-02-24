@@ -5,12 +5,14 @@ import re
 import signal
 from configparser import ConfigParser
 import argparse
-import locale
+import os
 from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
 from desk.command import WorkerCommand, MigrateCommand
+is_foreman = True if os.environ.get('WORKER_TYPE', 'worker') == 'foreman' else False
 from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
-from desk.plugin.invoice.cmd import CreateInvoicesCommand
+if is_foreman:
+    from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
 
 
@@ -84,9 +86,10 @@ class SetupWorkerParser(object):
             ('migrate', MigrateCommand),
             ('dns-export-powerdns', PowerdnsExportCommand),
             ('dns-rebuild-powerdns', PowerdnsRebuildCommand),
-            ('invoices-create', CreateInvoicesCommand),
             ('service-query', QueryServiceCommand),
         ])
+        if is_foreman:
+            self.commands['invoices-create'] = CreateInvoicesCommand
 
         for command_name, command in list(self.commands.items()):
             name_snake = to_snake_case(command.__name__)
