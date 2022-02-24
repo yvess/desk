@@ -17,6 +17,7 @@ RUN apk update && apk add --no-cache \
         bind-tools \
         ttf-freefont \
         binutils \
+        wget \
         jq
 ARG S6_OVERLAY_VERSION="3.0.0.2-2"
 RUN curl -Ls https://github.com/just-containers/s6-overlay/releases/download/v$S6_OVERLAY_VERSION/s6-overlay-noarch-$S6_OVERLAY_VERSION.tar.xz | tar xJ -C / \

@@ -2,6 +2,7 @@ FROM alpine:3.14
 MAINTAINER Yves Serrano <y@yas.ch>
 RUN apk add --no-cache \
         curl \
+        wget \
         pdns \
         pdns-backend-sqlite3 && \
     rm -rf /var/cache/apk/*

@@ -40,7 +40,7 @@ if [ $WORKER_TYPE = "foreman" ]; then
     # creating desk_drawer database
     curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer|cat|grep -q -E "HTTP.*200|HTTP.*401"
     if [ $? -ne 0 ]; then # db desk_drawer does not exist
-        cd /opt/app/desk && python3 ./dworker install-db
+        cd /opt/app/desk && ./dworker install-db
         echo "* created desk_drawer database"
     fi
 
@@ -61,7 +61,7 @@ if [ "$TESTING" == "NO" ]; then
     done
     curl -Is -u "${COUCHDB_ADMIN}:${COUCHDB_ADMINPASS}" "http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer/worker-${FQHOSTNAME}"|cat|grep -q -E "HTTP.*404"
     if [ $? -eq 0 ]; then # worker doesn't exist
-        cd /opt/app/desk && python3 ./dworker install-worker
+        cd /opt/app/desk && ./dworker install-worker
         echo "* registred worker"
     fi
 fi
