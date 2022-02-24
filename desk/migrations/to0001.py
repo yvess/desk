@@ -1,3 +1,5 @@
+from desk.utils import encode_json
+
 def main(doc, doc_type, db):
     def domainMigration(doc):
         # convert @ip_ -> $ip_ variables
@@ -61,4 +63,4 @@ def main(doc, doc_type, db):
         migrate = doc_types[doc['type']]
         migrate(doc)
     doc['version'] = 1
-    db.save_doc(doc)
+    db.put(url=doc['_id'], data=encode_json(doc))

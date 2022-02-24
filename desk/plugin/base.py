@@ -70,7 +70,7 @@ class VersionDoc(object):
         del self.doc['_rev']
         new_doc_merged.update(self.doc)
         self.doc = new_doc_merged
-        self.db.save_doc(self.doc)
+        self.db.put(url=self.doc['_id'], data=encode_json(self.doc))
 
 
 class Updater(object):

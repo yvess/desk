@@ -4,7 +4,7 @@ import logging
 import time
 import glob
 import json
-from desk.utils import ObjectDict, CouchDBSession
+from desk.utils import ObjectDict, CouchDBSession, encode_json
 from desk import Worker, Foreman
 from desk import migrations
 
@@ -136,11 +136,11 @@ class InstallWorkerCommand(SettingsCommandDb):
                 provides['domain'].append({'backend': backend, 'name': name})
 
         worker_id = "worker-{}".format(self.hostname)
-        d = {
+        worker_doc = {
             "_id": worker_id, "type": "worker", "hostname": self.hostname,
             "provides": provides
         }
-        self.db.save_doc(d)
+        self.db.put(url=worker_doc['_id'], data=encode_json(worker_doc))
 
 
 class MigrateCommand(SettingsCommandDb):
