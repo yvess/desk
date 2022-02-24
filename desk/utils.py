@@ -1,14 +1,8 @@
-
-import time
 from datetime import date, datetime
+from contextlib import asynccontextmanager
 import uuid
-import os
-import shutil
 import json
-import requests
-import requests_async
-from aiohttp import client
-from aiohttp import BasicAuth
+import httpx
 import re
 import collections
 from json import JSONEncoder
@@ -153,7 +147,7 @@ class FilesForCouch(object):
                 json.dump(content, outfile, indent=4)
 
 
-class CouchDBSessionMixin:
+class CouchDBClientMixin:
     base_url = None
 
     @classmethod
@@ -164,42 +158,39 @@ class CouchDBSessionMixin:
         else:
             port = 80
         base_url = f'{proto}://{host}:{port}/'
-        auth = dict(user=user, password=password)
+        auth = (user, password)
         return base_url, auth
 
-    def create_url(self, path):
-        return urljoin(self.base_url, path)
-
-
-class CouchDBSession(CouchDBSessionMixin, requests.Session):
     @classmethod
     def db(cls, couchdb_uri=None, db_name=None):
         base_url, auth = cls._basic_base_url(couchdb_uri)
         base_url = f'{base_url}/{db_name}/'
-        return cls(base_url, auth, db_name)
+        return cls(base_url=base_url, auth=auth)
 
     @classmethod
     def db_design(cls, couchdb_uri=None, db_name=None):
         base_url, auth = cls._basic_base_url(couchdb_uri)
         base_url = f'{base_url}/{db_name}/_design/{db_name}/'
-        return cls(base_url, auth, db_name)
+        return cls(base_url=base_url, auth=auth)
 
-    def __init__(self, base_url=None, auth={}, db_name=None):
-        self.base_url = base_url
-        self.db_name = db_name
-        super().__init__()
-        self.auth = auth['user'], auth['password']
+    # def create_url(self, path):
+    #     return urljoin(self.base_url, path)
 
-    def request(self, method, url, *args, **kwargs):
-        url = self.create_url(url)
-        response = super().request(
-            method, url, *args, **kwargs
-        )
-        if 'ETag' in response.headers: # set couchdb rev in respone
-            response.rev = response.headers['ETag'].replace('"','')
-        else:
-            response.rev = None
-        return response
+
+class CouchDBClient(httpx.Client, CouchDBClientMixin):
+    # def __init__(self, base_url=None, auth=()):
+    #     super().__init__(base_url=base_url, auth=auth)
+
+    # def request(self, method, url, *args, **kwargs):
+    #     url = self.create_url(url)
+    #     response = super().request(
+    #         method, url, *args, **kwargs
+    #     )
+    #     if 'ETag' in response.headers: # set couchdb rev in respone
+    #         response.rev = response.headers['ETag'].replace('"','')
+    #     else:
+    #         response.rev = None
+    #     return response
 
     def rev(self, url):
         url = self.create_url(url)
@@ -207,32 +198,15 @@ class CouchDBSession(CouchDBSessionMixin, requests.Session):
         return response.rev
 
 
-class CouchDBSessionAsync(CouchDBSessionMixin, client.ClientSession):
-    @classmethod
-    def db(cls, couchdb_uri=None, db_name=None):
-        base_url, auth = cls._basic_base_url(couchdb_uri)
-        base_url = f'{base_url}/{db_name}/'
-        return cls(base_url=base_url, auth=auth, db_name=db_name)
-
-    @classmethod
-    def db_design(cls, couchdb_uri=None, db_name=None):
-        base_url, auth = cls._basic_base_url(couchdb_uri)
-        base_url = f'{base_url}/{db_name}/_design/{db_name}/'
-        return cls(base_url=base_url, auth=auth, db_name=db_name)
-
-    def __init__(self, base_url=None, auth={}, db_name=None):
-        self.base_url = base_url
-        self.db_name = db_name
-        super().__init__(auth=BasicAuth(login=auth['user'], password= auth['password']))
-
-    async def _request(self, method, str_or_url, **kwargs):
-        str_or_url = self.create_url(str_or_url)
-        response = await super()._request(method, str_or_url, **kwargs)
-        if 'ETag' in response.headers: # set couchdb rev in respone
-            response.rev = response.headers['ETag'].replace('"','')
-        else:
-            response.rev = None
-        return response
+class CouchDBClientAsync(httpx.AsyncClient, CouchDBClientMixin):
+    # async def _request(self, method, str_or_url, **kwargs):
+    #     str_or_url = self.create_url(str_or_url)
+    #     response = await super()._request(method, str_or_url, **kwargs)
+    #     if 'ETag' in response.headers: # set couchdb rev in respone
+    #         response.rev = response.headers['ETag'].replace('"','')
+    #     else:
+    #         response.rev = None
+    #     return response
 
     async def rev(self, str_or_url):
         str_or_url = self.create_url(str_or_url)
@@ -312,7 +286,9 @@ def encode_json(data):
     #     import ipdb; ipdb.set_trace()
 
 def get_rows(response):
-    return response.json()['rows']
+    if response.text.startswith('{') or response.text.startswith('['):
+        return response.json()['rows']
+    return None
 
 def get_doc(response):
     data = response.json()

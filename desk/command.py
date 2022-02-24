@@ -4,7 +4,7 @@ import logging
 import time
 import glob
 import json
-from desk.utils import ObjectDict, CouchDBSession, encode_json
+from desk.utils import ObjectDict, CouchDBClient, encode_json
 from desk import Worker, Foreman
 from desk import migrations
 
@@ -24,7 +24,7 @@ class SettingsCommand(object):
 class SettingsCommandDb(SettingsCommand):
     def set_settings(self, settings, hostname=socket.getfqdn()):
         super().set_settings(settings, hostname)
-        self.db = CouchDBSession.db(self.settings.couchdb_uri, db_name=self.settings.couchdb_db)
+        self.db = CouchDBClient.db(self.settings.couchdb_uri, db_name=self.settings.couchdb_db)
 
     def _cmd(self, cmd):
         return "{}/{}".format(self.settings.couchdb_db, cmd)

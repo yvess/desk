@@ -5,7 +5,7 @@ import time
 import logging
 import json
 import asyncio
-from desk.utils import ObjectDict, CouchDBSession, CouchDBSessionAsync, AttributeDict
+from desk.utils import ObjectDict, CouchDBClient, CouchDBClientAsync, AttributeDict
 from desk.utils import get_rows, decode_json, encode_json, get_doc, get_key
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
@@ -32,9 +32,9 @@ class Worker(object):
         self.hostname = hostname
         self.settings = settings
         self.db_name = self.settings.couchdb_db
-        self.db = CouchDBSession.db(settings.couchdb_uri, db_name=settings.couchdb_db)
-        self.db_design = CouchDBSession.db_design(settings.couchdb_uri, db_name=settings.couchdb_db)
-        self.db_async = lambda: CouchDBSessionAsync.db(settings.couchdb_uri, db_name=settings.couchdb_db)
+        self.db = CouchDBClient.db(settings.couchdb_uri, db_name=settings.couchdb_db)
+        self.db_async = lambda: CouchDBClientAsync.db(settings.couchdb_uri, db_name=settings.couchdb_db)
+        self.db_design = CouchDBClient.db_design(settings.couchdb_uri, db_name=settings.couchdb_db)
         self.provides = {}
         self._setup_worker()
         self.queue_kwargs = {
@@ -121,15 +121,14 @@ class Worker(object):
                     item_function(items)
 
                 params = dict(
-                    feed='continuous', heartbeat='true', # continuous, eventsource
-                    since='now', timeout=60
+                    feed='continuous', heartbeat=30000, since='now'
                 )
                 params.update(**self.queue_kwargs[queue_name])
-                async with self.db_async().get('_changes', params=params) as response: # _changes
-                    async for line in response.content:
-                        line_str = line.decode('utf8').strip()
-                        if line_str:
-                            data = decode_json(line_str)
+                async with self.db_async().stream('GET', '_changes', params=params, timeout=None) as response: # _changes
+                    async for line in response.aiter_lines():
+                        line = line.strip()
+                        if line and line.startswith('{') or line.startswith('['):
+                            data = decode_json(line)
                             item_function([data])
             return queue
 
