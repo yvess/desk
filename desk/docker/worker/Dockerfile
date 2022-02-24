@@ -1,8 +1,6 @@
 FROM alpine:3.14
 MAINTAINER Yves Serrano <y@yas.ch>
-ARG S6_OVERLAY_VERSION="3.0.0.2-2"
-
-RUN apk update && apk add \
+RUN apk update && apk add --no-cache \
         curl \
         python3 \
         python3-dev \
@@ -18,11 +16,13 @@ RUN apk update && apk add \
         cairo \
         bind-tools \
         ttf-freefont \
+        binutils \
         jq
+ARG S6_OVERLAY_VERSION="3.0.0.2-2"
 RUN curl -Ls https://github.com/just-containers/s6-overlay/releases/download/v$S6_OVERLAY_VERSION/s6-overlay-noarch-$S6_OVERLAY_VERSION.tar.xz | tar xJ -C / \
     && curl -Ls https://github.com/just-containers/s6-overlay/releases/download/v$S6_OVERLAY_VERSION/s6-overlay-x86_64-$S6_OVERLAY_VERSION.tar.xz | tar xJ -C /
 ADD requirements3.txt /tmp/requirements3.txt
-RUN apk add \
+RUN apk add --no-cache \
         build-base \
         readline-dev \
         git \
