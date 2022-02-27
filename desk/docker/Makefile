@@ -27,6 +27,10 @@ build_dns:
 
 build: build_worker build_dns
 
+push:
+	docker push yvess/desk-worker:$(worker_version)
+	docker push yvess/desk-dns:$(dns_version)
+
 pull:
 	docker pull yvess/desk-worker
 	docker pull yvess/desk-dns
