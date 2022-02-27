@@ -93,7 +93,7 @@ class Updater(object):
         self.service = service
         self.service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
-            # TODO:fix
+            # TODO:fix
             try:
                 lookup_map_doc = get_doc(self.db.get(self.service.map_doc_id))
                 self.service.set_lookup_map(lookup_map_doc)
@@ -111,7 +111,7 @@ class Updater(object):
         return doc
 
     def _create_diff(self):
-        active_doc = self._remove_attachment(self.service.active_doc) # old_doc
+        active_doc = self._remove_attachment(self.service.active_doc) # old_doc
         doc = self._remove_attachment(self.service.doc) # new_doc
         diffator = json_diff.Comparator(
             StringIO(encode_json(active_doc)),
