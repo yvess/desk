@@ -117,8 +117,8 @@ class Updater(object):
         active_doc = self._remove_attachment(self.service.active_doc) # old_doc
         doc = self._remove_attachment(self.service.doc) # new_doc
         diffator = json_diff.Comparator(
-            StringIO(encode_json(active_doc)),
-            StringIO(encode_json(doc)),
+            StringIO(json.dumps(active_doc)),
+            StringIO(json.dumps(doc)),
             opts=OptionsClassDiff()
         )
         diff = diffator.compare_dicts()
