@@ -261,7 +261,8 @@ class Foreman(Worker):
                         active_rev = active_doc._rev
                         self.db.put(
                             url=f'{active_doc._id}/{active_rev}',
-                            data=encode_json(active_doc)
+                            data=encode_json(active_doc),
+                            params=dict(rev=active_rev)
                         )
                         self.db_design.put(
                             url=f'_update/set-active-rev/{doc_id}',
