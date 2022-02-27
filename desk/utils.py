@@ -157,20 +157,20 @@ class CouchDBClientMixin:
             host, port = host.split(":")
         else:
             port = 80
-        base_url = f'{proto}://{host}:{port}/'
+        base_url = f'{proto}://{host}:{port}'
         auth = (user, password)
         return base_url, auth
 
     @classmethod
     def db(cls, couchdb_uri=None, db_name=None):
         base_url, auth = cls._basic_base_url(couchdb_uri)
-        base_url = f'{base_url}/{db_name}/'
+        base_url = f'{base_url}/{db_name}'
         return cls(base_url=base_url, auth=auth)
 
     @classmethod
     def db_design(cls, couchdb_uri=None, db_name=None):
         base_url, auth = cls._basic_base_url(couchdb_uri)
-        base_url = f'{base_url}/{db_name}/_design/{db_name}/'
+        base_url = f'{base_url}/{db_name}/_design/{db_name}'
         return cls(base_url=base_url, auth=auth)
 
 def response_add_rev(response):
