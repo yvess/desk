@@ -173,44 +173,30 @@ class CouchDBClientMixin:
         base_url = f'{base_url}/{db_name}/_design/{db_name}/'
         return cls(base_url=base_url, auth=auth)
 
-    # def create_url(self, path):
-    #     return urljoin(self.base_url, path)
-
+def response_add_rev(response):
+    if 'ETag' in response.headers: # set couchdb rev in respone
+        response.rev = response.headers['ETag'].replace('"','')
+    else:
+        response.rev = None
+    return response
 
 class CouchDBClient(httpx.Client, CouchDBClientMixin):
-    # def __init__(self, base_url=None, auth=()):
-    #     super().__init__(base_url=base_url, auth=auth)
+    def request(self, *args, **kwargs):
+        response = super().request(*args, **kwargs)
+        return response_add_rev(response)
 
-    # def request(self, method, url, *args, **kwargs):
-    #     url = self.create_url(url)
-    #     response = super().request(
-    #         method, url, *args, **kwargs
-    #     )
-    #     if 'ETag' in response.headers: # set couchdb rev in respone
-    #         response.rev = response.headers['ETag'].replace('"','')
-    #     else:
-    #         response.rev = None
-    #     return response
-
-    def rev(self, url):
-        url = self.create_url(url)
-        response = self.request('head', url)
+    def rev(self, *args, **kwargs):
+        response = self.head(*args, **kwargs)
         return response.rev
 
 
 class CouchDBClientAsync(httpx.AsyncClient, CouchDBClientMixin):
-    # async def _request(self, method, str_or_url, **kwargs):
-    #     str_or_url = self.create_url(str_or_url)
-    #     response = await super()._request(method, str_or_url, **kwargs)
-    #     if 'ETag' in response.headers: # set couchdb rev in respone
-    #         response.rev = response.headers['ETag'].replace('"','')
-    #     else:
-    #         response.rev = None
-    #     return response
+    async def request(self, *args, **kwargs):
+        response = await super()._request(*args, **kwargs)
+        return response_add_rev(response)
 
-    async def rev(self, str_or_url):
-        str_or_url = self.create_url(str_or_url)
-        response = await self._request('head', str_or_url)
+    async def rev(self, *args, **kwargs):
+        response = await self.head(*args, **kwargs)
         return response.rev
 
 
