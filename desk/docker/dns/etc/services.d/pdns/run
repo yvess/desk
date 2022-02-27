@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv sh
+#!/command/with-contenv sh
 
 PDNS_LOG=${PDNS_LOG:-/var/services/powerdns/log}
 FQHOSTNAME=$(hostname)

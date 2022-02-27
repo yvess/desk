@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv sh
+#!/command/with-contenv sh
 
 # PUT EXTRA_HOST in /etc/hosts
 if [ -n "$EXTRA_HOSTS" ]; then
