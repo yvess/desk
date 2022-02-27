@@ -95,32 +95,30 @@ class Updater(object):
             active_rev = doc['active_rev']
             active_doc_json = db.fetch_attachment(doc['_id'], active_rev)
             self.active_doc = MergedDoc(db, json.loads(active_doc_json)).doc
-        service.set_docs(self.merged_doc, self.active_doc)
+        self.service = service
+        self.service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
             try:
-                lookup_map_doc = db.get(service.map_doc_id)
-                service.set_lookup_map(lookup_map_doc)
+                lookup_map_doc = db.get(self.service.map_doc_id)
+                self.service.set_lookup_map(lookup_map_doc)
             except ResourceNotFound:
                 pass
-        self.service = service
         if self.active_doc and doc['state'] == 'changed':
             diff = self._create_diff()
-            service.set_diff(diff)
+            self.service.set_diff(diff)
 
     def _remove_attachment(self, doc):
         if '_attachments' in doc:
-            doc = copy(doc)
+            doc = deepcopy(doc)
             del doc['_attachments']
         return doc
 
     def _create_diff(self):
-        old_doc = self._remove_attachment(self.active_doc)
-        new_doc = self._remove_attachment(self.doc)
-        old_doc_string = json.dumps(old_doc)
-        new_doc_string = json.dumps(new_doc)
+        active_doc = self._remove_attachment(self.service.active_doc) # old_doc
+        doc = self._remove_attachment(self.service.doc) # new_doc
         diffator = json_diff.Comparator(
-            StringIO(old_doc_string),
-            StringIO(new_doc_string),
+            StringIO(encode_json(active_doc)),
+            StringIO(encode_json(doc)),
             opts=OptionsClassDiff()
         )
         diff = diffator.compare_dicts()
@@ -129,7 +127,7 @@ class Updater(object):
             'append': {},
             'remove': {}
         }
-        for item in self.service.structure:  # TODO cleanup lot of duplication
+        for item in self.service.structure: # TODO cleanup lot of duplication
             name, key_id, value_id = (
                 item['name'], item['key_id'], item['value_id']
             )
@@ -144,18 +142,18 @@ class Updater(object):
                         # both changed, lookup via id of old entry
                         if v_id in changes and key_id in changes:
                             key, value, lookup = (
-                                changes[key_id], self.doc[name][i][v_id], 'id'
+                                changes[key_id], self.service.doc[name][i][v_id], 'id'
                             )
                         # value changed, lookup key
                         elif v_id in changes:
                             key, value, lookup = (
-                                self.doc[name][i][key_id], changes[v_id], 'key'
+                                self.service.doc[name][i][key_id], changes[v_id], 'key'
                             )
                         # key changed, lookup value
                         elif key_id in changes:
                             key, value, lookup = (
                                 changes[key_id],
-                                self.doc[name][i][v_id],
+                                self.service.doc[name][i][v_id],
                                 'value'
                             )
                         if v_id in changes or key_id in changes:
