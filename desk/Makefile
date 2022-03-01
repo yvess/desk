@@ -21,7 +21,7 @@ stop_worker:
 	s6-svc -d /var/run/s6/services/worker
 
 start_worker:
-	s6-svc -d /var/run/s6/services/worker
+	s6-svc -u /var/run/s6/services/worker
 
 start_worker_fg:
 	./dworker run -v
