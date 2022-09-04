@@ -107,5 +107,5 @@ class QrBillInvoicesCommand(SettingsCommand):
     def run(self):
         invoices_pdf_path = Path(self.settings.invoices_pdf_path)
         invoices = list(Path(invoices_pdf_path).glob('*.pdf'))
-        for invoice in invoices[:4]:
+        for invoice in invoices:
             InvoiceQrBill(self.settings, invoices_pdf_path).add_qrbill(invoice)
