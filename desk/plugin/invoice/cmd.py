@@ -1,7 +1,10 @@
+import os
+from pathlib import Path
 from datetime import date
 from desk.command import SettingsCommand
 from desk.utils import get_crm_module
 from desk.plugin.invoice.invoice import Invoice, InvoiceCycle
+from desk.plugin.invoice.qrbill import InvoiceQrBill
 
 
 class CreateInvoicesCommand(SettingsCommand):
@@ -79,3 +82,30 @@ class CreateInvoicesCommand(SettingsCommand):
                 if self.settings.max != 0 and counter >= self.settings.max:
                     break
         print("\n", "total", invoice_cycle.get_total())
+
+
+class QrBillInvoicesCommand(SettingsCommand):
+    def setup_parser(self, subparsers, config_parser):
+        invoices_qrbill_parser = subparsers.add_parser(
+            'invoices-qrbill',
+            help="""add qrbill to pdfs""",
+        )
+        invoices_qrbill_parser.add_argument(
+            *config_parser['args'], **config_parser['kwargs']
+        )
+        invoices_qrbill_parser.add_argument(
+            dest="invoices_pdf_path",
+            default=None,
+            help="invoices pdf path"
+        )
+
+        return invoices_qrbill_parser
+
+    def _cmd(self, cmd):
+        return "{}/{}".format(self.settings.couchdb_db, cmd)
+
+    def run(self):
+        invoices_pdf_path = Path(self.settings.invoices_pdf_path)
+        invoices = list(Path(invoices_pdf_path).glob('*.pdf'))
+        for invoice in invoices[:4]:
+            InvoiceQrBill(self.settings, invoices_pdf_path).add_qrbill(invoice)

@@ -12,7 +12,7 @@ from desk.command import WorkerCommand, MigrateCommand
 is_foreman = True if os.environ.get('WORKER_TYPE', 'worker') == 'foreman' else False
 from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
 if is_foreman:
-    from desk.plugin.invoice.cmd import CreateInvoicesCommand
+    from desk.plugin.invoice.cmd import CreateInvoicesCommand, QrBillInvoicesCommand
 from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
 
 
@@ -46,7 +46,7 @@ VERBOSE_PARSER = {
 
 BOOLEAN_TYPES = ['worker_daemon', 'worker_is_foreman']
 CONF_SECTIONS = ['couchdb', 'powerdns', 'worker', 'todoyu',
-                 'invoice', 'service_web', 'service_email']
+                 'invoice', 'invoice_qrbill', 'service_web', 'service_email']
 
 
 def to_snake_case(name):
@@ -90,6 +90,7 @@ class SetupWorkerParser(object):
         ])
         if is_foreman:
             self.commands['invoices-create'] = CreateInvoicesCommand
+            self.commands['invoices-qrbill'] = QrBillInvoicesCommand
 
         for command_name, command in list(self.commands.items()):
             name_snake = to_snake_case(command.__name__)
