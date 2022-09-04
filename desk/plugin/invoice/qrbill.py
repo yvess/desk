@@ -4,10 +4,8 @@ from datetime import date
 from datetime import timedelta
 from pathlib import Path
 from decimal import Decimal
-from svglib.svglib import svg2rlg
-from reportlab.graphics import renderPDF
-from reportlab.pdfgen import canvas
 from qrbill import QRBill
+from cairosvg import svg2pdf
 from PyPDF2 import PdfFileMerger
 from datetime import datetime
 from desk.utils import calc_esr_checksum
@@ -49,22 +47,18 @@ class InvoiceQrBill(object):
         )
 
         # create save qrbill
-        with tempfile.TemporaryFile(encoding='utf-8', mode='r+') as temp:
-            qrbill.as_svg(temp)
-            temp.seek(0)
-            qrbill_drawing = svg2rlg(temp)
+        temp_svg = '/tmp/qrbilltemp.svg'
+        temp_pdf = '/tmp/qrbilltemp.pdf'
+        qrbill.as_svg(temp_svg, full_page=True)
+        svg2pdf(file_obj=open(temp_svg, 'rb'), write_to=temp_pdf)
 
-        temp_path = '/tmp/qrbilltemp.pdf'
         invoices_merged_path = self.invoices_path / Path('qrbill')
         invoices_merged_path.mkdir(exist_ok=True)
-        qrbill_canvas = canvas.Canvas(temp_path)
-        renderPDF.draw(qrbill_drawing, qrbill_canvas, 0, 0)
-        qrbill_canvas.save()
 
         # add qrbill to invoice pdf
         invoice_merged_path = invoices_merged_path / invoice_name
         merger = PdfFileMerger()
         merger.append(str(invoice_path.resolve()))
-        merger.append(temp_path)
+        merger.append(temp_pdf)
         merger.write(str(invoice_merged_path.resolve()))
         merger.close()
