@@ -1,4 +1,4 @@
-FROM alpine:3.14
+FROM alpine:3.16
 MAINTAINER Yves Serrano <y@yas.ch>
 RUN apk update && apk add --no-cache \
         curl \
@@ -8,6 +8,8 @@ RUN apk update && apk add --no-cache \
         py3-pip \
         py3-cffi \
         py3-wheel \
+        py3-lxml \
+        py3-reportlab \
         make \
         readline \
         openssl \
@@ -17,6 +19,8 @@ RUN apk update && apk add --no-cache \
         binutils \
         wget \
         upx \
+        libxml2 \
+        libxslt \
         jq
 ARG S6_OVERLAY_VERSION="3.0.0.2-2"
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME 20000
@@ -31,6 +35,8 @@ RUN apk add --no-cache \
         git \
         pango-dev \
         python3-dev \
+        libxml2-dev \
+        libxslt-dev \
     && pip3 install -r /tmp/requirements3.txt && \
     apk del \
         build-base \
@@ -40,6 +46,8 @@ RUN apk add --no-cache \
         git \
         pango-dev \
         python3-dev \
+        libxml2-dev \
+        libxslt-dev \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* /root/.cache
 ADD etc.tar.gz /
 ENV WORKER_TYPE foreman

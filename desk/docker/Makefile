@@ -1,6 +1,6 @@
 .PHONY:
 
-worker_version=0.3.0
+worker_version=0.3.1
 dns_version=0.3.0
 
 default: build_worker build_dns
