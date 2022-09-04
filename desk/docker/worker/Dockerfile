@@ -10,6 +10,7 @@ RUN apk update && apk add --no-cache \
         py3-wheel \
         py3-lxml \
         py3-reportlab \
+        py3-jinja2 \
         make \
         readline \
         openssl \

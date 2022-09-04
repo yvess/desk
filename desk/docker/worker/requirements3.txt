@@ -31,6 +31,7 @@ pyinstaller==5.3
 pyinstaller-hooks-contrib==2022.10
 PyMySQL==1.0.2
 pyparsing==2.4.7
+PyPDF2==2.10.4
 pyphen==0.13.0
 python-stdnum==1.17
 qrbill==0.8.1
