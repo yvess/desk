@@ -1,6 +1,6 @@
 ## The following requirements were added by pip --freeze:
 lxml==3.4.0
-CairoSVG==1.0.9
+CairoSVG==2.7.0
 Cython==0.21
 Jinja2==2.7.3
 MarkupSafe==0.23
