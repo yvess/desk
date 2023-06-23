@@ -79,15 +79,20 @@ class Invoice(object):
         return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def setup_invoice(self):
+        ref_nr = "%s%s" % (
+            self.invoice_nr,
+            calc_esr_checksum(self.invoice_nr)
+        )
+        ref_nr = ref_nr.rjust(25,"0")
+        n = 5
+        ref_nr = " ".join([ref_nr[i:i+n] for i in range(0, len(ref_nr), n)])
+        ref_nr = "00 %s" % ref_nr
         self.doc = {
             'start_date': self.invoice_cycle.doc['start_date'],
             'end_date': self.invoice_cycle.doc['end_date'],
             'date': date(*[int(part) for part in self.settings.invoice_date.split('-')]),
             'nr': self.invoice_nr,
-            'ref_nr': "%s%s" % (
-                self.invoice_nr,
-                calc_esr_checksum(self.invoice_nr)
-            ),
+            'ref_nr': ref_nr,
             'amount': 0.0,
             'tax': 0.0,
             'total': 0.0
