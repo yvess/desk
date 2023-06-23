@@ -36,6 +36,7 @@ class InvoiceQrBill(object):
             currency='CHF',
             due_date=due_date.strftime("%Y-%m-%d"),
             additional_information=f'Rechnung Nr. {invoice_nr}',
+            font_factor=0.9,
             creditor=dict(
                 name=self.settings.invoice_qrbill_name,
                 street=self.settings.invoice_qrbill_street,
