@@ -67,20 +67,31 @@ class CreateInvoicesCommand(SettingsCommand):
         counter = 0
         for client in clients:
             if not self.settings.limit_client_id or client['id'] == self.settings.limit_client_id:
-                # print(client['doc']['name'])
-                invoice = Invoice(
-                    self.settings, crm=crm,
-                    client_doc=client['doc'],
-                    invoice_cycle=invoice_cycle
-                )
-                invoice_start_date = min(
-                    [d['start_date'] for d in invoice.doc['services'].itervalues()]
-                )
-                if invoice_start_date < invoice_cycle.doc['end_date']:
-                    invoice.render_pdf()
-                    invoice_cycle.add_invoice(invoice)
-                    counter += 1
-                    print(".", end="")
-                if self.settings.max != 0 and counter >= self.settings.max:
-                    break
+                try:
+                    # print(client['doc']['name'])
+                    invoice = Invoice(
+                        self.settings, crm=crm,
+                        client_doc=client['doc'],
+                        invoice_cycle=invoice_cycle
+                    )
+                    start_dates = []
+                    for service in invoice.doc['services'].itervalues():
+                        for service_item in service['items']:
+                            start_dates.append(
+                                service_item['start_date']
+                            )
+                    invoice_start_date = min(start_dates)
+                    # invoice_start_date = min(
+                    #    [d['start_date'] for d in invoice.doc['services'].itervalues()]
+                    # )
+                    if invoice_start_date < invoice_cycle.doc['end_date']:
+                        invoice.render_pdf()
+                        invoice_cycle.add_invoice(invoice)
+                        counter += 1
+                        print(".", end="")
+                    if self.settings.max != 0 and counter >= self.settings.max:
+                        break
+                except KeyError:
+                    print("ERROR: invoice not generated for", client)
+
         print("\n", "total", invoice_cycle.get_total())
