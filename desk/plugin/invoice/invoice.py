@@ -176,7 +176,10 @@ class Invoice(object):
                and not service_doc['included']:
                 pass
             else:
-                services[service_doc['service_type']] = service_doc
+                service_type = service_doc['service_type']
+                if service_type not in services:
+                    services[service_type] = {'items': []}
+                services[service_type]['items'].append(service_doc)
         if hasattr(self.settings, 'invoice_service_order'):
             servicesOrdered = OrderedDict()
             service_order = [s.strip() for s in self.settings.invoice_service_order.split(',')]
