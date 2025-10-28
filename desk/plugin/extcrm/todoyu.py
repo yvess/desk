@@ -28,6 +28,7 @@ class Todoyu(ExtCrmBase):
         self._fill_maps()
 
     def _fill_address(self, cursor):
+        contactinfo = ('contactinfo.info',)
         person = (
             'IFNULL(person_privat.id, person.id) as p_id',
             'IFNULL(person_privat.salutation, person.salutation) as salutation',
@@ -45,7 +46,7 @@ class Todoyu(ExtCrmBase):
 
         SQL = """
         SELECT
-        {address}, {person}, {company}
+        {address}, {contactinfo}, {person}, {company}
         FROM ext_contact_address as address
         LEFT JOIN (ext_contact_mm_company_address as c2a, ext_contact_company as company)
             ON (address.id=c2a.id_address AND company.id=c2a.id_company)
@@ -53,6 +54,8 @@ class Todoyu(ExtCrmBase):
             ON (address.id=p2a.id_address AND person_privat.id=p2a.id_person)
         LEFT JOIN (ext_contact_mm_company_person as c2p, ext_contact_person as person)
             ON (person.id=c2p.id_person AND company.id=c2p.id_company)
+        LEFT JOIN (ext_contact_contactinfotype as contactinfotype, ext_contact_contactinfo as contactinfo, ext_contact_mm_company_contactinfo as c2i)
+            ON (contactinfotype.id=1 AND contactinfo.id=c2i.id_contactinfo AND company.id=c2i.id_company AND contactinfo.id_contactinfotype=contactinfotype.id)
         LEFT JOIN (static_country as country)
             ON (address.id_country=country.id)
         WHERE 1
@@ -65,12 +68,12 @@ class Todoyu(ExtCrmBase):
         """.format(
             company=", ".join(company),
             person=", ".join(person),
-            address=", ".join(address)
+            address=", ".join(address),
+            contactinfo=", ".join(contactinfo)
         )
-
         cursor.execute(SQL)
         for r in cursor.fetchall():
-            fields = [f.replace('.', '_') for f in (address + person_fields + company)]
+            fields = [f.replace('.', '_') for f in (address + contactinfo + person_fields + company)]
             data = dict(zip(fields, r))
             pk_keys = (data['p_id'], 'p'), (data['company_id'], 'c')
             pk = "-".join(["%s%s" % (key, pk) for pk, key in pk_keys if pk])
@@ -110,7 +113,6 @@ class Todoyu(ExtCrmBase):
             person=", ".join(person),
             contactinfo=", ".join(contactinfo)
         )
-
         cursor.execute(SQL)
         for item in cursor.fetchall():
             fields = [f.replace('.', '_') for f in (contactinfo + person_fields)]
