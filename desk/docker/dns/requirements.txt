@@ -21,7 +21,7 @@ ecdsa==0.11
 ezodf==0.2.5
 gevent==1.1.1
 greenlet==0.4.4
-html5lib==0.999
+html5lib==0.999999999
 http-parser==0.8.3
 ipdb==0.8
 ipython==2.3.0
