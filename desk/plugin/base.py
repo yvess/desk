@@ -99,7 +99,7 @@ class Updater(object):
                 self.service.set_lookup_map(lookup_map_doc)
             except ResourceNotFound:
                 pass
-        
+
         if self.active_doc and doc.state == 'changed':
             diff = self._create_diff()
             self.service.set_diff(diff)
@@ -124,7 +124,7 @@ class Updater(object):
             'append': {},
             'remove': {}
         }
-        for item in self.service.structure:  # TODO cleanup lot of duplication
+        for item in self.service.structure: # TODO cleanup lot of duplication
             name, key_id, value_id = (
                 item['name'], item['key_id'], item['value_id']
             )

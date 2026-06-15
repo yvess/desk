@@ -40,11 +40,13 @@ class QueryServices(object):
                 endkey.append({})
             else:
                 couchdb_view = 'service_type'
-
         for item in self.db.view(
                 self._cmd(couchdb_view),
                 startkey=startkey, endkey=endkey, include_docs=True):
-            if 'extcrm_id' in item['doc']:
+            # debug # print("----item", item)
+            if item and 'extcrm_id' in item['doc']:
+                if 'state' in item['doc'] and item['doc']['state'] == 'deleted':
+                   continue
                 client_doc  = item['doc']
                 extcrm_id = client_doc['extcrm_id']
                 service_name = '-'.join([part for part in item['key'] if part])

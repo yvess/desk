@@ -15,3 +15,7 @@ desk/py27/*
 Frameworks.tgz
 desk.egg-info
 /tmp
+desk/tmp
+desk/var
+desk/build
+desk/dist
