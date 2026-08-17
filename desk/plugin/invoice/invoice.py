@@ -149,6 +149,8 @@ class Invoice(object):
             service_def = Invoice.service_definitons[service_doc['service_type']]
             package = service_def['packages'][service_doc['package_type']]
             service_doc['price'] = get_default('price', service_doc, package)
+            if service_doc['service_type'] == 'domain':
+                service_doc['price'] *= 2
             service_doc['package_title'] = get_default(
                 'title', service_doc, package, special_attribute='package_title'
             )
@@ -205,6 +207,8 @@ class Invoice(object):
                 else:
                     raise
                 addon['price'] = get_default('price', addon, sd_addons[addon['itemType']])
+                if service['service_type'] == 'domain':
+                    addon['price'] *= 2
                 addon['title'] = get_default('title', addon, sd_addons[addon['itemType']])
                 addon['start_date'] = get_default(
                     'start_date', addon, service,
