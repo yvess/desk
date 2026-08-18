@@ -173,9 +173,8 @@ class Invoice(object):
             doc_amount = self.add_amount(
                 service_doc['price'], service_doc['start_date'], service_end_date)
             service_doc.update(doc_amount)
-            if service_doc['total'] == 0.0 \
-               and not service_doc['addons'] \
-               and not service_doc['included']:
+            addons_total = sum([a['total'] for a in service_doc['addons']])
+            if service_doc['total'] + addons_total == 0.0:
                 pass
             else:
                 service_type = service_doc['service_type']
@@ -233,7 +232,8 @@ class Invoice(object):
                     self.add_amount(addon['price'], addon['start_date'], addon['end_date'])
                 )
                 if (not addon['start_date'] > self.invoice_cycle.doc['end_date'] and
-                   not addon['start_date'] > addon['end_date']):
+                   not addon['start_date'] > addon['end_date'] and
+                   addon['total'] != 0.0):
                     addons.append(addon)
             del(service['addon_service_items'])
         return addons
