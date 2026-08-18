@@ -78,13 +78,25 @@ class Todoyu(ExtCrmBase):
             pk_keys = (data['p_id'], 'p'), (data['company_id'], 'c')
             pk = "-".join(["%s%s" % (key, pk) for pk, key in pk_keys if pk])
             if pk:
-                if (pk not in self._address_map) or (
-                   data['address_id_addresstype'] == 3):  # 3=billing address
-                    self._address_map[pk] = data
-                elif data['address_id_addresstype'] == 2:  # 2=normal address
-                    pass
-                else:
-                    print("*** double company", data, self._address_map[pk])
+                self._store_address(pk, data)
+            if data['p_id'] and data['company_id']:
+                # also offer a non-personalized company address under "c<id>"
+                company_data = dict(data)
+                company_data['p_id'] = None
+                for field in ('salutation', 'firstname', 'lastname'):
+                    company_data[field] = ''
+                self._store_address("c%s" % data['company_id'], company_data)
+
+    def _store_address(self, pk, data):
+        if (pk not in self._address_map) or (
+           data['address_id_addresstype'] == 3):  # 3=billing address
+            self._address_map[pk] = data
+        elif data['address_id_addresstype'] == 2:  # 2=normal address
+            pass
+        elif data == self._address_map[pk]:
+            pass
+        else:
+            print("*** double company", data, self._address_map[pk])
 
     def _fill_contact(self, cursor):
         contactinfo = ('contactinfo.info',)
