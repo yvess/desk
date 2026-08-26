@@ -108,6 +108,7 @@ class Invoice(object):
             self.client_doc = None
             return
         self.doc['client_name'] = self.client_doc['name']
+        self.doc['invoice_ref'] = self.client_doc.get('invoice_ref', '')
         self.doc['tax'] = round(self.doc['amount'] * self.tax, 1)
         self.doc['total'] = self.doc['amount'] + self.doc['tax']
 
