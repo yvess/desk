@@ -14,6 +14,7 @@
     CPString extcrmContactId    @accessors;
     CPString lastInvoiceEndDate @accessors;
     BOOL isBillable @accessors;
+	CPString invoiceRef @accessors;
     CPString notes @accessors;
 }
 
