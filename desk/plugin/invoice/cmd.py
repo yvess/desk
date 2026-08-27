@@ -80,6 +80,9 @@ class CreateInvoicesCommand(SettingsCommand):
                             start_dates.append(
                                 service_item['start_date']
                             )
+                    if not start_dates:
+                        print("\nSKIP no billable services:", client['doc']['name'])
+                        continue
                     invoice_start_date = min(start_dates)
                     # invoice_start_date = min(
                     #    [d['start_date'] for d in invoice.doc['services'].itervalues()]

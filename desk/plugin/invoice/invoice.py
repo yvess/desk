@@ -149,7 +149,18 @@ class Invoice(object):
             service_doc = MergedDoc(self.db, result['doc']).doc
             service_def = Invoice.service_definitons[service_doc['service_type']]
             package = service_def['packages'][service_doc['package_type']]
+            # always keep the package list price next to the effective price,
+            # so the invoice shows whether the price was overwritten on the service
+            package_price = float(package['price']) if 'price' in package else None
+            own_price = service_doc.get('price')
+            has_own_price = own_price is not None and own_price != ''
+            if not has_own_price:
+                service_doc.pop('price', None)
             service_doc['price'] = get_default('price', service_doc, package)
+            service_doc['package_price'] = package_price
+            service_doc['price_overwritten'] = (
+                has_own_price and service_doc['price'] != package_price
+            )
             if service_doc['service_type'] == 'domain':
                 service_doc['price'] *= 2
             service_doc['package_title'] = get_default(
