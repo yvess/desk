@@ -8,13 +8,13 @@
 
 const path = require("path");
 const fs = require("fs");
+const { execFileSync } = require("child_process");
 
 var ENV = process.env,
     task = JAKE.task,
     FileList = JAKE.FileList,
     app = CAPPUCCINO.Jake.applicationtask.app,
     configuration = ENV["CONFIG"] || ENV["CONFIGURATION"] || ENV["c"] || "Debug",
-    OS = require("os"),
     projectName = "desk_pad";
 
 var buildDir = path.resolve(ENV["BUILD_PATH"] || "Build");
@@ -70,18 +70,33 @@ task ("release", function()
 
 task ("run", ["debug"], function()
 {
-    OS.system(["open", path.join(buildDir, "Debug", projectName, "index.html")]);
+    execFileSync("open", [path.join(buildDir, "Debug", projectName, "index.html")]);
 });
 
 task ("run-release", ["release"], function()
 {
-    OS.system(["open", path.join(buildDir, "Release", projectName, "index.html")]);
+    execFileSync("open", [path.join(buildDir, "Release", projectName, "index.html")]);
 });
 
 task ("deploy", ["release"], function()
 {
-    FILE.mkdirs(path.join(buildDir, "Deployment", projectName));
-    OS.system(["press", "-f", path.join(buildDir, "Release", projectName), path.join(buildDir, "Deployment", projectName)]);
+    // `press`/`flatten` are still Narwhal/Rhino-only scripts and are no-ops under the
+    // Node toolchain, so the deployment build is a plain copy of the Release build
+    // (which is self-contained: Frameworks are copied in, not symlinked).
+    var releaseDir = path.join(buildDir, "Release", projectName),
+        deployDir = path.join(buildDir, "Deployment", projectName);
+
+    fs.rmSync(deployDir, { recursive: true, force: true });
+    fs.mkdirSync(deployDir, { recursive: true });
+    fs.cpSync(releaseDir, deployDir, {
+        recursive: true,
+        dereference: true,
+        // drop the Debug frameworks (and Source) that the Release build carries along
+        filter: function(src) {
+            var rel = path.relative(releaseDir, src);
+            return rel !== path.join("Frameworks", "Debug") && rel !== path.join("Frameworks", "Source");
+        }
+    });
     printResults("Deployment")
 });
 
