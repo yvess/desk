@@ -6,9 +6,12 @@ from pathlib import Path
 from decimal import Decimal
 from qrbill import QRBill
 from cairosvg import svg2pdf
-from PyPDF2 import PdfFileMerger
-from datetime import datetime
+from pypdf import PdfWriter
 from desk.utils import calc_esr_checksum
+
+INVOICE_NAME_RE = re.compile(
+    r"(?P<date>\d{4}-\d{2}-\d{2})_CHF(?P<amount>\d+\.\d+)_Nr(?P<invoice_nr>\d+).*"
+)
 
 
 """Add qrbill to invoice to pdf"""
@@ -20,22 +23,30 @@ class InvoiceQrBill(object):
     def add_qrbill(self, invoice_path):
         print('add_qrbill', invoice_path)
         invoice_name = invoice_path.name
-        matches = re.match(r"(?P<date>\d{4}-\d{2}-\d{2})_CHF(?P<amount>\d+.\d+)_Nr(?P<invoice_nr>\d+).*", invoice_name).groupdict()
-        amount=Decimal(matches['amount'])
-        due_date=date(*[int(d) for d in matches['date'].split("-")]) + timedelta(days=30)
+        match = INVOICE_NAME_RE.match(invoice_name)
+        if match is None:
+            print(f'skip {invoice_name}, no invoice filename')
+            return
+        matches = match.groupdict()
+        amount = Decimal(matches['amount'])
+        due_date = date(*[int(d) for d in matches['date'].split("-")]) + timedelta(days=30)
         invoice_nr = matches['invoice_nr']
         reference_number = f'{invoice_nr}{calc_esr_checksum(invoice_nr)}'
         reference_number = f'{reference_number:0>27}'
 
         # setup qrbill
+        # qrbill >= 1.0 dropped due_date (removed from the Swiss QR standard),
+        # so the payment deadline goes into additional_information instead
         qrbill = QRBill(
             language='de',
             account=self.settings.invoice_qrbill_iban,
             reference_number=reference_number,
             amount=amount,
             currency='CHF',
-            due_date=due_date.strftime("%Y-%m-%d"),
-            additional_information=f'Rechnung Nr. {invoice_nr}',
+            additional_information=(
+                f'Rechnung Nr. {invoice_nr}, '
+                f'zahlbar bis {due_date.strftime("%d.%m.%Y")}'
+            ),
             font_factor=0.9,
             creditor=dict(
                 name=self.settings.invoice_qrbill_name,
@@ -47,19 +58,20 @@ class InvoiceQrBill(object):
             )
         )
 
-        # create save qrbill
-        temp_svg = '/tmp/qrbilltemp.svg'
-        temp_pdf = '/tmp/qrbilltemp.pdf'
-        qrbill.as_svg(temp_svg, full_page=True)
-        svg2pdf(file_obj=open(temp_svg, 'rb'), write_to=temp_pdf)
-
         invoices_merged_path = self.invoices_path / Path('qrbill')
         invoices_merged_path.mkdir(exist_ok=True)
-
-        # add qrbill to invoice pdf
         invoice_merged_path = invoices_merged_path / invoice_name
-        merger = PdfFileMerger()
-        merger.append(str(invoice_path.resolve()))
-        merger.append(temp_pdf)
-        merger.write(str(invoice_merged_path.resolve()))
-        merger.close()
+
+        # create save qrbill
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_svg = Path(temp_dir) / 'qrbill.svg'
+            temp_pdf = Path(temp_dir) / 'qrbill.pdf'
+            qrbill.as_svg(str(temp_svg), full_page=True)
+            with open(temp_svg, 'rb') as svg_file:
+                svg2pdf(file_obj=svg_file, write_to=str(temp_pdf))
+
+            # add qrbill to invoice pdf
+            merger = PdfWriter()
+            merger.append(str(invoice_path.resolve()))
+            merger.append(str(temp_pdf))
+            merger.write(str(invoice_merged_path.resolve()))

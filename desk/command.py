@@ -140,7 +140,7 @@ class InstallWorkerCommand(SettingsCommandDb):
             "_id": worker_id, "type": "worker", "hostname": self.hostname,
             "provides": provides
         }
-        self.db.put(url=worker_doc['_id'], data=encode_json(worker_doc))
+        self.db.put(url=worker_doc['_id'], content=encode_json(worker_doc))
 
 
 class MigrateCommand(SettingsCommandDb):

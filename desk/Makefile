@@ -51,6 +51,7 @@ enter-ansible:
 	-h ansible --entrypoint bash yvess/ansible-master
 
 bundle:
+	pip3 install -r docker/worker/requirements-build.txt
 	pyinstaller -F -n dworker worker.py
 
 up:

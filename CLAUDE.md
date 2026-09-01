@@ -3,8 +3,9 @@
 ## Git / commits
 
 **The user always makes the commits.** Do not run `git commit` (or `git push`).
-Stage changes or leave them in the working tree and let the user review and
-commit. The same applies to merges/rebases: resolve conflicts and `git add` the
+**Do not stage changes on your own** — leave them in the working tree and let
+the user review, stage, and commit; run `git add` only when explicitly asked.
+The same applies to merges/rebases: resolve conflicts and `git add` the
 files if asked, but the user finalizes (`git commit` / `git rebase --continue`).
 
 ## Project
@@ -33,10 +34,28 @@ regression test with every bug fix, no commented-out code).
 Frontend (`desk_pad/`, Cappuccino) is explicitly deferred to a later round.
 Update the tracking table at the bottom of the plan as milestones complete.
 
+## Dev environment
+
+Python 3.14, venv at the repo root (git-ignored):
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r desk/docker/worker/requirements3.txt
+.venv/bin/pip install -e .
+.venv/bin/pip install coverage       # only for ./coverage.sh
+```
+
+`desk/docker/worker/requirements3.txt` holds the 9 direct runtime dependencies.
+`requirements-build.txt` (pyinstaller) is build-only and is not installed into
+the runtime images.
+
 ## Tests
 
 ```bash
 cd desk
-python -m unittest discover          # run tests
+python -m unittest discover          # run tests (needs the venv on PATH)
 ./coverage.sh                        # tests + HTML coverage report
 ```
+
+Tests are unit-level and need no CouchDB or PowerDNS. Mock at the HTTP boundary
+(`httpx.MockTransport`), not inside `desk`.

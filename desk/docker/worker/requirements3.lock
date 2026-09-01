@@ -1,0 +1,36 @@
+# Generated with: pip freeze --exclude-editable (minus coverage) from the dev venv.
+# Pins the transitive dependencies so image rebuilds stay reproducible;
+# regenerate after changing requirements3.txt.
+anyio==4.14.2
+brotli==1.2.0
+cairocffi==1.7.1
+CairoSVG==2.9.0
+certifi==2026.7.22
+cffi==2.1.1
+cssselect2==0.10.1
+defusedxml==0.7.1
+dnspython==2.8.0
+fonttools==4.64.0
+h11==0.16.0
+httpcore==1.0.9
+httpx==0.28.1
+idna==3.19
+iso3166==2.1.1
+Jinja2==3.1.6
+json_diff==1.5.0
+MarkupSafe==3.0.3
+pillow==12.3.0
+pycparser==3.0
+pydyf==0.12.1
+PyMySQL==1.2.0
+pypdf==6.16.2
+pyphen==0.18.1
+python-stdnum==2.2
+qrbill==1.2.0
+qrcode==8.2
+svgwrite==1.4.3
+tinycss2==1.5.1
+tinyhtml5==2.1.0
+weasyprint==69.0
+webencodings==0.6.1
+zopfli==0.4.3

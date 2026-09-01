@@ -14,8 +14,10 @@ htmlcov
 desk/py27/*
 Frameworks.tgz
 desk.egg-info
-/tmp
+tmp/
 desk/tmp
 desk/var
 desk/build
 desk/dist
+.venv
+__pycache__

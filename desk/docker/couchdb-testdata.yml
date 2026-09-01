@@ -9,7 +9,7 @@
       chdir: /projects/desk/desk
     with_items:
       - couchdb-client-test.json
-      - couchdb-dns-test1.test.json
-      - couchdb-dns-test2.test.json
+      - couchdb-dns-test.json
+      - couchdb-dns-test2.json
       - couchdb-map-ips.json
       - couchdb-template-dns.json

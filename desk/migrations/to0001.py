@@ -63,4 +63,4 @@ def main(doc, doc_type, db):
         migrate = doc_types[doc['type']]
         migrate(doc)
     doc['version'] = 1
-    db.put(url=doc['_id'], data=encode_json(doc))
+    db.put(url=doc['_id'], content=encode_json(doc))

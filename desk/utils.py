@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from contextlib import asynccontextmanager
+import calendar
 import uuid
 import json
 import httpx
@@ -152,37 +153,38 @@ class CouchDBClientMixin:
 
     @classmethod
     def _basic_base_url(cls, couchdb_uri):
-        proto, user, password, host = re.split("://|:|@", couchdb_uri, maxsplit=3)
-        if ':' in host:
-            host, port = host.split(":")
-        else:
-            port = 80
-        base_url = f'{proto}://{host}:{port}'
-        auth = (user, password)
+        url = httpx.URL(couchdb_uri)
+        base_url = f'{url.scheme}://{url.host}'
+        if url.port:
+            base_url = f'{base_url}:{url.port}'
+        auth = (url.username, url.password) if url.username else None
         return base_url, auth
 
     @classmethod
-    def db(cls, couchdb_uri=None, db_name=None):
+    def db(cls, couchdb_uri=None, db_name=None, **kwargs):
         base_url, auth = cls._basic_base_url(couchdb_uri)
         base_url = f'{base_url}/{db_name}'
-        return cls(base_url=base_url, auth=auth)
+        return cls(base_url=base_url, auth=auth, **kwargs)
 
     @classmethod
-    def db_design(cls, couchdb_uri=None, db_name=None):
+    def db_design(cls, couchdb_uri=None, db_name=None, **kwargs):
         base_url, auth = cls._basic_base_url(couchdb_uri)
         base_url = f'{base_url}/{db_name}/_design/{db_name}'
-        return cls(base_url=base_url, auth=auth)
+        return cls(base_url=base_url, auth=auth, **kwargs)
 
 def response_add_rev(response):
-    if 'ETag' in response.headers: # set couchdb rev in respone
-        response.rev = response.headers['ETag'].replace('"','')
+    etag = response.headers.get('ETag')
+    if etag: # set couchdb rev in response, ETag may be weakened (W/) by proxies
+        response.rev = etag.removeprefix('W/').strip('"')
     else:
         response.rev = None
     return response
 
+# rev is attached in send() so that request(), stream() and the
+# convenience methods all pass through the same seam
 class CouchDBClient(httpx.Client, CouchDBClientMixin):
-    def request(self, *args, **kwargs):
-        response = super().request(*args, **kwargs)
+    def send(self, *args, **kwargs):
+        response = super().send(*args, **kwargs)
         return response_add_rev(response)
 
     def rev(self, *args, **kwargs):
@@ -191,8 +193,8 @@ class CouchDBClient(httpx.Client, CouchDBClientMixin):
 
 
 class CouchDBClientAsync(httpx.AsyncClient, CouchDBClientMixin):
-    async def request(self, *args, **kwargs):
-        response = await super()._request(*args, **kwargs)
+    async def send(self, *args, **kwargs):
+        response = await super().send(*args, **kwargs)
         return response_add_rev(response)
 
     async def rev(self, *args, **kwargs):
@@ -224,6 +226,10 @@ def parse_date(date_string, force_day=None):
     year, month, day = [int(item) for item in date_string.split("-")]
     if force_day == 'start':
         day = 1
+    elif force_day == 'end':
+        day = calendar.monthrange(year, month)[1]
+    elif force_day is not None:
+        raise ValueError(f"unknown force_day value: {force_day!r}")
     return date(year, month, day)
 
 
@@ -272,9 +278,10 @@ def encode_json(data):
     #     import ipdb; ipdb.set_trace()
 
 def get_rows(response):
-    if response.text.startswith('{') or response.text.startswith('['):
+    try:
         return response.json()['rows']
-    return None
+    except (ValueError, KeyError, TypeError):
+        return None
 
 def get_doc(response):
     data = response.json()

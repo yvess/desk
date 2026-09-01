@@ -28,7 +28,7 @@ logging.getLogger("chardet.charsetprober").disabled = True
 class Worker(object):
     def __init__(self, settings, hostname=socket.getfqdn()):
         if isinstance(settings, dict):
-            self.settings = ObjectDict(**settings)
+            settings = ObjectDict(**settings)
         self.hostname = hostname
         self.settings = settings
         self.db_name = self.settings.couchdb_db
@@ -76,11 +76,11 @@ class Worker(object):
         task_doc = get_doc(self.db.get(task_id))
         if all(successfull_tasks):
             task_doc.state = 'done'
-            self.db.put(url=task_doc._id, data=encode_json(task_doc))
+            self.db.put(url=task_doc._id, content=encode_json(task_doc))
             self.logger.info(f'task done doc_id: {task_doc._id}')
         else:
             task_doc.state = 'error'
-            self.db.put(url=task_doc._id, data=encode_json(task_doc))
+            self.db.put(url=task_doc._id, content=encode_json(task_doc))
             self.logger.info(f'task error doc_id: {task_doc._id}')
 
     def _do_task(self, doc):
@@ -124,12 +124,13 @@ class Worker(object):
                     feed='continuous', heartbeat=30000, since='now'
                 )
                 params.update(**self.queue_kwargs[queue_name])
-                async with self.db_async().stream('GET', '_changes', params=params, timeout=None) as response: # _changes
-                    async for line in response.aiter_lines():
-                        line = line.strip()
-                        if line and line.startswith('{') or line.startswith('['):
-                            data = decode_json(line)
-                            item_function([data])
+                async with self.db_async() as client:
+                    async with client.stream('GET', '_changes', params=params, timeout=None) as response: # _changes
+                        async for line in response.aiter_lines():
+                            line = line.strip()
+                            if line and line.startswith('{') or line.startswith('['):
+                                data = decode_json(line)
+                                item_function([data])
             return queue
 
     def run(self):
@@ -137,7 +138,9 @@ class Worker(object):
             self._process_tasks, run_once=False, queue_name='tasks_open'
         )
 
-        loop = asyncio.get_event_loop()
+        # get_event_loop() raises when there is no running loop since 3.14
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.create_task(queue_tasks_open())
 
         try:
@@ -197,7 +200,7 @@ class Foreman(Worker):
                     order_doc.state = 'done'
                     order_doc.text = 'empty order'
             already_processed_orders.append(order_doc._id)
-            self.db.put(url=order_doc._id, data=encode_json(order_doc))
+            self.db.put(url=order_doc._id, content=encode_json(order_doc))
 
     def _create_tasks(self, providers=None, order_id=None):
         created = False
@@ -212,7 +215,7 @@ class Foreman(Worker):
                 docs=providers[provider],
                 provider=provider
             )
-            self.db.put(url=doc._id, data=encode_json(doc))
+            self.db.put(url=doc._id, content=encode_json(doc))
             created = True
         return created
 
@@ -222,7 +225,7 @@ class Foreman(Worker):
             order_doc = get_doc(self.db.get(task_doc.order_id))
             if 'error' in order_doc and order_doc.error == 'not_found' and order_doc.reason == 'deleted':
                 task_doc.state = 'done_checked' # order deleted, disable task
-                self.db.put(url=task_doc._id, data=encode_json(task_doc))
+                self.db.put(url=task_doc._id, content=encode_json(task_doc))
                 continue
             if 'providers_done' not in order_doc:
                 order_doc.providers_done = []
@@ -230,8 +233,8 @@ class Foreman(Worker):
             providers_done = order_doc.providers_done
             providers_done.append(task_doc.provider)
             task_doc.state = 'done_checked'
-            self.db.put(url=task_doc._id, data=encode_json(task_doc))
-            order_doc._rev = self.db.put(url=order_doc._id, data=encode_json(order_doc)).rev
+            self.db.put(url=task_doc._id, content=encode_json(task_doc))
+            order_doc._rev = self.db.put(url=order_doc._id, content=encode_json(order_doc)).rev
             self.logger.info(
                 f'updating order for task {task_doc._id}, state: {order_doc.state}'
             )
@@ -261,14 +264,14 @@ class Foreman(Worker):
                         active_rev = active_doc._rev
                         self.db.put(
                             url=f'{active_doc._id}/{active_rev}',
-                            data=encode_json(active_doc),
+                            content=encode_json(active_doc),
                             params=dict(rev=active_rev)
                         )
                         self.db_design.put(
                             url=f'_update/set-active-rev/{doc_id}',
                             params=dict(active_rev=active_rev)
                         )
-                self.db.put(url=order_doc._id, data=encode_json(order_doc))
+                self.db.put(url=order_doc._id, content=encode_json(order_doc))
                 self.logger.info('order state: %s' % order_doc.state)
 
     def run(self):
@@ -282,7 +285,9 @@ class Foreman(Worker):
             self._update_order, run_once=False, queue_name='tasks_done'
         )
 
-        loop = asyncio.get_event_loop()
+        # get_event_loop() raises when there is no running loop since 3.14
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.create_task(queue_tasks_open())
         loop.create_task(queue_orders_open())
         loop.create_task(queue_tasks_done())

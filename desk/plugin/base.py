@@ -60,17 +60,22 @@ class VersionDoc(object):
         self.doc = doc
 
     def create_version(self):
-        old_doc = self.db.get(self.doc['_id'])
+        old_doc = get_doc(self.db.get(self.doc['_id']))
         old_doc = MergedDoc(self.db, old_doc).doc
         self.doc.state = 'changed'
         self.doc['prev_rev'] = old_doc['_rev']
-        self.db.put(f'{old_doc}/{old_doc.rev}', data=encode_json(old_doc)
+        # keep the old version as attachment named by its rev,
+        # same layout as the active doc attachments in Foreman._update_order
+        self.db.put(
+            url=f"{old_doc['_id']}/{old_doc['_rev']}",
+            content=encode_json(old_doc),
+            params=dict(rev=old_doc['_rev'])
         )
-        new_doc_merged = self.db.get(self.doc['_id'])
+        new_doc_merged = get_doc(self.db.get(self.doc['_id']))
         del self.doc['_rev']
         new_doc_merged.update(self.doc)
         self.doc = new_doc_merged
-        self.db.put(url=self.doc['_id'], data=encode_json(self.doc))
+        self.db.put(url=self.doc['_id'], content=encode_json(self.doc))
 
 
 class Updater(object):

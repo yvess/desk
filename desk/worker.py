@@ -146,10 +146,11 @@ def signal_handler(signum, frame):
     if signum == signal.SIGTERM or signum == signal.SIGHUP:
         sys.exit(0)
 
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGHUP, signal_handler)
-
 if __name__ == "__main__":
+    # only register for the daemon itself, importing this module must not
+    # change the importing process' signal handling
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGHUP, signal_handler)
     worker = SetupWorkerParser()
     if worker.settings.command == 'run':
         worker.worker_cmd.set_settings(worker.settings)

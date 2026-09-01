@@ -25,6 +25,7 @@ ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME 20000
 RUN curl -Ls https://github.com/just-containers/s6-overlay/releases/download/v$S6_OVERLAY_VERSION/s6-overlay-noarch-$S6_OVERLAY_VERSION.tar.xz | tar xJ -C / \
     && curl -Ls https://github.com/just-containers/s6-overlay/releases/download/v$S6_OVERLAY_VERSION/s6-overlay-x86_64-$S6_OVERLAY_VERSION.tar.xz | tar xJ -C /
 ADD requirements3.txt /tmp/requirements3.txt
+ADD requirements3.lock /tmp/requirements3.lock
 RUN apk add --no-cache \
         build-base \
         openssl-dev \
@@ -33,7 +34,7 @@ RUN apk add --no-cache \
         git \
         pango-dev \
         python3-dev \
-    && pip3 install -r /tmp/requirements3.txt && \
+    && pip3 install -r /tmp/requirements3.txt -c /tmp/requirements3.lock && \
     apk del \
         build-base \
         openssl-dev \

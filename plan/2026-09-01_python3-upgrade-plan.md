@@ -93,6 +93,34 @@ Everything later depends on this.*
 `pip install -e .`; `python3 -m compileall desk` exit 0; smoke-import `desk`, `desk.utils`,
 `desk.plugin.invoice.qrbill` (this one failed before, on PyPDF2); `python -m unittest discover` green.
 
+**Done 2026-09-01.** Notes for later milestones:
+- All nine pins re-checked against PyPI at execution time; every one was still
+  latest-stable, so the plan's versions were kept verbatim. `requirements-build.txt`
+  pins `pyinstaller==6.22.2`.
+- Venv lives at repo root `.venv` (Python 3.14.7), added to `.gitignore` together
+  with `__pycache__`; dev setup + test invocation documented in `CLAUDE.md`.
+- `setup.py` read the version via `__import__('desk').__version__`, which made
+  `pip install -e .` fail inside pip's isolated build env (no `httpx` there).
+  It now regex-reads `__version__` out of `desk/__init__.py`.
+- `desk/tests/test_worker.py` was **deleted**, not ported: every one of its helpers
+  went through the removed `CouchdbUploader` / couchdbkit `Server` API and it needed a
+  live CouchDB *and* live PowerDNS. Its scenarios (new domain, update/append/delete
+  record, two domains) are the spec for the e2e bed M4.5 builds and the
+  `test_dns.py` M5.1 restores — recover it from git history (`git show 6c93880:desk/tests/test_worker.py`).
+- New tests: `test_utils.py` (21 cases: `AttributeDict`, `ObjectDict`, `parse_date`,
+  `calc_esr_checksum`, json helpers, `get_rows`/`get_doc`/`get_key`, and the
+  `CouchDBClient`/`CouchDBClientAsync` rev handling — the last is the regression test
+  for the `super()._request` fix, mocking only the HTTP boundary via `httpx.MockTransport`);
+  `test_imports.py` walks and imports every `desk.*` module, guarding the exact failure
+  class that PyPDF2 caused.
+- Left alone deliberately (owned by later milestones): `AttributeDict.copy()` and
+  `_cast_type` reference `copy` / `warnings` without importing them — latent
+  `NameError`s, M6 item 1. `desk/__init__.py` calls `logging.basicConfig(level=DEBUG)`
+  at import time, which makes the test run noisy — M6 item 3.
+- `CouchDBClientMixin._basic_base_url` defaults to port **80** when the URI carries no
+  port, including for `https://` URIs. Harmless today (every caller passes `:5984`),
+  worth fixing whenever that area is next touched.
+
 ---
 
 ## M1 — Merge `origin/master` into `python3` (the new invoice/extcrm logic)
@@ -197,6 +225,76 @@ mocks only the HTTP boundary with recorded responses); grep confirms no
    delete if orphaned.
 
 ### 3.3 Compose + build tooling (`desk/docker-compose.yml`, `docker-extra.yml`, Makefiles → `taskfile.sh`)
+
+**Starting point (added by the user 2026-09-01): `tmp/docker-compose_new.yml` and
+`tmp/etc/`** — a partially-upgraded compose file plus sample CouchDB and nginx configs.
+Use them as the base for this milestone rather than rewriting from the old one. What
+they already bring: modern `services:` top level, official `couchdb:2.3` image with
+the `/opt/couchdb/{data,etc/local.d}` volume layout, `tmp/etc/couchdb/local.d/*.ini`
+(single-node `[cluster] n = 1`, `require_valid_user`, admin hash), and — significant
+for **M4 step 1** — a `capi` service serving `desk_pad` and the Cappuccino frameworks
+from nginx, i.e. it already takes option (a) of that decision.
+
+Still to do on the compose file here: drop `links:`, pin the CouchDB image per M4 (it
+targets 3.5.2, not 2.3), replace the host-absolute `/opt/src/...` and `~/src/desk`
+volume paths with relative ones, and re-check the `COUCHDB_LOCAL_VHOSTS` `_rewrite`
+entry (deprecated on 3.x — `capi` can take that role too).
+
+**DECIDED 2026-09-01 (user): `capi` runs stock `nginx`, not OpenResty — and needs no
+scripting module at all.** The user asked whether njs (nginx's own JS engine) could
+replace the Lua. It could — `ngx_http_js_module` is packaged as `nginx-mod-http-js`
+in alpine 3.24 (nginx 1.30.4) — but it is unnecessary here: every function in the
+`rewrite_by_lua_block` (`list_docs`, `list_items`, `show`, `update`, `couchdb`,
+`changes_stream`) was a pure URI/query-string rewrite with no I/O, state, or logic.
+A plain `map` + `rewrite` config reproduces all 18 routes.
+
+That config is written and **verified route-by-route** against `nginx:1.27-alpine`
+with a stub upstream echoing the proxied URI — all 18 routes byte-identical to the
+Lua output. It lives in `tmp/etc/nginx/conf.d/`:
+`desk.conf` (maps + locations), `desk_proxy.inc` (shared proxy headers),
+`desk_changes.inc` (the SSE `_changes` rewrite). The original is kept beside it as
+`desk.conf.openresty` — it is the behavioral reference; delete it once M3 lands.
+Notes carried into M3:
+- Rewrite replacements that build their own query string **must end in `?`**,
+  otherwise nginx re-appends the client's original args (this silently produced
+  `include_docs=true&limit=10&limit=10` and `since=now&since=now` in the first draft).
+- Unknown collection names now `return 404` (via a `map` defaulting to `""`) where the
+  Lua passed them through to CouchDB unrewritten. Tighter, and matches what the
+  frontend actually calls; confirm that is wanted.
+- `proxy_read_timeout 60` is inherited from the OpenResty config and applies to the
+  SSE `_changes` feeds too, so they drop and the browser's `EventSource` reconnects
+  every 60s. Pre-existing behavior, kept for parity — worth raising for the feed
+  locations while M3 is open.
+- `_show`/`_update` are not method-gated (the Lua gated them to GET/PUT). A wrong
+  method now rewrites and lets CouchDB reject it instead of passing the raw
+  `/api/...` path through; both end in an error, so this is cosmetic.
+
+**Escape hatch if the config stops being readable (user, 2026-09-01):** do not
+defend the pure-config version past the point where it is clear — fall back to a
+JS engine in nginx. Verified on `alpine:3.24`, in order of cost:
+
+1. **njs, default engine** — `apk add nginx-mod-http-js` (njs **0.9.9**, nginx
+   1.30.4). Stock image plus one package, no build. The Lua ports near 1:1:
+   `ngx.req.set_uri` → `r.internalRedirect`, `ngx.req.get_uri_args` → `r.args`.
+   This is the first fallback.
+2. **njs with the QuickJS engine** (`js_engine qjs`, njs ≥ 0.8.6) — gives full
+   modern JS instead of the njs subset, but **alpine's package is not built for
+   it**: `js_engine qjs` is rejected with `invalid value "qjs"`, and the module
+   links no quickjs library. Alpine ships `quickjs`/`quickjs-ng` (+`-dev`)
+   separately, so this means compiling the module yourself — a custom image,
+   which is what dropping OpenResty was meant to avoid. Only worth it if the
+   rewrite logic ever needs real language features; a URI rewriter does not.
+
+**Tripwire — switch to njs when any of these becomes true.** Today's config sits
+well inside them (3 maps, 9 locations, 2 `if`s, both the documented-safe
+`return` / `rewrite ... break` forms):
+- a route needs logic beyond "match a path, look up a name, rewrite" — anything
+  touching a request or response *body*, or branching on an upstream reply;
+- a location needs more than one `if`, or a nested one;
+- a `map` stops being a flat lookup and wants string manipulation;
+- location count passes ~12, where the order-dependence stops being obvious from
+  reading the file top to bottom.
+
 1. Rewrite compose files to the modern spec: `services:` top level, drop `links:`
    (default network + service DNS names replace them; note `worker.sample.conf` uses
    `cdb_1` as hostname — becomes `cdb`), keep the volume/port mappings.
@@ -253,10 +351,13 @@ semantics (commit d9726b9).*
 - No admin party; every db call needs auth (already the case here: admin/admin env).
 
 **Steps:**
-1. **DECISION (ask user, blocks step 3):** how should `desk_pad` be served once CouchDB
-   can't do it — (a) tiny nginx container in the compose stack serving `/opt/app/desk_pad`
-   (recommended, ~10 lines), (b) keep it unresolved until the deferred frontend round and
-   accept a broken pad in dev? The `_rewrite`-based vhost for `desk_drawer` needs the same
+1. **DECISION — effectively answered by the user's `tmp/docker-compose_new.yml`
+   (2026-09-01):** it adds an `openresty/openresty` service (`capi`) serving
+   `desk_pad`, i.e. option (a), the nginx container. Confirm the detail with the user,
+   don't re-open the question. Original wording: how should `desk_pad` be served once
+   CouchDB can't do it — (a) tiny nginx container in the compose stack serving
+   `/opt/app/desk_pad` (recommended, ~10 lines), (b) keep it unresolved until the
+   deferred frontend round and accept a broken pad in dev? The `_rewrite`-based vhost for `desk_drawer` needs the same
    call (still works on 3.x, but deprecated — nginx can take that role too).
 2. Grep-audit the worker's CouchDB usage against 3.x: `_changes` feeds
    (`desk/__init__.py`), views (`_design/…/_view`), doc PUT/GET, attachment upload with
@@ -354,7 +455,7 @@ Out of scope for this upgrade. Noted for later:
 
 | # | Milestone | Status | Verified by |
 |---|-----------|--------|-------------|
-| M0 | Dev env + runnable tests | ☐ | venv install, compileall, unittest green |
+| M0 | Dev env + runnable tests | ☑ done 2026-09-01 | venv install, compileall, unittest green (22 tests) |
 | M1 | Merge origin/master | ☐ | test_invoice.py, suite green |
 | M2 | Dead code + command ports | ☐ | entry-point smoke, no dead refs |
 | M3 | Docker: alpine 3.24 images, compose v2 | ☐ | both images build, compose up, PDF render, dig |
