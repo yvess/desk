@@ -19,6 +19,20 @@ resolving conflicts against `master`, prefer the Python 3 idioms
 (`.values()` not `.itervalues()`, `print(...)`, f-strings, `get_doc`/`encode_json`)
 but keep any newer logic that only exists on `master`.
 
+## Python 3 upgrade — plan & analyses (2026-09)
+
+The full upgrade is planned in **`plan/2026-09-01_python3-upgrade-plan.md`** —
+milestones M0–M6 (dev env/tests → merge origin/master → dead-code/command ports →
+Docker images+compose → CouchDB 1.6→3.x → PowerDNS HTTP API → optional
+consolidation). Work milestone by milestone; each ends with the test suite green.
+Supporting analyses:
+`tmp/python3-upgrade-analysis.md` (dependencies, verified),
+`tmp/simplification-analysis.md` (dead code, PowerDNS API design),
+`tmp/python-django-best-practices.md` (cross-cutting parts only: KISS tiebreaker,
+regression test with every bug fix, no commented-out code).
+Frontend (`desk_pad/`, Cappuccino) is explicitly deferred to a later round.
+Update the tracking table at the bottom of the plan as milestones complete.
+
 ## Tests
 
 ```bash
