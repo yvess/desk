@@ -13,3 +13,9 @@ class Dummy(ExtCrmBase):
             'address_city': "Zürich"
         }
         return address
+
+    def get_contact(self, pk=None):
+        return None
+
+    def has_contact(self, pk=None):
+        return False

@@ -149,6 +149,32 @@ Pre-condition: user has committed/stashed the dirty `desk_pad/*.xib` files.
 full suite green including new `test_invoice.py`; `git diff origin/master -- desk/plugin` shows
 only intentional py3-idiom differences.
 
+**Done 2026-09-01.** Notes:
+- All 10 master commits merged. Conflicts: `desk/plugin/invoice/invoice.py` (one hunk)
+  plus 11 `desk_pad/` files, the latter resolved with `git checkout --theirs` per the
+  frontend-deferred rule — not hand-edited.
+- The invoice.py conflict was master's **refactor** of `add_addons`: the inline
+  start/end-date block moved into the new `set_item_period()` helper and the
+  `start_date > end_date` guards became a `total != 0.0` filter. Master's side taken
+  whole; the python3 branch's duplicate loop dropped.
+- py3 idioms re-applied to master's incoming code (ground rule 5): `basestring` → `str`,
+  `.iterkeys()`/`.iteritems()` → `.keys()`/`.items()`, no `__future__` imports.
+  `git diff origin/master -- desk/plugin/invoice/invoice.py` is now exactly those
+  idioms plus the revert below.
+- **DECISION TAKEN (user): 75d431b "temp double price for domains" was REVERTED.**
+  Both `price *= 2` blocks removed (service price in `get_services`, addon price in
+  `add_addons`). Domain services and their addons bill the service-definition price
+  again. Nothing else from that commit remains.
+- `desk/tests/test_invoice.py` added: 19 tests over the four merged behaviours
+  (`set_item_period` clipping/activity, `package_price`/`price_overwritten` incl. the
+  empty-price-string case that used to hit `float('')`, empty service/addon removal,
+  `invoice_ref`), plus billed-amount checks. Fixtures are plain dicts shaped like
+  `service_by_client` view rows; the CouchDB view is the only stub. Each of the four
+  behaviours was **mutation-checked** — breaking it in `invoice.py` fails the suite.
+- `Invoice.__init__` still calls the undefined `Server(...)` and `db.view(...)`; that
+  pre-dates the merge and is M2 step 3's job (`invoices-create`). It is why the tests
+  build the `Invoice` object without running `__init__`.
+
 ---
 
 ## M2 — Delete dead code, port the half-ported command layer
@@ -456,7 +482,7 @@ Out of scope for this upgrade. Noted for later:
 | # | Milestone | Status | Verified by |
 |---|-----------|--------|-------------|
 | M0 | Dev env + runnable tests | ☑ done 2026-09-01 | venv install, compileall, unittest green (22 tests) |
-| M1 | Merge origin/master | ☐ | test_invoice.py, suite green |
+| M1 | Merge origin/master | ☑ done 2026-09-01 | test_invoice.py, suite green (55 tests) |
 | M2 | Dead code + command ports | ☐ | entry-point smoke, no dead refs |
 | M3 | Docker: alpine 3.24 images, compose v2 | ☐ | both images build, compose up, PDF render, dig |
 | M4 | CouchDB 1.6.1 → 3.5.2 | ☐ | replication doc counts, worker e2e on couchdb:3.5 |

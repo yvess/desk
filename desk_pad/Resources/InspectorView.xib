@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="19529" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24765" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <deployment version="101000" identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="19529"/>
+        <deployment version="1050" identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24765"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -63,7 +63,7 @@
                                             <binding destination="NSl-VI-gjG" name="value" keyPath="arrangedObjects.subType" id="VbQ-fw-7kW"/>
                                         </connections>
                                     </tableColumn>
-                                    <tableColumn editable="NO" width="142.5" minWidth="80" maxWidth="200" id="kcr-Zr-cOW" userLabel="itemDomain">
+                                    <tableColumn editable="NO" width="142" minWidth="80" maxWidth="200" id="kcr-Zr-cOW" userLabel="itemDomain">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Domain">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -78,7 +78,7 @@
                                             <binding destination="NSl-VI-gjG" name="value" keyPath="arrangedObjects.itemDomain" id="YRb-iS-yAx"/>
                                         </connections>
                                     </tableColumn>
-                                    <tableColumn editable="NO" width="92.5" minWidth="60" maxWidth="200" id="QF8-2G-5WZ" userLabel="itemTitle">
+                                    <tableColumn editable="NO" width="92" minWidth="60" maxWidth="200" id="QF8-2G-5WZ" userLabel="itemTitle">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Title">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -93,7 +93,7 @@
                                             <binding destination="NSl-VI-gjG" name="value" keyPath="arrangedObjects.itemTitle" id="bIf-Gb-j4J"/>
                                         </connections>
                                     </tableColumn>
-                                    <tableColumn editable="NO" width="142.5" minWidth="100" maxWidth="300" id="w7c-tv-fcx" userLabel="itemPath">
+                                    <tableColumn editable="NO" width="142" minWidth="100" maxWidth="300" id="w7c-tv-fcx" userLabel="itemPath">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Path">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -108,7 +108,7 @@
                                             <binding destination="NSl-VI-gjG" name="value" keyPath="arrangedObjects.itemPath" id="BCa-lr-oXT"/>
                                         </connections>
                                     </tableColumn>
-                                    <tableColumn editable="NO" width="92.5" minWidth="80" maxWidth="300" id="2UB-Mk-ODx" userLabel="itemVersion">
+                                    <tableColumn editable="NO" width="92" minWidth="80" maxWidth="300" id="2UB-Mk-ODx" userLabel="itemVersion">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Version">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -123,7 +123,7 @@
                                             <binding destination="NSl-VI-gjG" name="value" keyPath="arrangedObjects.itemVersion" id="jNT-xl-HLm"/>
                                         </connections>
                                     </tableColumn>
-                                    <tableColumn editable="NO" width="140" minWidth="100" maxWidth="400" id="yZL-ai-K9j" userLabel="itemPackagesVersions">
+                                    <tableColumn editable="NO" width="142" minWidth="100" maxWidth="400" id="yZL-ai-K9j" userLabel="itemPackagesVersions">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Packages Versions">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -142,11 +142,11 @@
                             </tableView>
                         </subviews>
                     </clipView>
-                    <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="eOd-FH-nf8">
+                    <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="eOd-FH-nf8">
                         <rect key="frame" x="1" y="450" width="746" height="16"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
-                    <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="aj0-Xa-jBU">
+                    <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="aj0-Xa-jBU">
                         <rect key="frame" x="224" y="17" width="15" height="102"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>

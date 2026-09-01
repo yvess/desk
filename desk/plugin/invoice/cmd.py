@@ -72,12 +72,19 @@ class CreateInvoicesCommand(SettingsCommand):
                         client_doc=client['doc'],
                         invoice_cycle=invoice_cycle
                     )
+                    if invoice.client_doc is None:
+                        # Invoice already printed why it gave up; without a
+                        # client_doc it may not even have a doc to read.
+                        continue
                     start_dates = []
                     for service in invoice.doc['services'].values():
                         for service_item in service['items']:
                             start_dates.append(
                                 service_item['start_date']
                             )
+                    if not start_dates:
+                        print("\nSKIP no billable services:", client['doc']['name'])
+                        continue
                     invoice_start_date = min(start_dates)
                     if invoice_start_date < invoice_cycle.doc['end_date']:
                         invoice.render_pdf()

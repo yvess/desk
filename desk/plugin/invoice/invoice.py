@@ -104,6 +104,7 @@ class Invoice(object):
             self.client_doc = None
             return
         self.doc['client_name'] = self.client_doc['name']
+        self.doc['invoice_ref'] = self.client_doc.get('invoice_ref', '')
         self.doc['tax'] = round(self.doc['amount'] * self.tax, 1)
         self.doc['total'] = self.doc['amount'] + self.doc['tax']
 
@@ -144,7 +145,18 @@ class Invoice(object):
             service_doc = MergedDoc(self.db, result['doc']).doc
             service_def = Invoice.service_definitons[service_doc['service_type']]
             package = service_def['packages'][service_doc['package_type']]
+            # always keep the package list price next to the effective price,
+            # so the invoice shows whether the price was overwritten on the service
+            package_price = float(package['price']) if 'price' in package else None
+            own_price = service_doc.get('price')
+            has_own_price = own_price is not None and own_price != ''
+            if not has_own_price:
+                service_doc.pop('price', None)
             service_doc['price'] = get_default('price', service_doc, package)
+            service_doc['package_price'] = package_price
+            service_doc['price_overwritten'] = (
+                has_own_price and service_doc['price'] != package_price
+            )
             service_doc['package_title'] = get_default(
                 'title', service_doc, package, special_attribute='package_title'
             )
@@ -157,13 +169,14 @@ class Invoice(object):
                 if service_start_date < self.doc['last_invoice_end_date']:
                     service_start_date = cycle_start_date
             service_doc['start_date'] = service_start_date
-            service_doc['addons'] = self.add_addons(service_doc, service_def['addons'])
-            service_doc['included'] = self.add_included(service_doc, package)
             service_end_date = get_default(
                 'end_date', service_doc, self.doc)
             if service_end_date > self.doc['end_date']:
                 service_end_date = self.doc['end_date']
             service_doc['end_date'] = service_end_date
+            # addons/included need the effective service period (dates above)
+            service_doc['addons'] = self.add_addons(service_doc, service_def['addons'])
+            service_doc['included'] = self.add_included(service_doc, package)
             doc_amount = self.add_amount(
                 service_doc['price'], service_doc['start_date'], service_end_date)
             service_doc.update(doc_amount)
@@ -189,68 +202,75 @@ class Invoice(object):
             return servicesOrdered
         return services
 
+    def set_item_period(self, item, service):
+        """Set start_date/end_date on an addon or included item.
+
+        desk_pad saves the item dates as 'startDate'/'endDate'. The item is
+        billed inside the period of its service: it can not start before the
+        service starts and can not end after the service ends. Returns True
+        if the item is active in that period.
+        """
+        start_date = service['start_date']
+        end_date = service['end_date']
+        if 'startDate' in item:
+            item_start_date = parse_date(item['startDate'], force_day='start')
+            start_date = max(start_date, item_start_date)
+        if 'endDate' in item:
+            item_end_date = parse_date(item['endDate'])
+            end_date = min(end_date, item_end_date)
+        item['start_date'] = start_date
+        item['end_date'] = end_date
+        return start_date <= end_date
+
     def add_addons(self, service, sd_addons):
         addons = []
-        cycle_start_date = self.invoice_cycle.doc['start_date']
+        addon_items = service.get('addon_service_items') or []
+        for addon in addon_items:
+            if isinstance(addon, str):
+                addon = {'name': addon}
+            elif not isinstance(addon, dict):
+                raise
+            sd_addon = sd_addons[addon['itemType']]
+            addon['price'] = get_default('price', addon, sd_addon)
+            addon['title'] = get_default('title', addon, sd_addon)
+            is_active = self.set_item_period(addon, service)
+            if not is_active:
+                continue
+            addon.update(
+                self.add_amount(addon['price'], addon['start_date'], addon['end_date'])
+            )
+            if addon['total'] != 0.0:
+                addons.append(addon)
         if 'addon_service_items' in service:
-            for addon in service['addon_service_items']:
-                if isinstance(addon, str):
-                    addon = {'name': addon}
-                elif isinstance(addon, dict):
-                    pass
-                else:
-                    raise
-                addon['price'] = get_default('price', addon, sd_addons[addon['itemType']])
-                addon['title'] = get_default('title', addon, sd_addons[addon['itemType']])
-                addon['start_date'] = get_default(
-                    'start_date', addon, service,
-                    special_attribute='startDate', date_force_day='start'
-                )
-                last_invoice_end_date = self.doc['last_invoice_end_date'] if 'last_invoice_end_date' in self.doc else None
-                doc_start_date = self.doc['start_date']
-                if last_invoice_end_date:
-                    if addon['start_date'] < last_invoice_end_date:
-                        addon['start_date'] = cycle_start_date
-                if 'end_date' in service:
-                    end_date_doc = service
-                else:
-                    end_date_doc = self.doc
-                addon['end_date'] = get_default(
-                    'end_date', addon, end_date_doc,
-                    special_attribute='endDate',
-                )
-                if addon['end_date'] > self.doc['end_date']:
-                    addon['end_date'] = self.doc['end_date']
-                addon.update(
-                    self.add_amount(addon['price'], addon['start_date'], addon['end_date'])
-                )
-                if (not addon['start_date'] > self.invoice_cycle.doc['end_date'] and
-                   not addon['start_date'] > addon['end_date']):
-                    addons.append(addon)
-            del(service['addon_service_items'])
+            del service['addon_service_items']
         return addons
 
     def add_included(self, service, sd_package):
         included = []
+        included_items = service.get('included_service_items') or []
+        for item in included_items:
+            sd_included = sd_package['included'][item['itemType']]
+            item['title'] = get_default('title', item, sd_included)
+            is_active = self.set_item_period(item, service)
+            if not is_active:
+                continue
+            item['months'] = self.count_months(item['start_date'], item['end_date'])
+            included.append(item)
         if 'included_service_items' in service:
-            for item in service['included_service_items']:
-                item['title'] = get_default(
-                    'title', item, sd_package["included"][item['itemType']]
-                )
-                included.append(item)
-            del(service['included_service_items'])
+            del service['included_service_items']
         return included
 
-    def add_amount(self, price, start_date, end_date):
-        item = {}
+    def count_months(self, start_date, end_date):
         months = (
             (end_date.year - start_date.year) * 12 +
             (end_date.month - start_date.month) + 1
         )
-        if months < 0:
-            months = 0
-        item['months'] = months
-        item['amount'] = months * price
+        return months if months > 0 else 0
+
+    def add_amount(self, price, start_date, end_date):
+        item = {}
+        item['months'] = self.count_months(start_date, end_date)
+        item['amount'] = item['months'] * price
         item['tax'] = item['amount'] * self.tax
         item['total'] = item['amount'] + item['tax']
         self.doc['amount'] += item['amount']
