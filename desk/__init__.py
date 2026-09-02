@@ -5,6 +5,7 @@ import time
 import logging
 import json
 import asyncio
+import httpx
 from desk.utils import ObjectDict, CouchDBClient, CouchDBClientAsync, AttributeDict
 from desk.utils import decode_json, encode_json, get_doc, get_key
 from desk.plugin.base import Updater, MergedDoc
@@ -99,8 +100,17 @@ class Worker(object):
                 if ServiceClass:
                     with ServiceClass(self.settings) as service:
                         updater = Updater(self.db, doc, service)
-                        was_successfull = updater.do_task()
-                        return was_successfull
+                        try:
+                            return updater.do_task()
+                        except httpx.HTTPError as error:
+                            # The backend rejects bad changes now instead of
+                            # logging and carrying on. Report the task failed
+                            # rather than letting the exception out, which
+                            # would take down the _changes queue with it.
+                            self.logger.error(
+                                "task failed on %s: %s", doc._id, error
+                            )
+                            return False
         else:
             self.logger.error("I doesn't provide the requested service")
             raise Exception("I doesn't provide the requested service")

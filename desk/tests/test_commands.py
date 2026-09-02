@@ -280,10 +280,6 @@ class StubPowerdns:
     def set_lookup_map(self, doc):
         self.lookup_map = doc['map']
 
-    def get_soa_serial(self):
-        self.calls.append('get_soa_serial')
-        return '2026090100'
-
 
 class PowerdnsRebuildCommandTestCase(unittest.TestCase):
     """dns-rebuild-powerdns — `db.view(...).one()` no longer exists."""
@@ -309,7 +305,10 @@ class PowerdnsRebuildCommandTestCase(unittest.TestCase):
             },
         )
         self.command = PowerdnsRebuildCommand()
-        self.command.set_settings(settings(db='/tmp/pdns.sqlite3', target=None))
+        self.command.set_settings(settings(
+            powerdns_api_url='http://ns1:8081', powerdns_api_key='devkey',
+            target=None,
+        ))
         self.command.db.close()
         self.command.db = self.couch.client()
         self.addCleanup(self.command.db.close)
@@ -320,17 +319,16 @@ class PowerdnsRebuildCommandTestCase(unittest.TestCase):
         self.assertEqual(self.command.pdns.doc['domain'], 'test.ch')
         self.assertEqual(self.command.pdns.doc['nameservers'], ['ns1.test.ch'])
 
-    def test_rebuild_deletes_before_it_recreates(self):
-        self.command._rebuild('test.ch')
-        self.assertEqual(
-            self.command.pdns.calls,
-            ['set_domain', 'get_soa_serial', 'del_domain', 'create',
-             'update_soa'],
-        )
+    def test_rebuild_syncs_the_zone(self):
+        """CouchDB is authoritative, so the zone is made to match it.
 
-    def test_rebuild_without_pre_delete_only_creates(self):
-        self.command._rebuild('test.ch', pre_delete=False)
-        self.assertEqual(self.command.pdns.calls, ['create', 'update_soa'])
+        It used to delete the zone and recreate it, carrying the old SOA serial
+        across by hand; the API bumps the serial itself, and patching an
+        existing zone keeps that serial climbing.
+        """
+        self.command._rebuild('test.ch')
+
+        self.assertEqual(self.command.pdns.calls, ['create'])
 
     def run_command(self):
         with patch(

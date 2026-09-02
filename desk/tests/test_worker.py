@@ -118,7 +118,9 @@ class UpdaterLookupMapTestCase(unittest.TestCase):
 class DnsBaseLookupMapTestCase(unittest.TestCase):
     def test_a_backend_starts_with_an_empty_lookup_map(self):
         # a $ip_ value then fails with KeyError naming it, not AttributeError
-        settings = ObjectDict(powerdns_backend='sqlite', powerdns_db=':memory:')
+        settings = ObjectDict(
+            powerdns_api_url='http://ns1:8081', powerdns_api_key='devkey'
+        )
         with Powerdns(settings) as pdns:
             self.assertEqual(pdns.lookup_map, {})
             with self.assertRaises(KeyError):

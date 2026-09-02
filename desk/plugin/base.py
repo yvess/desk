@@ -153,6 +153,14 @@ class Updater(object):
                 for i in item_diff:
                     item_diff_merged.append(item_diff[i])
                 diff_merged['remove'][name] = item_diff_merged
+            # a record type the active document did not carry at all, and the
+            # reverse -- json_diff reports those at the top level rather than
+            # under _update, so they used to fall through unnoticed: a domain's
+            # first TXT record never reached DNS
+            if '_append' in diff and name in diff['_append']:
+                diff_merged['append'][name] = diff['_append'][name]
+            if '_remove' in diff and name in diff['_remove']:
+                diff_merged['remove'][name] = diff['_remove'][name]
         return diff_merged
 
     def do_task(self):

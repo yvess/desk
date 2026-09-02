@@ -148,6 +148,9 @@ class DnsBase(object, metaclass=abc.ABCMeta):
     # filled by set_lookup_map(); empty until then so a $ip_ lookup fails
     # with a KeyError naming the value instead of an AttributeError
     lookup_map = {}
+    # set_diff() is only called for a 'changed' document that has an active
+    # revision to compare against; update() has to cope with the other case
+    diff = None
     structure = [
         {
             'name': 'a',
@@ -211,22 +214,6 @@ class DnsBase(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def del_domain(self, domain):
         """del domain"""
-
-    @abc.abstractmethod
-    def add_record(self, key, value, rtype='A', ttl=86400, priority='NULL'):
-        """add record"""
-
-    @abc.abstractmethod
-    def update_record(self, key, value, rtype='A', ttl=86400, priority='NULL'):
-        """update record"""
-
-    @abc.abstractmethod
-    def del_record(self, key, value, rtype='A', ttl=86400, priority='NULL'):
-        """delete record"""
-
-    @abc.abstractmethod
-    def del_records(self, rtype, domain=None):
-        """delete records from one rtype"""
 
     @abc.abstractmethod
     def get_domains(self):

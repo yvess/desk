@@ -274,11 +274,10 @@ recorded in step 2 and in the plan's Deferred section, not acted on here.
 
 ## Noted, not fixed
 
-- **PowerDNS 5.0 caches the zone list at startup** (`zone-cache-refresh-interval`,
-  default 300s). A zone the worker creates is not served until that refresh or a
-  `s6-svc -r /run/service/pdns`. Reproduced: `dig test SOA` empty right after the
-  worker wrote the zone, correct after a pdns restart. **M5 should decide** —
-  set the interval to 0 (disables the cache) or have the worker notify pdns.
+- ~~**PowerDNS 5.0 caches the zone list at startup**~~ — **resolved in M5.**
+  It only bit because the worker wrote PowerDNS's database behind its back; a
+  zone created through the API is served immediately, with the cache interval
+  left at its 300s default. No setting needed.
 - `desk/tests/fixtures/couchdb-design.json` is a 2014 dump of the old design doc,
   is not valid JSON (literal newlines inside strings), and is referenced nowhere.
   Candidate for deletion.

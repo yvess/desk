@@ -4,6 +4,7 @@ HOST_IP=$(hostname -i)
 PDNS_DATA=${PDNS_DATA:-/var/services/powerdns}
 PDNS_LOG=${PDNS_LOG:-/var/services/powerdns/log}
 FQHOSTNAME=$(hostname)
+PDNS_API_KEY=${PDNS_API_KEY:-desk}
 mkdir -p "${PDNS_DATA}" "${PDNS_LOG}"
 
 # /etc/desk/worker.conf is templated by worker-init, which has to finish before
@@ -16,6 +17,7 @@ if grep -q "HOST_IP" "/etc/powerdns/pdns.d/pdns.local.conf"; then
         -e "s/-HOST_IP-/${HOST_IP}/" \
         -e "s/-HOSTNAME-/${FQHOSTNAME}/" \
         -e "s#-PDNS_DATA-#${PDNS_DATA}#" \
+        -e "s#-PDNS_API_KEY-#${PDNS_API_KEY}#" \
         /etc/powerdns/pdns.d/*
 fi
 
