@@ -511,20 +511,52 @@ class DesignDocJavascriptTest(unittest.TestCase):
     it made the whole design doc fail to install with a compilation_error.
     """
 
-    def test_no_spidermonkey_only_for_each(self):
+    def design_js(self):
         design = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             '_design',
         )
-        offenders = []
         for root, _, files in os.walk(design):
-            for name in files:
+            for name in sorted(files):
                 if not name.endswith('.js'):
                     continue
                 path = os.path.join(root, name)
                 with open(path) as f:
-                    if 'for each' in f.read():
-                        offenders.append(os.path.relpath(path, design))
+                    yield os.path.relpath(path, design), f.read()
+
+    def test_no_commented_out_emit(self):
+        """FileDesignDocsLoader drops every line containing '//'.
+
+        A commented-out emit therefore does not survive into the installed
+        design doc, so the view silently indexes less than the source suggests.
+        `version`'s `else { emit(0, ...) }` was commented out this way, which
+        hid every version-less document from `dworker migrate`.
+        """
+        offenders = []
+        for path, source in self.design_js():
+            for line in source.splitlines():
+                comment = line.partition('//')[2]
+                if 'emit(' in comment:
+                    offenders.append(path)
+
+        self.assertEqual(offenders, [])
+
+    def test_the_version_view_indexes_documents_without_a_version(self):
+        """`dworker migrate` walks the `version` view to find work.
+
+        Legacy documents have no `version` property at all, so a view that
+        only emits when the property exists makes migrate a no-op on exactly
+        the documents that need it.
+        """
+        source = dict(self.design_js())['desk_drawer/views/version/map.js']
+
+        self.assertIn('else', source)
+        self.assertEqual(source.count('emit('), 2)
+
+    def test_no_spidermonkey_only_for_each(self):
+        offenders = [
+            path for path, source in self.design_js() if 'for each' in source
+        ]
 
         self.assertEqual(offenders, [])
 

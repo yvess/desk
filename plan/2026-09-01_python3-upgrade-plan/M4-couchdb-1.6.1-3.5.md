@@ -56,3 +56,151 @@ runbook and the fixture load.
 **Verify:** suite green; `docker compose up` with couchdb:3 → worker connects, `_changes`
 feed loop runs, `invoices-create` (M2) executes against it, doc counts old vs. new match
 after replication; `curl http://admin:…@localhost:5984/desk_drawer` sane.
+
+---
+
+**Done 2026-09-02.** Steps 2, 4 and 5 executed against real servers
+(`couchdb:3.5.2` and the `yvess/couchdb:1.6.1a` image), not from documentation.
+
+## Step 2 — CouchDB usage audit, 1.6 → 3.5.2
+
+Every endpoint the worker and `capi` use was exercised against a live 3.5.2 with
+the design doc installed and the dev fixtures loaded. **Nothing needed a code
+change.** What was checked, and the result:
+
+| Call site | Endpoint | 3.5.2 |
+|---|---|---|
+| `utils.CouchDBClient.view` | `GET {db}/_design/{ddoc}/_view/{name}` (+`include_docs`, JSON `key`/`keys`/`startkey`/`endkey`) | works |
+| `Worker._setup_worker` | `GET .../_list/list_docs/worker` | works (**deprecated**, see below) |
+| `Foreman._update_order` | `PUT .../_update/set-state/{id}`, `.../_update/set-active-rev/{id}` | works (**deprecated**) |
+| `capi` `/api/showjson/*` | `GET .../_show/showjson/{id}` | works (**deprecated**) |
+| `Worker._create_queue` | `GET {db}/_changes?feed=continuous&heartbeat=30000&since=now&filter={ddoc}/{name}&include_docs=true` | works |
+| `capi` feed routes | `GET {db}/_changes?feed=eventsource&filter=...` | works |
+| `Foreman._create_tasks` | `GET /_uuids` (server level, via the client's `../_uuids`) | works |
+| `Foreman._update_order` | `PUT {db}/{id}/{rev}?rev={rev}` — the active-doc snapshot, an attachment named after the rev | works, reads back byte-identical |
+| `utils.response_add_rev` | `ETag` on `HEAD`/`PUT` | present, unweakened |
+| `InstallDbCommand` | `PUT {db}/_design/{ddoc}` with `rewrites` (35 entries), 42 views, 5 filters, 3 lists, 4 updates, 1 show | accepted |
+
+**The one real risk is `_list` / `_show` / `_update`.** They are deprecated in
+3.x and **removed in CouchDB 4.x**. Three call sites depend on them
+(`_setup_worker`, `_update_order`, and `capi`'s `showjson`/`add-editor` routes),
+plus the design doc's `rewrites` (also deprecated, and already unused now that
+`capi` does the rewriting). This does not block M4 — it is the thing that will
+block a future 4.x move, and `rewrites` could be dropped from the design doc
+today. Not done here: out of M4's scope, and the frontend round should decide it
+together with the `_show`/`_update` routes it still calls.
+
+## Step 4 — migration runbook (1.6.1 → 3.5.2)
+
+Verified by replicating from a populated `yvess/couchdb:1.6.1a` into a fresh
+`couchdb:3.5.2`. Three things bite, in this order:
+
+1. **Install the current design doc on the OLD server first.**
+   Replication copies `_design/desk_drawer` like any other document, and 3.5.2
+   *validates map functions on write*: the pre-M3 design doc fails with
+   `{"error":"doc_write_failed","reason":"compilation_error ... 'inspector_items'
+   ... Unexpected identifier"}` (`for each`) and **the whole replication aborts**.
+   The ported design doc is valid in both engines — verified: it installs on
+   1.6.1 and all four rewritten views still build there. So:
+   `./dworker install-db -c <config pointing at the 1.6 server>`.
+   Filtering design docs out of the replication instead does *not* work: a
+   `selector` needs Mango on the source (`changes_req_failed,400`), which 1.6
+   predates.
+2. **Turn off the replicator's session auth on the NEW server.** 3.x tries cookie
+   auth first and 1.6's `_session` closes the connection, giving
+   `{"error":"replication_auth_error","reason":"{session_request_failed,...}"}` —
+   including when `auth.basic` is supplied. Fix:
+   `curl -X PUT -d '"couch_replicator_auth_noop"' \
+     "$NEW/_node/_local/_config/replicator/auth_plugins"`
+3. **Then replicate**, giving the source credentials explicitly:
+   ```
+   curl -X POST -H 'Content-Type: application/json' -d '{
+     "source": {"url": "http://OLD:5984/desk_drawer",
+                "auth": {"basic": {"username": "admin", "password": "admin"}}},
+     "target": "desk_drawer"
+   }' "$NEW/_replicate"
+   ```
+   Result on the test corpus: `docs_read 6, docs_written 6,
+   doc_write_failures 0`. Attachments — including the rev-named active-doc
+   snapshots — come across and read back byte-identical.
+
+**Verify after replication:** doc counts match
+(`GET {db}` → `doc_count` / `doc_del_count` on both); every view builds
+(`GET .../_view/<name>?limit=1` → 200 for all 42, checked); `_all_dbs` on the
+source lists only `_users`, `_replicator`, `desk_drawer` — check `_users` for
+real `org.couchdb.user:*` documents and replicate those separately if there are
+any (do **not** copy `_users/_design/_auth`; 3.x ships its own).
+
+## Step 5 — fixtures + end-to-end on 3.5.2
+
+`desk/docker/couchdb-testdata.yml` (the fig-era loader) was deleted in M3, so
+loading is now `./taskfile.sh fixtures`: it PUTs `desk/tests/fixtures/couchdb-*.json`
+and then runs `dworker migrate`. The fixtures are **pre-migration** documents (no
+`version` property, `@ip_web1` map variables), which is what forced the two bug
+fixes below.
+
+End-to-end, verified on 3.5.2 with the real images: load fixtures → `migrate` →
+create an order → the foreman picks it up off the continuous `_changes` feed,
+reads `new_by_editor`, pulls a uuid and creates a task → the dns worker picks the
+task off its own `_changes` feed and writes the zone → the foreman sees
+`tasks_done`, runs `_update/set-state`, PUTs the rev-named attachment, runs
+`_update/set-active-rev` and closes the order. Final state: order `done`,
+task `done_checked`, `dns-test2` `active` with `active_rev` and a matching
+attachment, and the zone in pdns:
+
+```
+blog2.test|A|172.17.1.10      <- $ip_web1 resolved through map-ips
+test|NS|ns1.localhost
+test|SOA|ns1.localhost dsnmaster@test 2026090200 3600 3600 3600 3600
+```
+
+and, after a `s6-svc -r /run/service/pdns` (see the zone-cache note below),
+`dig @127.0.0.1 test SOA` and `dig @127.0.0.1 blog2.test A` answer from it.
+
+**DECISION (user, 2026-09-02): the dns nodes keep M3's `ns1.localhost` /
+`ns2.localhost`, and the fixtures move to match.** The fixtures named `dnsa.test`
+while compose registered the workers as `ns1.localhost`, so a task's `provider`
+matched no worker and every order stalled at `new_created_tasks`. `.localhost`
+resolves to the loopback address on the developer's own machine with no hosts-file
+entry, so the dev stack works out of the box — that beats the RFC 2606 `.test`
+tidiness here. Changed: only the fixture template's `nameservers` and
+`soa_primary` → `ns1.localhost`. `docker-compose.yml` is untouched, and the `test`
+zone's `dnsa`/`dnsb` A records stay as they are — with an out-of-zone nameserver
+they are ordinary host records, not glue.
+
+## Bugs found by running it (fixed here, with regression tests)
+
+1. **dns workers registered `provides.domain[0].name` as the literal
+   `-HOSTNAME-`**, so they matched no task and every dns task sat in state `new`.
+   `install-worker` runs in `worker-init`, but the `-HOSTNAME-`/`-DNS_PRIMARY-`/
+   `-PDNS_DATA-` substitution lived in `pdns-init`, which s6 starts *after* it.
+   **Pre-existing, not an M3 regression** — the old `cont-init.d` scripts had the
+   same order (`05-worker-check` before `10-pdns-check`). Fixed by moving all of
+   `/etc/desk/worker.conf`'s templating into `worker-init`, next to the
+   `COUCHDB_*` substitutions it already did; `pdns-init` keeps `/etc/powerdns/*`.
+   Covered by `tests/test_container_init.py`, which asserts every placeholder in
+   either `worker.conf` is substituted, and substituted *before* the
+   `dworker install-worker` line.
+2. **`dworker migrate` was a no-op on legacy documents.** It walks the `version`
+   view, whose `else { emit(0, doc.type); }` branch was commented out — and
+   `FileDesignDocsLoader` strips every line containing `//`, so the branch never
+   reached CouchDB at all. Legacy documents have no `version` property, so
+   exactly the documents needing migration were invisible. Uncommented. Covered
+   by two tests in `DesignDocJavascriptTest`: no commented-out `emit(` anywhere
+   in `_design/`, and `version/map.js` emits in both branches.
+
+## Noted, not fixed
+
+- **PowerDNS 5.0 caches the zone list at startup** (`zone-cache-refresh-interval`,
+  default 300s). A zone the worker creates is not served until that refresh or a
+  `s6-svc -r /run/service/pdns`. Reproduced: `dig test SOA` empty right after the
+  worker wrote the zone, correct after a pdns restart. **M5 should decide** —
+  set the interval to 0 (disables the cache) or have the worker notify pdns.
+- `desk/tests/fixtures/couchdb-design.json` is a 2014 dump of the old design doc,
+  is not valid JSON (literal newlines inside strings), and is referenced nowhere.
+  Candidate for deletion.
+- `_list`/`_show`/`_update`/`rewrites` removal in 4.x — see step 2.
+
+**Verified:** suite green, 102 tests; `compileall` clean; replication 6/6 docs
+with 0 write failures and all 42 views building on the target; the full
+order → task → zone chain on 3.5.2.

@@ -4,18 +4,10 @@ HOST_IP=$(hostname -i)
 PDNS_DATA=${PDNS_DATA:-/var/services/powerdns}
 PDNS_LOG=${PDNS_LOG:-/var/services/powerdns/log}
 FQHOSTNAME=$(hostname)
-DNS_PRIMARY=${DNS_PRIMARY:-$FQHOSTNAME}
 mkdir -p "${PDNS_DATA}" "${PDNS_LOG}"
 
-# CONFIGURE WORKER
-if grep -q "PDNS_DATA" "/etc/desk/worker.conf"; then
-    echo "* configure worker.conf for pdns"
-    sed -i \
-        -e "s#-HOSTNAME-#${FQHOSTNAME}#" \
-        -e "s#-DNS_PRIMARY-#${DNS_PRIMARY}#" \
-        -e "s#-PDNS_DATA-#${PDNS_DATA}#" \
-        /etc/desk/worker.conf
-fi
+# /etc/desk/worker.conf is templated by worker-init, which has to finish before
+# it registers the worker doc -- see the comment there.
 
 # CONFIGURE PDNS
 if grep -q "HOST_IP" "/etc/powerdns/pdns.d/pdns.local.conf"; then
