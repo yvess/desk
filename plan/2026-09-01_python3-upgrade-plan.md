@@ -7,6 +7,10 @@ below is self-contained: it states scope, exact files, verification commands, an
 flagged decisions. Do not improvise beyond a milestone's scope; KISS/YAGNI is the
 tiebreaker (see `tmp/python-django-best-practices.md` §1.2).
 
+**Milestones:** each milestone's full spec lives in its own file under
+`plan/2026-09-01_python3-upgrade-plan/` (linked from the headings below). This file keeps the
+shared intro, the deferred items, and the tracking table.
+
 **Source analyses (read before executing a milestone that cites them):**
 - `tmp/python3-upgrade-analysis.md` — dependency/version findings, verified on PyPI + py3.14 venvs
 - `tmp/simplification-analysis.md` — dead code, half-ported commands, PowerDNS API design
@@ -67,400 +71,43 @@ tiebreaker (see `tmp/python-django-best-practices.md` §1.2).
 
 ## M0 — Working dev environment + runnable test suite
 
-*Goal: a fresh Python 3 venv where the package installs, imports, and the test harness runs.
-Everything later depends on this.*
-
-1. Replace `desk/docker/worker/requirements3.txt` with the 9-line direct-dependency set from
-   `python3-upgrade-analysis.md` §4 (CairoSVG 2.9.0, dnspython 2.8.0, httpx 0.28.1, Jinja2 3.1.6,
-   json-diff 1.5.0, PyMySQL 1.2.0, **pypdf** 6.16.2, qrbill 1.2.0, WeasyPrint 69.0 — verified
-   installing cleanly on py3.14). These were the latest stable on PyPI on 2026-09-01 —
-   per ground rule 6, re-check each against PyPI at execution time and pin whatever is
-   latest-stable then. Move `pyinstaller` to a new
-   `desk/docker/worker/requirements-build.txt` (used only by `desk/Makefile` `dworker` target).
-2. `desk/plugin/invoice/qrbill.py`: PyPDF2 → pypdf (§5.1 — line 9
-   `from pypdf import PdfWriter`, line 61 `merger = PdfWriter()`; `.append/.write/.close` unchanged).
-   qrbill 0.8.1 → 1.2.0 needs **no code change** (call-site verified, §4).
-3. `desk/utils.py:195`: fix `super()._request(...)` → `super().request(...)` (latent bug, §5.2).
-4. Fix the test harness:
-   - Delete stale `.pyc`/`__pycache__` clutter in `desk/tests/`.
-   - `test_worker.py` / `test_utils.py` import the removed `CouchdbUploader` — rewrite or delete
-     those test cases so the suite **imports and runs**. Keep any test still testing real code
-     (`AttributeDict`, `Powerdns`, …); delete tests of deleted features.
-   - Make discovery work from repo root or `desk/` consistently (a `python -m unittest discover`
-     invocation documented in CLAUDE.md must pass).
-
-**Verify:** fresh venv → `pip install -r desk/docker/worker/requirements3.txt` succeeds;
-`pip install -e .`; `python3 -m compileall desk` exit 0; smoke-import `desk`, `desk.utils`,
-`desk.plugin.invoice.qrbill` (this one failed before, on PyPDF2); `python -m unittest discover` green.
-
-**Done 2026-09-01.** Notes for later milestones:
-- All nine pins re-checked against PyPI at execution time; every one was still
-  latest-stable, so the plan's versions were kept verbatim. `requirements-build.txt`
-  pins `pyinstaller==6.22.2`.
-- Venv lives at repo root `.venv` (Python 3.14.7), added to `.gitignore` together
-  with `__pycache__`; dev setup + test invocation documented in `CLAUDE.md`.
-- `setup.py` read the version via `__import__('desk').__version__`, which made
-  `pip install -e .` fail inside pip's isolated build env (no `httpx` there).
-  It now regex-reads `__version__` out of `desk/__init__.py`.
-- `desk/tests/test_worker.py` was **deleted**, not ported: every one of its helpers
-  went through the removed `CouchdbUploader` / couchdbkit `Server` API and it needed a
-  live CouchDB *and* live PowerDNS. Its scenarios (new domain, update/append/delete
-  record, two domains) are the spec for the e2e bed M4.5 builds and the
-  `test_dns.py` M5.1 restores — recover it from git history (`git show 6c93880:desk/tests/test_worker.py`).
-- New tests: `test_utils.py` (21 cases: `AttributeDict`, `ObjectDict`, `parse_date`,
-  `calc_esr_checksum`, json helpers, `get_rows`/`get_doc`/`get_key`, and the
-  `CouchDBClient`/`CouchDBClientAsync` rev handling — the last is the regression test
-  for the `super()._request` fix, mocking only the HTTP boundary via `httpx.MockTransport`);
-  `test_imports.py` walks and imports every `desk.*` module, guarding the exact failure
-  class that PyPDF2 caused.
-- Left alone deliberately (owned by later milestones): `AttributeDict.copy()` and
-  `_cast_type` reference `copy` / `warnings` without importing them — latent
-  `NameError`s, M6 item 1. `desk/__init__.py` calls `logging.basicConfig(level=DEBUG)`
-  at import time, which makes the test run noisy — M6 item 3.
-- `CouchDBClientMixin._basic_base_url` defaults to port **80** when the URI carries no
-  port, including for `https://` URIs. Harmless today (every caller passes `:5984`),
-  worth fixing whenever that area is next touched.
+→ [M0-working-dev-environment-runnable-test-suite.md](2026-09-01_python3-upgrade-plan/M0-working-dev-environment-runnable-test-suite.md)
 
 ---
 
 ## M1 — Merge `origin/master` into `python3` (the new invoice/extcrm logic)
 
-*Goal: all business changes from master live on python3. This comes early so later work
-never touches stale invoice code.*
-
-Pre-condition: user has committed/stashed the dirty `desk_pad/*.xib` files.
-
-1. `git fetch && git merge origin/master`. Conflicts expected mainly in
-   `desk/plugin/invoice/invoice.py`. Resolution rule: **master's business logic wins**
-   (addon/included-items start/end dates fb49e67, price-change safeguard 7541c38,
-   invoice_ref d01a881, drop empty services/addons d39ba8f), expressed in py3 idioms;
-   keep python3-branch plumbing (`get_doc`, requests/httpx style).
-   `desk_pad/` conflicts: take master's side verbatim — frontend is deferred, don't hand-edit it.
-2. **DECISION (flag to user, do not resolve silently):** commit 75d431b
-   *"temp double price for domains, revert it later"* — ask whether to keep or revert now.
-3. Tests (same milestone, per best-practices §1.5): add
-   `desk/tests/test_invoice.py` with fixture-based regression tests for the merged logic —
-   at minimum: addon/included-item start/end-date handling, the price-change safeguard,
-   empty services/addons removal, invoice_ref presence. Use dict fixtures shaped like real
-   CouchDB docs (see `desk/tests/fixtures/`), no live DB needed —
-   `extcrm/dummy.py` exists exactly for this.
-
-**Verify:** merge completed with user doing the final commit; `compileall` clean;
-full suite green including new `test_invoice.py`; `git diff origin/master -- desk/plugin` shows
-only intentional py3-idiom differences.
-
-**Done 2026-09-01.** Notes:
-- All 10 master commits merged. Conflicts: `desk/plugin/invoice/invoice.py` (one hunk)
-  plus 11 `desk_pad/` files, the latter resolved with `git checkout --theirs` per the
-  frontend-deferred rule — not hand-edited.
-- The invoice.py conflict was master's **refactor** of `add_addons`: the inline
-  start/end-date block moved into the new `set_item_period()` helper and the
-  `start_date > end_date` guards became a `total != 0.0` filter. Master's side taken
-  whole; the python3 branch's duplicate loop dropped.
-- py3 idioms re-applied to master's incoming code (ground rule 5): `basestring` → `str`,
-  `.iterkeys()`/`.iteritems()` → `.keys()`/`.items()`, no `__future__` imports.
-  `git diff origin/master -- desk/plugin/invoice/invoice.py` is now exactly those
-  idioms plus the revert below.
-- **DECISION TAKEN (user): 75d431b "temp double price for domains" was REVERTED.**
-  Both `price *= 2` blocks removed (service price in `get_services`, addon price in
-  `add_addons`). Domain services and their addons bill the service-definition price
-  again. Nothing else from that commit remains.
-- `desk/tests/test_invoice.py` added: 19 tests over the four merged behaviours
-  (`set_item_period` clipping/activity, `package_price`/`price_overwritten` incl. the
-  empty-price-string case that used to hit `float('')`, empty service/addon removal,
-  `invoice_ref`), plus billed-amount checks. Fixtures are plain dicts shaped like
-  `service_by_client` view rows; the CouchDB view is the only stub. Each of the four
-  behaviours was **mutation-checked** — breaking it in `invoice.py` fails the suite.
-- `Invoice.__init__` still calls the undefined `Server(...)` and `db.view(...)`; that
-  pre-dates the merge and is M2 step 3's job (`invoices-create`). It is why the tests
-  build the `Invoice` object without running `__init__`.
+→ [M1-merge-origin-master-into-python3-the-new-invoice-extcrm-logic.md](2026-09-01_python3-upgrade-plan/M1-merge-origin-master-into-python3-the-new-invoice-extcrm-logic.md)
 
 ---
 
 ## M2 — Delete dead code, port the half-ported command layer
 
-*Goal: every CLI command either works on py3 or is gone. ~250 lines deleted.
-Reference: `simplification-analysis.md` §2–§3.*
-
-1. Delete outright (grep-verified dead, §2): `desk/plugin/dns/cmd.py`, `desk/tmp/aiotest.py`,
-   `DocsProcessor` (`command.py:179-293`), `ImportServiceCommand` (`service/cmd.py`),
-   `create_order_doc` + `auth_from_uri` (`utils.py`), `check_domain()` (`powerdns.py`),
-   unreachable lines in `AttributeDict.copy()`, commented-out ipdb/print blocks.
-2. Add a ~10-line `view(name, **params)` helper to `CouchDBClientMixin` in `desk/utils.py`
-   (GET `{db}/_design/{ddoc}/_view/{name}`, returns rows) — with a unit test.
-3. Port using it (mechanical, §3.1): `invoices-create` (`invoice/cmd.py` + `invoice.py` —
-   **core billing path, highest priority**), `dns-rebuild-powerdns` (`cmd_powerdns.py` —
-   needed as the migration/safety tool for both M4 and M5).
-4. Replace every `except ResourceNotFound:` (undefined name + wrong model for httpx) with
-   status-code checks (`base.py:100`, `command.py`) — §3.2.
-5. **DECISIONS (ask user):** `service-query` — port (small) or delete? `migrate` command +
-   `desk/migrations/` — delete if all docs are version ≥ 1? `VersionDoc.create_version`
-   (broken f-string, only tests call it) — fix or delete?
-
-**Verify:** suite green; `desk/bin` entry points `--help` run without traceback;
-`invoices-create` exercised against a dev CouchDB (or, if none available, a test that
-mocks only the HTTP boundary with recorded responses); grep confirms no
-`ResourceNotFound`, `db.view`, `Server(` references remain.
+→ [M2-delete-dead-code-port-the-half-ported-command-layer.md](2026-09-01_python3-upgrade-plan/M2-delete-dead-code-port-the-half-ported-command-layer.md)
 
 ---
 
 ## M3 — Docker: both images + compose, updated and simplified
 
-*Goal: every image builds on a supported base; the compose stack runs with the modern
-`docker compose` plugin. Reference: upgrade-analysis §6 for the worker image.*
-
-### 3.1 Worker image (`desk/docker/worker/Dockerfile`)
-1. `alpine:3.16` → `alpine:3.24` (latest stable; Python 3.14.7 — the exact Python the
-   requirements were verified on). PEP 668 means bare `pip3 install` fails —
-   use a venv (KISS: `python3 -m venv /opt/desk`, put it on `PATH`).
-   (The analysis verified PEP 668 behavior on 3.22; 3.24 behaves the same.)
-2. Drop `binutils`, `upx` (pyinstaller left runtime reqs in M0); drop redundant
-   `py3-*` apk pins that pip now resolves (`py3-pillow`, `py3-brotli`, `py3-cffi`,
-   `py3-cairosvg`, `py3-jinja2`); keep `pango`, `ttf-freefont`, `openssl`
-   (WeasyPrint/CairoSVG runtime libs).
-3. s6-overlay `3.0.0.2-2` → `3.2.3.2` (latest stable, 2026-07-16), **both images**, as a
-   real migration, not just a version bump: the images run v3 binaries but still use the
-   legacy `etc/services.d/` + `etc/cont-init.d/` layout (worker: `services.d`,
-   `cont-init.d/05-worker-check`; dns adds `services.d/pdns` with a `down` file and
-   `cont-init.d/10-pdns-check`). Follow **`tmp/s6-overlay-setup.md`** exactly:
-   - Per service: `s6-rc.d/<name>/` with `run` (shebang `#!/command/with-contenv sh`),
-     `type` = `longrun`, `touch dependencies.d/base`.
-   - The `START_WORKER` / `START_PDNS` env gating (today: `down` files removed by
-     cont-init scripts) moves into an `S6_STAGE2_HOOK` script that `touch`es
-     `user/contents.d/<name>` — same pattern as the doc's `START_NUXT`/`START_CRON`.
-   - Other `cont-init.d` logic becomes `oneshot` services or stage2-hook lines.
-   - Dockerfiles: two-tarball download (`noarch` + `` `arch` ``) **excluding the
-     `legacy-cont-init`/`legacy-services` bundles** (doc §1), `ENV PATH="${PATH}:/command"`,
-     `ENV S6_STAGE2_HOOK=…`, `S6_BEHAVIOUR_IF_STAGE2_FAILS=2`; keep the raised
-     `S6_CMD_WAIT_FOR_SERVICES_MAXTIME` (wait-for-couchdb needs it).
-   - The dns image's "wait for couchdb" behavior must survive the conversion — verify it.
-   This layout swap is also what lets M3.3 replace the `etc.tar.gz` trick with plain
-   `COPY etc/s6-overlay /etc/s6-overlay` (doc §1).
-4. Delete the old py2 `requirements.txt` if nothing references it.
-
-### 3.2 DNS image (`desk/docker/dns/Dockerfile`)
-1. `alpine:3.14` → `alpine:3.24`, which ships **pdns 5.0.7** (M5's HTTP API is in every
-   4.x/5.x). Read the PowerDNS 4.x → 5.0 upgrade notes for `pdns.conf` changes, and note
-   the gsqlite3 **schema migrations** between pdns versions — the KISS escape hatch is to
-   not migrate the sqlite file at all but re-create zones from CouchDB (the authoritative
-   source) via `dns-rebuild-powerdns` (M2). Keep `pdns-backend-sqlite3` — pdns itself
-   keeps sqlite as its storage; only the *worker's direct DB access* dies in M5.
-2. Re-check the `libgsqlite3backend.so` symlink hack (`Dockerfile:10`) against the new
-   alpine pdns package layout — delete it if the package now installs the link correctly.
-3. `desk/docker/dns/requirements.txt` — check what uses it (image installs no Python);
-   delete if orphaned.
-
-### 3.3 Compose + build tooling (`desk/docker-compose.yml`, `docker-extra.yml`, Makefiles → `taskfile.sh`)
-
-**Starting point (added by the user 2026-09-01): `tmp/docker-compose_new.yml` and
-`tmp/etc/`** — a partially-upgraded compose file plus sample CouchDB and nginx configs.
-Use them as the base for this milestone rather than rewriting from the old one. What
-they already bring: modern `services:` top level, official `couchdb:2.3` image with
-the `/opt/couchdb/{data,etc/local.d}` volume layout, `tmp/etc/couchdb/local.d/*.ini`
-(single-node `[cluster] n = 1`, `require_valid_user`, admin hash), and — significant
-for **M4 step 1** — a `capi` service serving `desk_pad` and the Cappuccino frameworks
-from nginx, i.e. it already takes option (a) of that decision.
-
-Still to do on the compose file here: drop `links:`, pin the CouchDB image per M4 (it
-targets 3.5.2, not 2.3), replace the host-absolute `/opt/src/...` and `~/src/desk`
-volume paths with relative ones, and re-check the `COUCHDB_LOCAL_VHOSTS` `_rewrite`
-entry (deprecated on 3.x — `capi` can take that role too).
-
-**DECIDED 2026-09-01 (user): `capi` runs stock `nginx`, not OpenResty — and needs no
-scripting module at all.** The user asked whether njs (nginx's own JS engine) could
-replace the Lua. It could — `ngx_http_js_module` is packaged as `nginx-mod-http-js`
-in alpine 3.24 (nginx 1.30.4) — but it is unnecessary here: every function in the
-`rewrite_by_lua_block` (`list_docs`, `list_items`, `show`, `update`, `couchdb`,
-`changes_stream`) was a pure URI/query-string rewrite with no I/O, state, or logic.
-A plain `map` + `rewrite` config reproduces all 18 routes.
-
-That config is written and **verified route-by-route** against `nginx:1.27-alpine`
-with a stub upstream echoing the proxied URI — all 18 routes byte-identical to the
-Lua output. It lives in `tmp/etc/nginx/conf.d/`:
-`desk.conf` (maps + locations), `desk_proxy.inc` (shared proxy headers),
-`desk_changes.inc` (the SSE `_changes` rewrite). The original is kept beside it as
-`desk.conf.openresty` — it is the behavioral reference; delete it once M3 lands.
-Notes carried into M3:
-- Rewrite replacements that build their own query string **must end in `?`**,
-  otherwise nginx re-appends the client's original args (this silently produced
-  `include_docs=true&limit=10&limit=10` and `since=now&since=now` in the first draft).
-- Unknown collection names now `return 404` (via a `map` defaulting to `""`) where the
-  Lua passed them through to CouchDB unrewritten. Tighter, and matches what the
-  frontend actually calls; confirm that is wanted.
-- `proxy_read_timeout 60` is inherited from the OpenResty config and applies to the
-  SSE `_changes` feeds too, so they drop and the browser's `EventSource` reconnects
-  every 60s. Pre-existing behavior, kept for parity — worth raising for the feed
-  locations while M3 is open.
-- `_show`/`_update` are not method-gated (the Lua gated them to GET/PUT). A wrong
-  method now rewrites and lets CouchDB reject it instead of passing the raw
-  `/api/...` path through; both end in an error, so this is cosmetic.
-
-**Escape hatch if the config stops being readable (user, 2026-09-01):** do not
-defend the pure-config version past the point where it is clear — fall back to a
-JS engine in nginx. Verified on `alpine:3.24`, in order of cost:
-
-1. **njs, default engine** — `apk add nginx-mod-http-js` (njs **0.9.9**, nginx
-   1.30.4). Stock image plus one package, no build. The Lua ports near 1:1:
-   `ngx.req.set_uri` → `r.internalRedirect`, `ngx.req.get_uri_args` → `r.args`.
-   This is the first fallback.
-2. **njs with the QuickJS engine** (`js_engine qjs`, njs ≥ 0.8.6) — gives full
-   modern JS instead of the njs subset, but **alpine's package is not built for
-   it**: `js_engine qjs` is rejected with `invalid value "qjs"`, and the module
-   links no quickjs library. Alpine ships `quickjs`/`quickjs-ng` (+`-dev`)
-   separately, so this means compiling the module yourself — a custom image,
-   which is what dropping OpenResty was meant to avoid. Only worth it if the
-   rewrite logic ever needs real language features; a URI rewriter does not.
-
-**Tripwire — switch to njs when any of these becomes true.** Today's config sits
-well inside them (3 maps, 9 locations, 2 `if`s, both the documented-safe
-`return` / `rewrite ... break` forms):
-- a route needs logic beyond "match a path, look up a name, rewrite" — anything
-  touching a request or response *body*, or branching on an upstream reply;
-- a location needs more than one `if`, or a nested one;
-- a `map` stops being a flat lookup and wants string manipulation;
-- location count passes ~12, where the order-dependence stops being obvious from
-  reading the file top to bottom.
-
-1. Rewrite compose files to the modern spec: `services:` top level, drop `links:`
-   (default network + service DNS names replace them; note `worker.sample.conf` uses
-   `cdb_1` as hostname — becomes `cdb`), keep the volume/port mappings.
-   CouchDB image/config changes happen in **M4**, not here — keep `yvess/couchdb:1.6.1a`
-   running in this milestone so M3 stays a pure infra-refresh with unchanged behavior.
-2. **Replace both Makefiles with a `taskfile.sh`** (user convention; sample:
-   https://github.com/taywa/docker-nuxt/blob/master/taskfile.sh — a plain bash script:
-   `set -euo pipefail`, version variable at top, one function per task, `"$@"` dispatch
-   at the bottom, `docker buildx` with `` `arch` `` detection, `--load` for local build
-   and a `push` function with `--push --platform linux/arm64,linux/amd64`).
-   - From `desk/docker/Makefile` carry over as functions: `build_worker`, `build_dns`,
-     `build`, `push` — with the `etc.tar.gz` ADD trick replaced by plain `COPY` of the
-     s6 tree (doc §1; the dns image's two-source overlay becomes two `COPY` lines).
-     Bump image version tags (variables at the top of taskfile.sh, like `NUXT_VERSION`).
-   - From `desk/Makefile` carry over only what's alive: `up` (as `docker compose up -d`,
-     modern CLI) and — only if the M3.3 pyinstaller DECISION keeps it — `bundle`.
-     Everything else is dead 2014-era tooling and is **deleted**: `freeze` (writes to
-     `images/dns`/`images/master`, paths that no longer exist), `images` (same),
-     `play`/`play-dns`/`play-testdata`/`enter-ansible` (hardcoded `/mnt/sda1` +
-     `yvess/ansible-master`, boot2docker era), `stop_worker`/`start_worker` (s6 v2
-     paths `/var/run/s6/services`, wrong after step 3's s6-rc migration — the
-     replacement is `s6-rc -d/-u change worker` documented in `tmp/s6-overlay-setup.md` §6).
-   - One `taskfile.sh` at repo root (or `desk/` — wherever the user runs it from today;
-     ask if unclear) is enough; don't create one per directory (KISS).
-   - Delete both Makefiles once their live targets are in taskfile.sh.
-3. **DECISION (ask user):** is the pyinstaller `dworker` binary still the deployment
-   mechanism for the dns hosts, or can the dns image install Python + the package like
-   the worker image (simpler: one install path, no pyinstaller at all)? If pyinstaller
-   goes, `requirements-build.txt`, `dworker.spec`, and the `bundle` task go with it.
-
-**Verify:** `./taskfile.sh build` succeeds for both images;
-`docker compose up` brings up cdb + dnsa/dnsb + foreman with no errors in logs;
-`s6-rc -a list` inside each container shows the expected services, and toggling
-`START_WORKER`/`START_PDNS` to NO actually keeps them off (the env-gating contract);
-inside worker container render one QR-bill invoice PDF end-to-end and eyeball it —
-WeasyPrint 56 → 69 is the biggest visual-risk jump in the whole upgrade;
-`dig @localhost -p 1053` answers from dnsa.
+→ [M3-docker-both-images-compose-updated-and-simplified.md](2026-09-01_python3-upgrade-plan/M3-docker-both-images-compose-updated-and-simplified.md)
 
 ---
 
 ## M4 — CouchDB 1.6.1 → 3.5
 
-*Goal: the datastore runs a supported CouchDB (3.5.2, latest stable, official image) instead of a
-custom 2014-era 1.6.1 image. The worker code path is already close: the python3 branch
-talks plain HTTP via httpx and was already fixed for CouchDB 2.3 attachment-rev
-semantics (commit d9726b9).*
-
-**Breaking changes that matter here (1.6 → 3.x):**
-- Data files are **not** upgradeable in place across 1.x → 3.x; migrate via one-shot
-  HTTP **replication** from the old container to the new one.
-- `httpd_global_handlers` is gone → the `_desk_pad` static-file serving in
-  `docker-compose.yml` **cannot work** on 3.x. `vhosts` + design-doc `_rewrite` still
-  exist in 3.x but are deprecated.
-- No admin party; every db call needs auth (already the case here: admin/admin env).
-
-**Steps:**
-1. **DECISION — effectively answered by the user's `tmp/docker-compose_new.yml`
-   (2026-09-01):** it adds an `openresty/openresty` service (`capi`) serving
-   `desk_pad`, i.e. option (a), the nginx container. Confirm the detail with the user,
-   don't re-open the question. Original wording: how should `desk_pad` be served once
-   CouchDB can't do it — (a) tiny nginx container in the compose stack serving
-   `/opt/app/desk_pad` (recommended, ~10 lines), (b) keep it unresolved until the
-   deferred frontend round and accept a broken pad in dev? The `_rewrite`-based vhost for `desk_drawer` needs the same
-   call (still works on 3.x, but deprecated — nginx can take that role too).
-2. Grep-audit the worker's CouchDB usage against 3.x: `_changes` feeds
-   (`desk/__init__.py`), views (`_design/…/_view`), doc PUT/GET, attachment upload with
-   rev (`d9726b9` already handles 2.x+ semantics). Expect little to nothing — but write
-   down what was checked.
-3. Compose: replace `yvess/couchdb:1.6.1a` with the official `couchdb:3.5.2` image
-   (or newer stable at execution time, ground rule 6)
-   (`COUCHDB_USER`/`COUCHDB_PASSWORD` env; single-node setup — create `_users` db or set
-   `single_node=true`). Port the `[httpd]`-era env-var config that still applies;
-   drop what died with 1.x. Wire the step-1 decision in.
-4. Migration runbook (write it into this file when done): start old + new side by side,
-   replicate `desk_drawer` (+ any other dbs found via `_all_dbs`) old → new, verify doc
-   counts match, verify design docs / views build.
-5. Load the dev fixture set (`desk/docker/couchdb-testdata.yml` /
-   `desk/tests/fixtures/couchdb-*.json`) into a fresh CouchDB 3 and run the worker
-   against it — this doubles as the end-to-end test bed M5 needs.
-
-**Verify:** suite green; `docker compose up` with couchdb:3 → worker connects, `_changes`
-feed loop runs, `invoices-create` (M2) executes against it, doc counts old vs. new match
-after replication; `curl http://admin:…@localhost:5984/desk_drawer` sane.
+→ [M4-couchdb-1.6.1-3.5.md](2026-09-01_python3-upgrade-plan/M4-couchdb-1.6.1-3.5.md)
 
 ---
 
 ## M5 — PowerDNS upgrade: sqlite backend → PowerDNS HTTP API
 
-*Goal: `powerdns.py` stops hand-writing SQL against pdns internals and talks the
-built-in JSON API. Removes injection hazard, silent-failure `_db()`, hand-rolled SOA
-serials, same-host constraint. Reference: `simplification-analysis.md` §1, Option A.*
-
-Pre-conditions: dns image on pdns 5.0.7 (done in M3); `pdns.conf`
-(`desk/docker/dns/etc/powerdns/`) gets `webserver=yes`, `api-key=…`, and
-`SOA-EDIT-API=INCEPTION-INCREMENT`; settings gain `powerdns_api_url` +
-`powerdns_api_key` (replacing `powerdns_backend`/`powerdns_db`). **Confirm with user**
-that the production pdns hosts can enable the API webserver before coding.
-
-1. **Tests first:** restore `desk/tests/test_dns.py` (only a stale `.pyc` remains).
-   Pin current diff→mutation behavior of `Updater._create_diff` (`base.py`) with fixtures
-   captured from real CouchDB domain docs — this logic drives live zone mutations and is
-   currently unguarded. Do this against the *old* code before swapping the backend.
-2. New `PowerdnsApi` class (sibling of `CouchDBClient`, httpx-based):
-   zone CRUD via `POST/DELETE /api/v1/servers/localhost/zones[/{zone}]`; record changes via
-   `PATCH …/zones/{zone}` with RRsets `changetype: REPLACE|DELETE` (maps 1:1 onto the current
-   del-then-recreate-per-rtype dance); export via `GET …/zones/{zone}/export`.
-   MX/SRV prio becomes part of the content string — the `prio` juggling shrinks.
-   Serial code (`_calc_serial`/`get_soa_serial`/`update_soa`) is deleted, pdns bumps serials.
-   HTTP errors must **raise** — no `_db()`-style swallow.
-3. Test `PowerdnsApi` methods against recorded/expected request-response pairs (mock only
-   the HTTP boundary); keep the diff-fixture tests from step 1 passing unchanged.
-4. Migration/cutover (uses M2's `dns-rebuild-powerdns`, on the M4 test bed): rebuild every
-   zone through the API from CouchDB (the authoritative source), then diff
-   `dns-export-powerdns` output old-backend vs. new-API before switching the worker over.
-5. Remove `powerdns_backend`/`powerdns_db` plumbing; in the dns image drop the
-   sqlite-DB-file mount requirement, the `pdns.local.gsqlite3.conf` direct-access bits
-   the worker needed, and (if step M3.2 kept it) re-evaluate the symlink hack — pdns
-   itself still needs *a* backend, which stays a pdns.conf concern, not the worker's.
-
-**Expected size:** `powerdns.py` 344 → ~150–180 lines.
-**Verify:** test suite green; zone rebuild + export diff shows zero record-level differences;
-`dig` spot-checks (A/CNAME/MX/TXT-with-quotes — the injection case the old code mishandled)
-against the compose dnsa/dnsb containers.
+→ [M5-powerdns-upgrade-sqlite-backend-powerdns-http-api.md](2026-09-01_python3-upgrade-plan/M5-powerdns-upgrade-sqlite-backend-powerdns-http-api.md)
 
 ---
 
 ## M6 — Consolidation pass (optional, only if time permits — YAGNI applies)
 
-Reference: `simplification-analysis.md` §4–§6. Each item independent, smallest first:
-1. One attr-dict: trim `AttributeDict` to the ~25 used lines or fold `ObjectDict` in;
-   fixes the missing-`warnings`-import latent NameError.
-2. FQDN helpers: five near-duplicates in `dnsbase.py` → one `to_fqdn`/`from_fqdn` pair
-   (+ table of edge-case tests: `@`, trailing dot). Resolves two standing TODOs.
-3. `print()` → `logging` (~15 sites); `db_async()` per-call client leak (`__init__.py:36`);
-   `MergedDoc.cache` → `functools.lru_cache` or drop.
-
-**Explicitly NOT in scope** (documented decisions, don't do):
-- Replacing `json-diff` with DeepDiff — works fine on py3; shim design parked in
-  upgrade-analysis §8 if it ever breaks.
-- Rewriting `_create_diff` — guarded by tests since M5.1; leave it.
+→ [M6-consolidation-pass-optional-only-if-time-permits-yagni-applies.md](2026-09-01_python3-upgrade-plan/M6-consolidation-pass-optional-only-if-time-permits-yagni-applies.md)
 
 ---
 
@@ -483,7 +130,7 @@ Out of scope for this upgrade. Noted for later:
 |---|-----------|--------|-------------|
 | M0 | Dev env + runnable tests | ☑ done 2026-09-01 | venv install, compileall, unittest green (22 tests) |
 | M1 | Merge origin/master | ☑ done 2026-09-01 | test_invoice.py, suite green (55 tests) |
-| M2 | Dead code + command ports | ☐ | entry-point smoke, no dead refs |
+| M2 | Dead code + command ports | ☑ done 2026-09-02 | entry-point smoke, no dead refs, suite green (78 tests) |
 | M3 | Docker: alpine 3.24 images, compose v2 | ☐ | both images build, compose up, PDF render, dig |
 | M4 | CouchDB 1.6.1 → 3.5.2 | ☐ | replication doc counts, worker e2e on couchdb:3.5 |
 | M5 | PowerDNS HTTP API | ☐ | zone export diff, dig checks |
