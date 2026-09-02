@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 import httpx
 
-from desk.command import MigrateCommand
+from desk.command import InstallDbCommand, MigrateCommand
 from desk.plugin.base import MergedDoc
 from desk.plugin.dns.cmd_powerdns import PowerdnsRebuildCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
@@ -410,3 +410,85 @@ class QueryServicesTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class InstallDbCommandTest(unittest.TestCase):
+    """install-db has to create the database before writing the design doc."""
+
+    def setUp(self):
+        self.requests = []
+        self.existing_dbs = set()
+
+    def handler(self, request):
+        self.requests.append(request)
+        is_db_itself = request.url.path.rstrip('/') == '/desk_drawer'
+        if request.method == 'HEAD':
+            found = 'desk_drawer' in self.existing_dbs if is_db_itself else False
+            return httpx.Response(200 if found else 404)
+        if is_db_itself:  # PUT /desk_drawer -- create the database
+            self.existing_dbs.add('desk_drawer')
+            return httpx.Response(201, json={'ok': True})
+        if 'desk_drawer' not in self.existing_dbs:
+            return httpx.Response(404, json={'error': 'not_found'})
+        return httpx.Response(201, json={'ok': True})
+
+    def run_command(self):
+        command = InstallDbCommand()
+        command.set_settings({
+            'couchdb_uri': 'http://cdb:5984', 'couchdb_db': 'desk_drawer',
+        })
+        command.db.close()
+        command.db = CouchDBClient.db(
+            'http://cdb:5984', db_name='desk_drawer',
+            transport=httpx.MockTransport(self.handler),
+        )
+        self.addCleanup(command.db.close)
+        # FileDesignDocsLoader reads desk/_design/desk_drawer/ relative to cwd
+        cwd = os.getcwd()
+        self.addCleanup(os.chdir, cwd)
+        os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        command.run()
+        return [(r.method, r.url.path) for r in self.requests]
+
+    def test_creates_the_database_on_a_fresh_server(self):
+        calls = self.run_command()
+
+        self.assertIn(('PUT', '/desk_drawer/'), calls)
+        self.assertIn(
+            ('PUT', '/desk_drawer/_design/desk_drawer/'), calls
+        )
+
+    def test_leaves_an_existing_database_alone(self):
+        self.existing_dbs.add('desk_drawer')
+
+        calls = self.run_command()
+
+        self.assertNotIn(('PUT', '/desk_drawer/'), calls)
+        self.assertIn(
+            ('PUT', '/desk_drawer/_design/desk_drawer/'), calls
+        )
+
+
+class DesignDocJavascriptTest(unittest.TestCase):
+    """CouchDB 3.x rejects the SpiderMonkey-only JS that 1.6 used to accept.
+
+    `for each (x in list)` was the one non-standard construct in these views;
+    it made the whole design doc fail to install with a compilation_error.
+    """
+
+    def test_no_spidermonkey_only_for_each(self):
+        design = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            '_design',
+        )
+        offenders = []
+        for root, _, files in os.walk(design):
+            for name in files:
+                if not name.endswith('.js'):
+                    continue
+                path = os.path.join(root, name)
+                with open(path) as f:
+                    if 'for each' in f.read():
+                        offenders.append(os.path.relpath(path, design))
+
+        self.assertEqual(offenders, [])

@@ -45,15 +45,33 @@ python3 -m venv .venv
 .venv/bin/pip install coverage       # only for ./coverage.sh
 ```
 
-`desk/docker/worker/requirements3.txt` holds the 9 direct runtime dependencies.
-`requirements-build.txt` (pyinstaller) is build-only and is not installed into
-the runtime images.
+`desk/docker/worker/requirements3.txt` holds the 9 direct runtime dependencies,
+pinned transitively by `requirements3.lock`. Both images install them into a
+venv at `/opt/desk` (alpine's python is PEP 668 externally-managed).
+
+## Docker
+
+`desk/taskfile.sh` replaces the old Makefiles -- one function per task,
+dispatched by `"$@"`:
+
+```bash
+cd desk
+./taskfile.sh build          # build_worker then build_dns (dns builds FROM worker)
+./taskfile.sh up             # docker compose -f docker-compose.yml -f docker-extra.yml up -d
+./taskfile.sh push           # multi-arch push, worker first
+./taskfile.sh help           # list the tasks
+```
+
+Copy `docker-extra.yml.dist` to `docker-extra.yml` for the host-specific
+Cappuccino paths. Services are supervised by s6-overlay v3 (`s6-rc.d`, see
+`tmp/s6-overlay-setup.md`) and each is opt-in via `START_WORKER` / `START_PDNS`.
 
 ## Tests
 
 ```bash
 cd desk
 python -m unittest discover          # run tests (needs the venv on PATH)
+./taskfile.sh test                   # the same thing
 ./coverage.sh                        # tests + HTML coverage report
 ```
 

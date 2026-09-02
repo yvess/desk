@@ -1,3 +1,0 @@
-# Build-time only: the `dworker` standalone binary (desk/Makefile target).
-# Not installed into the runtime Docker images.
-pyinstaller==6.22.2

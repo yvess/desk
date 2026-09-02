@@ -131,8 +131,8 @@ Out of scope for this upgrade. Noted for later:
 | M0 | Dev env + runnable tests | ☑ done 2026-09-01 | venv install, compileall, unittest green (22 tests) |
 | M1 | Merge origin/master | ☑ done 2026-09-01 | test_invoice.py, suite green (55 tests) |
 | M2 | Dead code + command ports | ☑ done 2026-09-02 | entry-point smoke, no dead refs, suite green (78 tests) |
-| M3 | Docker: alpine 3.24 images, compose v2 | ☐ | both images build, compose up, PDF render, dig |
-| M4 | CouchDB 1.6.1 → 3.5.2 | ☐ | replication doc counts, worker e2e on couchdb:3.5 |
+| M3 | Docker: alpine 3.24 images, compose v2 | ☑ done 2026-09-02 | both images build, full stack up (incl. capi + couchdb 3.5.2), s6 gating, QR-bill PDF, dig on 1053/2053, suite green (96 tests) |
+| M4 | CouchDB 1.6.1 → 3.5.2 | ☐ | replication doc counts, worker e2e on couchdb:3.5 — **image, capi and the design-doc JS port landed in M3**, only the data migration is left |
 | M5 | PowerDNS HTTP API | ☐ | zone export diff, dig checks |
 | M6 | Consolidations (optional) | ☐ | suite green |
 

@@ -1,11 +1,10 @@
 function(doc) {
     if (doc.type == 'inspector') {
-        var domains_not_found = []
-        for each (item in doc.items_not_found) {
-            emit(item.domain, 0);
+        for (var i = 0; i < doc.items_not_found.length; i++) {
+            emit(doc.items_not_found[i].domain, 0);
         }
-        for each (item in doc.items) {
-            emit(item.domain, 1);
+        for (var j = 0; j < doc.items.length; j++) {
+            emit(doc.items[j].domain, 1);
         }
     }
 }

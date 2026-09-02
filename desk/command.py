@@ -103,10 +103,16 @@ class InstallDbCommand(SettingsCommandDb):
         return install_parser
 
     def run(self):
-        self.set_settings(self.settings)
+        # CouchDB does not create a database on the way to a document, so the
+        # design doc PUT would just 404 on a fresh server
+        if self.db.head('').status_code == 404:
+            self.db.put('').raise_for_status()
         rev = self.db.rev('_design/desk_drawer/')
         loader = FileDesignDocsLoader('_design/desk_drawer/', rev=rev)
-        r = self.db.put('_design/desk_drawer/', json=loader.design_doc, params=dict(rebuild=True))
+        self.db.put(
+            '_design/desk_drawer/', json=loader.design_doc,
+            params=dict(rebuild=True)
+        ).raise_for_status()
 
 
 class InstallWorkerCommand(SettingsCommandDb):
@@ -122,7 +128,6 @@ class InstallWorkerCommand(SettingsCommandDb):
         return install_parser
 
     def run(self):
-        self.set_settings(self.settings)
         provides = {}
         if hasattr(self.settings, 'worker_dns'):
             provides['domain'], worker_dns = [], self.settings.worker_dns
