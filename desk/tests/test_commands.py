@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 import httpx
 
-from desk.command import InstallDbCommand, MigrateCommand
+from desk.command import InstallDbCommand, InstallWorkerCommand, MigrateCommand
 from desk.plugin.base import MergedDoc
 from desk.plugin.dns.cmd_powerdns import PowerdnsRebuildCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
@@ -408,10 +408,6 @@ class QueryServicesTestCase(unittest.TestCase):
         self.assertIn('total: 1', out)
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 class InstallDbCommandTest(unittest.TestCase):
     """install-db has to create the database before writing the design doc."""
 
@@ -469,6 +465,45 @@ class InstallDbCommandTest(unittest.TestCase):
         )
 
 
+class InstallWorkerCommandTest(unittest.TestCase):
+    """run() uses the client set_settings built, it does not rebuild one.
+
+    Both install commands used to re-run `set_settings(self.settings)` inside
+    `run()`, which replaced `self.db` with a fresh client against the configured
+    URI -- so a caller could never point the command at another client, and the
+    doc below would go to a real CouchDB instead of the transport stub.
+    """
+
+    def test_writes_the_worker_doc_through_the_configured_client(self):
+        requests = []
+
+        def handler(request):
+            requests.append(request)
+            return httpx.Response(201, json={'ok': True})
+
+        command = InstallWorkerCommand()
+        command.set_settings({
+            'couchdb_uri': 'http://cdb:5984', 'couchdb_db': 'desk_drawer',
+            'worker_dns': 'sqlite:ns1.localhost',
+        }, hostname='ns1.localhost')
+        command.db.close()
+        command.db = CouchDBClient.db(
+            'http://cdb:5984', db_name='desk_drawer',
+            transport=httpx.MockTransport(handler),
+        )
+        self.addCleanup(command.db.close)
+
+        command.run()
+
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0].url.path, '/desk_drawer/worker-ns1.localhost')
+        self.assertEqual(json.loads(requests[0].content), {
+            '_id': 'worker-ns1.localhost', 'type': 'worker',
+            'hostname': 'ns1.localhost',
+            'provides': {'domain': [{'backend': 'sqlite', 'name': 'ns1.localhost'}]},
+        })
+
+
 class DesignDocJavascriptTest(unittest.TestCase):
     """CouchDB 3.x rejects the SpiderMonkey-only JS that 1.6 used to accept.
 
@@ -492,3 +527,7 @@ class DesignDocJavascriptTest(unittest.TestCase):
                         offenders.append(os.path.relpath(path, design))
 
         self.assertEqual(offenders, [])
+
+
+if __name__ == '__main__':
+    unittest.main()

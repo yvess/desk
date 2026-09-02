@@ -8,6 +8,16 @@ the user review, stage, and commit; run `git add` only when explicitly asked.
 The same applies to merges/rebases: resolve conflicts and `git add` the
 files if asked, but the user finalizes (`git commit` / `git rebase --continue`).
 
+## Style
+
+**Keep it simple; prefer explicit repetition over indirection.** Don't factor
+things out just because they repeat — a reader should be able to understand a
+block without jumping somewhere else to resolve it. Concretely: no YAML anchors
+or `x-` merge blocks in `docker-compose.yml` (services stay spelled out in full,
+even when `dnsa`/`dnsb` are near-identical), and no helper introduced to save a
+few duplicated lines. Factor out when the duplication is a real maintenance
+hazard, not to shorten the file.
+
 ## Project
 
 `desk` — service data manager. Python package under `desk/`, with plugins in

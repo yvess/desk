@@ -1,15 +1,6 @@
 #!/command/with-contenv sh
 
-# PUT EXTRA_HOST in /etc/hosts
-if [ -n "$EXTRA_HOSTS" ]; then
-  FIRST_ENTRY=$(echo $EXTRA_HOSTS|awk -F'[/ |;]'  '{ print $2 }')
-  if ! grep -q "$(echo $FIRST_ENTRY)" /etc/hosts; then # only do it once
-    echo -e "$(eval "echo -e \"$EXTRA_HOSTS\"")"| tr ";" "\n" >> /etc/hosts
-  fi
-fi
-
 WORKER_TYPE=${WORKER_TYPE:-worker} # set to worker as default
-TESTING=${TESTING:-NO}
 FQHOSTNAME=$(hostname)
 WORKER_LOG=${WORKER_LOG:-/var/services/worker/log}
 COUCHDB_ADMIN=${COUCHDB_ADMIN:-admin}
@@ -47,17 +38,14 @@ if [ $WORKER_TYPE = "foreman" ]; then
     fi
 fi
 
-# RUN IN NORMAL CASE
-if [ "$TESTING" == "NO" ]; then
-    # REGISTER WORKER
-    # wait for db created
-    until $(curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer|cat|grep -q -E "HTTP.*200"); do
-        sleep 1
-        echo "* wait desk_drawer db"
-    done
-    curl -Is -u "${COUCHDB_ADMIN}:${COUCHDB_ADMINPASS}" "http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer/worker-${FQHOSTNAME}"|cat|grep -q -E "HTTP.*404"
-    if [ $? -eq 0 ]; then # worker doesn't exist
-        cd /opt/app/desk && ./dworker install-worker
-        echo "* registred worker"
-    fi
+# REGISTER WORKER
+# wait for the foreman to have created the database
+until $(curl -Is -u $COUCHDB_ADMIN:$COUCHDB_ADMINPASS http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer|cat|grep -q -E "HTTP.*200"); do
+    sleep 1
+    echo "* wait desk_drawer db"
+done
+curl -Is -u "${COUCHDB_ADMIN}:${COUCHDB_ADMINPASS}" "http://$COUCHDB_HOST:$COUCHDB_PORT/desk_drawer/worker-${FQHOSTNAME}"|cat|grep -q -E "HTTP.*404"
+if [ $? -eq 0 ]; then # worker doesn't exist
+    cd /opt/app/desk && ./dworker install-worker
+    echo "* registred worker"
 fi

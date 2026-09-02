@@ -8,7 +8,7 @@ DNS_PRIMARY=${DNS_PRIMARY:-$FQHOSTNAME}
 mkdir -p "${PDNS_DATA}" "${PDNS_LOG}"
 
 # CONFIGURE WORKER
-if grep "PDNS_DATA" "/etc/desk/worker.conf"; then
+if grep -q "PDNS_DATA" "/etc/desk/worker.conf"; then
     echo "* configure worker.conf for pdns"
     sed -i \
         -e "s#-HOSTNAME-#${FQHOSTNAME}#" \
@@ -18,7 +18,7 @@ if grep "PDNS_DATA" "/etc/desk/worker.conf"; then
 fi
 
 # CONFIGURE PDNS
-if grep "HOST_IP" "/etc/powerdns/pdns.d/pdns.local.conf"; then
+if grep -q "HOST_IP" "/etc/powerdns/pdns.d/pdns.local.conf"; then
     echo "* configure pdns"
     sed -i \
         -e "s/-HOST_IP-/${HOST_IP}/" \

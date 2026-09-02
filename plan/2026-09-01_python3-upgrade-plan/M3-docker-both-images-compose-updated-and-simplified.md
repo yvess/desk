@@ -72,10 +72,12 @@ A plain `map` + `rewrite` config reproduces all 18 routes.
 
 That config is written and **verified route-by-route** against `nginx:1.27-alpine`
 with a stub upstream echoing the proxied URI — all 18 routes byte-identical to the
-Lua output. It lives in `tmp/etc/nginx/conf.d/`:
-`desk.conf` (maps + locations), `desk_proxy.inc` (shared proxy headers),
-`desk_changes.inc` (the SSE `_changes` rewrite). The original is kept beside it as
-`desk.conf.openresty` — it is the behavioral reference; delete it once M3 lands.
+Lua output. It was drafted in `tmp/etc/nginx/conf.d/` and **now lives in
+`desk/docker/capi/conf.d/`** (tracked): `desk.conf` (maps + locations),
+`desk_proxy.inc` (shared proxy headers), `desk_changes.inc` (the SSE `_changes`
+rewrite). The OpenResty original was kept beside the draft as
+`desk.conf.openresty` as a behavioral reference, and deleted with the rest of
+`tmp/etc/nginx/` once M3 landed (see the review follow-up below).
 Notes carried into M3:
 - Rewrite replacements that build their own query string **must end in `?`**,
   otherwise nginx re-appends the client's original args (this silently produced
@@ -262,11 +264,61 @@ end-to-end in the worker container on WeasyPrint 69 + CairoSVG 2.9 + qrbill 1.2
 + pypdf 6.16 and looks right (`desk/tmp/m3_invoice_qrbill.pdf`). Suite green,
 96 tests.
 
-**Open, for M4 / the frontend round:**
-- `require_valid_user = true` + the capi config means the browser gets 401 on
-  every `/api/...` call and there is no `_session` route to log in through. The
-  nginx config is the user's verified one, so it was left as is.
-- `proxy_read_timeout 60` still applies to the SSE `_changes` feeds (known,
-  kept for parity).
-- `tmp/etc/nginx/conf.d/desk.conf.openresty` was kept, not deleted: `tmp/` is
-  git-ignored, so deleting the behavioral reference would be unrecoverable.
+**Open, for M4 / the frontend round:** nothing — the two items that were open
+here were decided in the review follow-up below.
+
+---
+
+**Review follow-up 2026-09-02** — actions from
+`tmp/reviews/2026-09-02_m3-docker-code-review.md`.
+
+**DECISIONS taken (user, 2026-09-02):**
+- **capi gets `_session` and `_users`** (review C1). `require_valid_user = true`
+  left the browser with no way to log in; `desk.conf` now proxies both through
+  to CouchDB, which is what the old `vhost_global_handlers` line did. Verified
+  route-by-route against a stub upstream — the 15 pre-existing routes are
+  unchanged, `GET/POST /_session` and `/_users/<id>` pass through verbatim.
+- **The SSE `_changes` feeds get `proxy_read_timeout 3600`** (review A1); every
+  other route keeps 60s. nginx rejects a second `proxy_read_timeout` in the same
+  context, so the 60s moved out of `desk_proxy.inc` up to the `server` block and
+  `desk_changes.inc` overrides it in the feed locations.
+- **Unknown collection names keep returning 404** (review A2) rather than being
+  passed through to CouchDB unrewritten.
+- **`install-db` keeps running on every foreman boot** (review B2). CouchDB only
+  invalidates a view when the design doc content actually changes, so a re-PUT of
+  identical content costs one request and no rebuild.
+- **`tmp/etc/nginx/` is deleted** (review A6), `desk.conf.openresty` with it.
+  Everything under `tmp/etc/` was only ever an example to work from; the live
+  config is `desk/docker/capi/conf.d/`, which is tracked. **Nothing in production
+  code may reference `tmp/` at all** — checked, and it doesn't (the `/tmp/` paths
+  in `docker/worker/Dockerfile` are the container's own temp dir).
+
+**Deviations from the spec, recorded rather than reverted** (review A3, C4 — not
+put to the user):
+- `S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0` instead of the plan's "keep the raised
+  value": worker-init blocks until CouchDB answers, which has no useful upper
+  bound, and 20s made stage2 fail.
+- The dns image is `FROM yvess/desk-worker` instead of the plan's two `COPY`
+  lines — the consequence of dropping pyinstaller, since dns needs Python too.
+  `build_dns` therefore needs the worker tag; `build`/`push` order it first.
+
+**Also fixed:** the `__main__` guard in `tests/test_commands.py` sat above two
+test classes, which skipped them when the file was run directly; `INSTALL.rst`
+still pointed at the deleted py2 `requirements.txt` and `.editorconfig` still had
+a `[Makefile]` section; `tmp/s6-overlay-setup.md` documented the deprecated
+`s6-rc.d/user/` layout (it now describes `user-bundles.d/` and the mandatory
+empty `user2` bundle, with both messages verified against the built image).
+`InstallWorkerCommand` got the regression test it was missing for the removed
+`set_settings` call. Cleanups: `EXTRA_HOSTS`/`TESTING` deleted from `worker-init`
+(nothing sets them since compose network aliases replaced them), `grep -q` in
+`pdns-init`, both oneshot bodies renamed `run` → `init.sh` (in s6 vocabulary
+`run` means a longrun), `taskfile.sh` spells each buildx invocation once
+(`_buildx_worker`/`_buildx_dns`, helpers hidden from `help`), and
+`docker-compose.yml` was **left alone**: YAML anchors for the repeated CouchDB
+env/mounts/dns node were tried and reverted — the user prefers the services
+spelled out in full over the indirection (now in `CLAUDE.md`, "Style").
+
+**Re-verified:** both images build; a throwaway cdb + worker + dns stack boots
+with the renamed oneshots, installs the design doc, registers the workers and
+answers `dig chaos txt version.bind`; `nginx -t` passes on the capi config; suite
+green, 97 tests.

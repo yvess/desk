@@ -13,21 +13,31 @@ PUSH_PLATFORMS=linux/amd64,linux/arm64
 # (often the selected one) only ever sees the registry.
 LOCAL_BUILDER="$(docker context show)"
 
+# One buildx invocation per image, spelled once. "$@" carries the flags that
+# differ between a local build (--load) and a registry push (--push --platform).
 # The build context is docker/, so the dns image can COPY from worker/.
-build_worker() {
-    docker buildx build --builder "${LOCAL_BUILDER}" --load \
+_buildx_worker() {
+    docker buildx build "$@" \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
         -t "${REGISTRY}/desk-worker:${WORKER_VERSION}" \
         -f docker/worker/Dockerfile docker
 }
 
-# needs desk-worker:${WORKER_VERSION} locally or in the registry
-build_dns() {
-    docker buildx build --builder "${LOCAL_BUILDER}" --load \
+_buildx_dns() {
+    docker buildx build "$@" \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
         --build-arg "WORKER_VERSION=${WORKER_VERSION}" \
         -t "${REGISTRY}/desk-dns:${DNS_VERSION}" \
         -f docker/dns/Dockerfile docker
+}
+
+build_worker() {
+    _buildx_worker --builder "${LOCAL_BUILDER}" --load
+}
+
+# needs desk-worker:${WORKER_VERSION} locally or in the registry
+build_dns() {
+    _buildx_dns --builder "${LOCAL_BUILDER}" --load
 }
 
 build() {
@@ -37,13 +47,8 @@ build() {
 
 # desk-dns builds FROM desk-worker, so the worker push has to land first.
 push() {
-    docker buildx build --push --platform "${PUSH_PLATFORMS}" \
-        -t "${REGISTRY}/desk-worker:${WORKER_VERSION}" \
-        -f docker/worker/Dockerfile docker
-    docker buildx build --push --platform "${PUSH_PLATFORMS}" \
-        --build-arg "WORKER_VERSION=${WORKER_VERSION}" \
-        -t "${REGISTRY}/desk-dns:${DNS_VERSION}" \
-        -f docker/dns/Dockerfile docker
+    _buildx_worker --push --platform "${PUSH_PLATFORMS}"
+    _buildx_dns --push --platform "${PUSH_PLATFORMS}"
 }
 
 pull() {
@@ -67,12 +72,15 @@ logs() {
     compose logs -f "$@"
 }
 
+# shadows the `test` builtin for the rest of this file -- AGENTS.md documents
+# `./taskfile.sh test`, so the name stays; use [ ... ] instead of bare `test`.
 test() {
     python -m unittest discover
 }
 
+# tasks are the top-level functions; helpers are prefixed with _ and hidden
 help() {
-    echo "tasks: $(grep -oE '^[a-z_]+\(\)' "$0" | tr -d '()' | tr '\n' ' ')"
+    echo "tasks: $(grep -oE '^[a-z][a-z_]*\(\)' "$0" | tr -d '()' | tr '\n' ' ')"
 }
 
 "${@:-help}"

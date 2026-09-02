@@ -7,6 +7,19 @@ custom 2014-era 1.6.1 image. The worker code path is already close: the python3 
 talks plain HTTP via httpx and was already fixed for CouchDB 2.3 attachment-rev
 semantics (commit d9726b9).*
 
+**Landed early, in M3 (2026-09-02)** — do not redo:
+- Step 1 (`desk_pad` served by a container instead of CouchDB) and step 3 (the
+  official `couchdb:3.5.2` image + single-node config): the user pulled both into
+  M3, where `capi` became a stock `nginx` with a `map`+`rewrite` config and later
+  gained the `_session`/`_users` routes. The deprecated `vhosts` + `_rewrite`
+  entry is gone with them.
+- The design-doc JavaScript port (`for each (x in list)` → indexed `for`, five
+  views): 3.5 rejects the SpiderMonkey-only form with a `compilation_error`, so
+  the stack could not come up without it. Covered by `DesignDocJavascriptTest`.
+
+**What is left here:** steps 2, 4 and 5 — the usage audit, the replication
+runbook and the fixture load.
+
 **Breaking changes that matter here (1.6 → 3.x):**
 - Data files are **not** upgradeable in place across 1.x → 3.x; migrate via one-shot
   HTTP **replication** from the old container to the new one.
