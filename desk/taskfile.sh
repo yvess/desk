@@ -12,8 +12,9 @@ PUSH_PLATFORMS=linux/amd64,linux/arm64
 # image use the just-built worker image as its base; a docker-container builder
 # (often the selected one) only ever sees the registry.
 LOCAL_BUILDER="$(docker context show)"
-# the cdb service's published port, used by the `fixtures` task
-COUCHDB_URL=${COUCHDB_URL:-http://admin:admin@127.0.0.1:5984}
+# the cdb service's published port, with the dev admin credentials from
+# docker-compose.yml embedded -- used by the `fixtures` task
+COUCHDB_ADMIN_URL=${COUCHDB_ADMIN_URL:-http://admin:admin@127.0.0.1:5984}
 
 # One buildx invocation per image, spelled once. "$@" carries the flags that
 # differ between a local build (--load) and a registry push (--push --platform).
@@ -77,14 +78,15 @@ logs() {
 # Load the dev fixture set into the running stack's CouchDB. The fixtures are
 # pre-migration documents (no `version` property, `@ip_` map variables), so
 # `migrate` has to run after them to bring them to the current document version.
-# couchdb-design.json is skipped: it is a 2014 dump of the old design doc and is
-# not even valid JSON (literal newlines inside strings). install-db owns that doc.
+# Rerunnable: CouchDB rejects a PUT over an existing document without its
+# current _rev, so each one is looked up first (empty on a fresh database).
 fixtures() {
     for f in tests/fixtures/couchdb-*.json; do
-        [ "$f" = "tests/fixtures/couchdb-design.json" ] && continue
         id="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["_id"])' "$f")"
+        rev="$(curl -fsS -I "${COUCHDB_ADMIN_URL}/desk_drawer/$id" 2>/dev/null \
+            | awk -F'"' 'tolower($0) ~ /^etag:/ {print $2}')" || rev=""
         curl -fsS -o /dev/null -X PUT -H 'Content-Type: application/json' \
-            --data-binary "@$f" "${COUCHDB_URL}/desk_drawer/$id"
+            --data-binary "@$f" "${COUCHDB_ADMIN_URL}/desk_drawer/$id${rev:+?rev=$rev}"
         echo "  loaded $id"
     done
     compose exec -T foreman ./dworker migrate

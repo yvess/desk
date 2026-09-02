@@ -1,8 +1,8 @@
 """Tests for the s6 init scripts that template /etc/desk/worker.conf.
 
 These are shell scripts, so the checks here are static: they read the scripts
-and the config templates out of desk/docker/ and assert the one invariant that
-actually broke -- see WorkerConfTemplatingTest.
+and the config templates out of desk/docker/ and assert the ordering invariant
+WorkerConfTemplatingTest describes.
 """
 import os
 import re
@@ -21,6 +21,11 @@ WORKER_CONFS = (
 PLACEHOLDER = re.compile(r'-[A-Z_]+-')
 
 
+def substitution(placeholder):
+    """A sed `s` command for the placeholder, with either usual delimiter."""
+    return re.compile(r's([#/])' + re.escape(placeholder) + r'\1')
+
+
 def read(path):
     with open(path) as f:
         return f.read()
@@ -31,10 +36,8 @@ class WorkerConfTemplatingTest(unittest.TestCase):
 
     The dns image's worker.conf carries `[worker] dns = powerdns:-HOSTNAME-`,
     and `install-worker` copies that value into the worker doc's `provides`.
-    The `-HOSTNAME-` substitution used to live in pdns-init, which s6 starts
-    *after* worker-init -- so the dns nodes registered `provides.domain[0].name`
-    as the literal "-HOSTNAME-" and matched no task's provider, leaving every
-    dns task stuck in state "new".
+    A placeholder still standing at that point is registered verbatim, and the
+    worker then matches no task's provider: every dns task sits in state "new".
     """
 
     def placeholders_in_the_configs(self):
@@ -52,7 +55,7 @@ class WorkerConfTemplatingTest(unittest.TestCase):
 
         missing = sorted(
             p for p in self.placeholders_in_the_configs()
-            if f's#{p}#' not in script
+            if not substitution(p).search(script)
         )
 
         self.assertEqual(missing, [])
@@ -66,7 +69,8 @@ class WorkerConfTemplatingTest(unittest.TestCase):
 
         for placeholder in sorted(self.placeholders_in_the_configs()):
             sed = next(
-                i for i, line in enumerate(lines) if f's#{placeholder}#' in line
+                i for i, line in enumerate(lines)
+                if substitution(placeholder).search(line)
             )
             self.assertLess(
                 sed, install,

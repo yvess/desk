@@ -136,7 +136,7 @@ Out of scope for this upgrade. Noted for later:
 | M1 | Merge origin/master | ☑ done 2026-09-01 | test_invoice.py, suite green (55 tests) |
 | M2 | Dead code + command ports | ☑ done 2026-09-02 | entry-point smoke, no dead refs, suite green (78 tests) |
 | M3 | Docker: alpine 3.24 images, compose v2 | ☑ done 2026-09-02 | both images build, full stack up (incl. capi + couchdb 3.5.2), s6 gating, QR-bill PDF, dig on 1053/2053, suite green (96 tests) |
-| M4 | CouchDB 1.6.1 → 3.5.2 | ☑ done 2026-09-02 | usage audit against a live 3.5.2 (no code change needed), 1.6.1→3.5.2 replication 6/6 docs 0 failures + all 42 views build, fixtures→migrate→order→task→zone e2e, suite green (102 tests) |
+| M4 | CouchDB 1.6.1 → 3.5.2 | ☑ done 2026-09-02 (review follow-up same day) | usage audit against a live 3.5.2 (no code change needed), 1.6.1→3.5.2 replication 6/6 docs 0 failures + all 42 views build, fixtures→migrate→order→task→zone e2e, `invoices-create` clean, suite green (103 tests) |
 | M5 | PowerDNS HTTP API | ☐ | zone export diff, dig checks |
 | M6 | Consolidations (optional) | ☐ | suite green |
 

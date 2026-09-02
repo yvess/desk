@@ -45,8 +45,6 @@ def main(doc, doc_type, db):
             del doc['prev_active_rev']
         if 'active_rev' in doc:
             del doc['active_rev']
-        # set state to new
-        doc['state'] = 'new'
 
     def mapMigration(doc):
         new_map = {}

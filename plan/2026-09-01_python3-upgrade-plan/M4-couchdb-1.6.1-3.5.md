@@ -124,12 +124,41 @@ Verified by replicating from a populated `yvess/couchdb:1.6.1a` into a fresh
    doc_write_failures 0`. Attachments — including the rev-named active-doc
    snapshots — come across and read back byte-identical.
 
-**Verify after replication:** doc counts match
-(`GET {db}` → `doc_count` / `doc_del_count` on both); every view builds
-(`GET .../_view/<name>?limit=1` → 200 for all 42, checked); `_all_dbs` on the
-source lists only `_users`, `_replicator`, `desk_drawer` — check `_users` for
-real `org.couchdb.user:*` documents and replicate those separately if there are
-any (do **not** copy `_users/_design/_auth`; 3.x ships its own).
+4. **Verify.** Run this with `OLD`/`NEW` set to the two credentialed base URLs
+   (`OLD=http://admin:admin@old:5984 NEW=http://admin:admin@new:5984 bash verify.sh`):
+   ```bash
+   #!/usr/bin/env bash
+   set -euo pipefail
+   OLD=${OLD:?}
+   NEW=${NEW:?}
+
+   echo "doc counts (must match):"
+   for db in "$OLD" "$NEW"; do
+       curl -fsS "$db/desk_drawer" | python3 -c \
+           'import json,sys; d=json.load(sys.stdin); print(" ", d["doc_count"], "docs,", d["doc_del_count"], "deleted")'
+   done
+
+   echo "views:"
+   views=$(curl -fsS "$NEW/desk_drawer/_design/desk_drawer" | python3 -c \
+       'import json,sys; print(" ".join(sorted(json.load(sys.stdin)["views"])))')
+   failed=0
+   for v in $views; do
+       code=$(curl -s -o /dev/null -w '%{http_code}' \
+           "$NEW/desk_drawer/_design/desk_drawer/_view/$v?limit=1")
+       [ "$code" = 200 ] || { echo "  FAILED $v -> $code"; failed=$((failed + 1)); }
+   done
+   echo "  $(set -- $views; echo $#) views build, $failed failed"
+
+   echo "other databases on the source (migrate real users separately):"
+   curl -fsS "$OLD/_all_dbs" | python3 -c \
+       'import json,sys; print("  ", json.load(sys.stdin))'
+   curl -fsS "$OLD/_users/_all_docs" | python3 -c \
+       'import json,sys; rows=json.load(sys.stdin)["rows"]; u=[r["id"] for r in rows if r["id"].startswith("org.couchdb.user:")]; print("  ", len(u), "user docs:", u)'
+   ```
+   On the test corpus it prints `6 docs, 0 deleted` twice, `42 views build,
+   0 failed`, and `0 user docs`. Real `org.couchdb.user:*` documents have to be
+   replicated separately — and do **not** copy `_users/_design/_auth`, 3.x ships
+   its own.
 
 ## Step 5 — fixtures + end-to-end on 3.5.2
 
@@ -168,6 +197,28 @@ tidiness here. Changed: only the fixture template's `nameservers` and
 zone's `dnsa`/`dnsb` A records stay as they are — with an out-of-zone nameserver
 they are ordinary host records, not glue.
 
+### Verify line — the two commands the milestone names
+
+- **`invoices-create` (M2) against the fixture-loaded 3.5.2.** Runs clean:
+  with the fixture set as shipped it queries `client_is_billable`, finds no
+  billable client and prints `total 0`. Marking the fixture client
+  `is_billable: 1` in the database makes the view return it, the command reads
+  the document and reaches the invoice guard, which declines with
+  `NOT creating invoice missing extcrm_id`. So the CouchDB side of the command
+  — view with `include_docs`, document read — is good on 3.5.2. Producing an
+  actual PDF needs a client with `extcrm_id` plus `service`/`service_definition`
+  documents and invoice templates, none of which the fixture set has; the QR-bill
+  rendering path itself was verified end-to-end in M3.
+  Note `invoices-create` is only registered when `WORKER_TYPE=foreman` is in the
+  environment (`dworker:11`), not from `[worker] is_foreman` in the config.
+- **The worker against the fixture set.** Re-run after the `to0001` change:
+  order → task → zone completes, order `done`, `dns-test` `active` with a
+  rev-named attachment, and the zone carries `test|NS|ns1.localhost`,
+  `test|SOA|ns1.localhost ...`, `blog2.test|A|172.17.1.10`.
+- **ETags are strong.** `HEAD` on a document and on the design doc both return a
+  bare `"<rev>"` with no `W/` prefix, which is what `utils.response_add_rev`
+  relies on.
+
 ## Bugs found by running it (fixed here, with regression tests)
 
 1. **dns workers registered `provides.domain[0].name` as the literal
@@ -189,6 +240,38 @@ they are ordinary host records, not glue.
    by two tests in `DesignDocJavascriptTest`: no commented-out `emit(` anywhere
    in `_design/`, and `version/map.js` emits in both branches.
 
+## Review follow-up 2026-09-02
+
+Actions from `tmp/reviews/2026-09-02_m4-couchdb-code-review.md`.
+
+**DECISION (user, 2026-09-02): `migrate` stamps the version but must not reset
+document state.** With the `version` view fixed, `dworker migrate` reaches every
+version-less document — and `to0001` forced `state = 'new'` on every `domain`,
+which would have turned a migration into a rebuild of every zone in the database.
+The stamp stays (the whole database goes to version 1); the `state` reset is
+removed. Verified live: a domain document with `state: active` comes out of
+`migrate` as `version: 1, state: active`, with the `@ip_` → `$ip_` conversion
+still applied. Covered by
+`MigrateCommandTestCase.test_the_migration_leaves_the_document_state_alone`.
+
+**Also fixed:** `tests/fixtures/couchdb-design.json` deleted (2014 dump, invalid
+JSON, referenced nowhere) and the `fixtures` task's special case for it dropped;
+the task is now rerunnable (it looks up the current `_rev` first, so a second run
+no longer dies with 409 — verified by running it twice); `COUCHDB_URL` renamed
+`COUCHDB_ADMIN_URL` since it carries the dev admin credentials;
+`test_container_init.py` matches `s#…#` and `s/…/` alike, so a future
+`/`-delimited sed is not reported missing; the `version`-view test now asserts on
+the design doc `FileDesignDocsLoader` builds rather than the raw file, which is
+where the `//` stripping actually happens.
+
+**Left as-is, with reasons:** the `read()` helper in `test_container_init.py`
+(three call sites walking two file sets, not two — it clears the AGENTS.md bar);
+the `PDNS_DATA` default spelled in both init scripts (AGENTS.md prefers explicit
+repetition over a shared source); and the test docstrings that name the failure
+mode they guard — that is what a regression test is for, and §1.4 is not in
+CLAUDE.md's binding set. The `_list`/`_show`/`_update`/`rewrites` 4.x removal is
+recorded in step 2 and in the plan's Deferred section, not acted on here.
+
 ## Noted, not fixed
 
 - **PowerDNS 5.0 caches the zone list at startup** (`zone-cache-refresh-interval`,
@@ -201,6 +284,9 @@ they are ordinary host records, not glue.
   Candidate for deletion.
 - `_list`/`_show`/`_update`/`rewrites` removal in 4.x — see step 2.
 
-**Verified:** suite green, 102 tests; `compileall` clean; replication 6/6 docs
+**Verified:** suite green, 103 tests; `compileall` clean; replication 6/6 docs
 with 0 write failures and all 42 views building on the target; the full
-order → task → zone chain on 3.5.2.
+order → task → zone chain on 3.5.2. Both runbook failure modes reproduced
+verbatim against a live 1.6.1: `replication_auth_error` without
+`couch_replicator_auth_noop`, and `doc_write_failed / compilation_error` with the
+pre-M3 design doc still on the source.

@@ -16,7 +16,8 @@ from unittest.mock import patch
 
 import httpx
 
-from desk.command import InstallDbCommand, InstallWorkerCommand, MigrateCommand
+from desk.command import FileDesignDocsLoader, InstallDbCommand
+from desk.command import InstallWorkerCommand, MigrateCommand
 from desk.plugin.base import MergedDoc
 from desk.plugin.dns.cmd_powerdns import PowerdnsRebuildCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
@@ -245,8 +246,16 @@ class MigrateCommandTestCase(unittest.TestCase):
         migrated = self.couch.written()[0]
         self.assertEqual(migrated['a'][0]['ip'], '$ip_web')
         self.assertEqual(migrated['txt'][0]['content'], 'v=spf1 -all')
-        self.assertEqual(migrated['state'], 'new')
         self.assertNotIn('active_rev', migrated)
+
+    def test_the_migration_leaves_the_document_state_alone(self):
+        """A migration must not queue every domain for reprocessing.
+
+        to0001 used to force state='new'. Once the `version` view was fixed to
+        index version-less documents, that turned `dworker migrate` into a
+        rebuild of every zone in the database.
+        """
+        self.assertEqual(self.couch.written()[0]['state'], 'active')
 
     def test_it_stops_when_no_further_migration_exists(self):
         # to0002 does not exist, so version 1 is the end of the chain
@@ -527,10 +536,9 @@ class DesignDocJavascriptTest(unittest.TestCase):
     def test_no_commented_out_emit(self):
         """FileDesignDocsLoader drops every line containing '//'.
 
-        A commented-out emit therefore does not survive into the installed
-        design doc, so the view silently indexes less than the source suggests.
-        `version`'s `else { emit(0, ...) }` was commented out this way, which
-        hid every version-less document from `dworker migrate`.
+        A commented-out emit therefore never reaches the installed design doc,
+        so the view silently indexes less than its source suggests -- which is
+        invisible until something that reads the view comes up empty.
         """
         offenders = []
         for path, source in self.design_js():
@@ -544,14 +552,21 @@ class DesignDocJavascriptTest(unittest.TestCase):
     def test_the_version_view_indexes_documents_without_a_version(self):
         """`dworker migrate` walks the `version` view to find work.
 
-        Legacy documents have no `version` property at all, so a view that
-        only emits when the property exists makes migrate a no-op on exactly
-        the documents that need it.
+        Legacy documents have no `version` property at all, so a map that only
+        emits when the property exists makes migrate a no-op on exactly the
+        documents that need it. Asserted against the design doc the loader
+        builds, not the file: the loader is where the stripping happens.
         """
-        source = dict(self.design_js())['desk_drawer/views/version/map.js']
+        cwd = os.getcwd()
+        self.addCleanup(os.chdir, cwd)
+        os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        design_doc = FileDesignDocsLoader('_design/desk_drawer/').design_doc
 
-        self.assertIn('else', source)
-        self.assertEqual(source.count('emit('), 2)
+        installed = design_doc['views']['version']['map']
+
+        self.assertIn('else', installed)
+        # the `if` branch and the `else` branch, both surviving the loader
+        self.assertEqual(installed.count('emit('), 2)
 
     def test_no_spidermonkey_only_for_each(self):
         offenders = [
