@@ -4,83 +4,103 @@ import dns.resolver
 
 
 class DnsValidator(object):
-    def __init__(self, doc, lookup=None):
+    """Ask the nameservers whether a zone really says what the document says.
+
+    Used by `dworker dns-check`: the worker writes zones through the PowerDNS
+    API, this reads them back over DNS, which is the only check that covers the
+    whole path.
+    """
+
+    # set by DnsBase.set_lookup_map, so `$ip_` values can be compared
+    lookup_map = {}
+    map_doc_id = 'map-ips'
+
+    def __init__(self, doc, lookup=None, resolver=None):
         self.doc = doc
         self.domain = doc['domain']
-        self.resolver = dns.resolver.Resolver()
+        self.resolver = resolver or dns.resolver.Resolver()
+        # nameserver name -> address, for names the host cannot resolve itself
         self.lookup = lookup
         self.valid = []
 
     def _setup_resolver(self, ns):
         self.resolver.nameservers = [
-            gethostbyname(ns) if not self.lookup else self.lookup[ns]
+            self.lookup[ns] if self.lookup else gethostbyname(ns)
         ]
+
+    def _answers(self, name, record_type, answer_attr):
+        """The values the nameserver returns, as strings.
+
+        A record that is not there is not an error here -- it is an answer of
+        nothing, which is what makes the comparison below report it invalid.
+        """
+        try:
+            response = self.resolver.resolve(name, record_type)
+        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+            return []
+        answers = []
+        for answer in response:
+            if record_type == 'TXT':
+                # TXT rdata carries the strings a record was split into
+                answers.append(
+                    ''.join(part.decode() for part in answer.strings)
+                )
+            else:
+                answers.append(str(getattr(answer, answer_attr)))
+        return answers
+
+    def _expected(self, item, item_key, record_type, is_fqdn):
+        value = str(item[item_key])
+        if value.startswith('$ip_'):
+            value = self.lookup_map[value]
+        if is_fqdn and not value.endswith("."):
+            # an MX host is already qualified; the rest name this zone
+            zone = None if record_type == "MX" else self.domain
+            value = "{}.".format(to_fqdn(value, zone))
+        return value
+
+    def _query_name(self, item, q_key):
+        if q_key == 'domain':
+            return self.domain
+        if q_key in ('host', 'alias', 'name'):
+            return to_fqdn(item[q_key], self.domain)
+        return item[q_key]
 
     def _validate(self, record_type, item_key, q_key='domain',
                   answer_attr='address', return_check=False, items=None):
-        if not items:
-            items = self.doc[
-                record_type.lower()
-            ] if hasattr(self.doc, record_type.lower()) else []
+        if items is None:
+            items = self.doc.get(record_type.lower(), [])
         for item in items:
-            if q_key == 'domain':
-                q = self.domain
-            # TODO do in host name calc in one place
-            elif q_key in ('host', 'alias') and not item[q_key].endswith("."):
-                if item[q_key] == "@":
-                    q = self.domain  # special case for empty root domain
-                else:
-                    q = "{}.{}".format(item[q_key], self.domain)
-            else:
-                q = item[q_key]
-            answers = []
-            for answer in self.resolver.query(q, record_type):
-                if hasattr(answer, '__getitem__'):
-                    answer_value = answer
-                else:
-                    answer_value = getattr(answer, answer_attr)
-                answer_value = str(answer_value)
-                is_fqdn = False
-                if answer_value.endswith("."):
-                    is_fqdn = True
-                answers.append(answer_value)
-            item_value = str(item[item_key])
-            if item_value.startswith('$ip_'):
-                item_value = self.lookup_map[item_value]
-            if is_fqdn and not item_value.endswith("."):
-                if record_type == "MX":
-                    item_value = "{}.".format(item_value)
-                else:
-                    # TODO do in host name calc in one place
-                    item_value = "{}.{}.".format(item_value, self.domain)
-            valid = True if item_value in answers else False
+            answers = self._answers(
+                self._query_name(item, q_key), record_type, answer_attr
+            )
+            is_fqdn = any(answer.endswith(".") for answer in answers)
+            valid = self._expected(
+                item, item_key, record_type, is_fqdn
+            ) in answers
             if return_check:
                 return valid
-            else:
-                self.valid.append(valid)
+            self.valid.append(valid)
 
-    def check_one_record(self, record_type, item_key,
-                         q_key='domain', item=None):
-        record_type = record_type.upper()
-        lookup_answer_attr = {'CNAME': 'target', 'A': 'address'}
-        answer_attr = lookup_answer_attr[record_type]
-        for ns in self.doc['nameservers']:
-            domain, ns = self.domain, ns
-            self._setup_resolver(ns)
-            try:
-                self._validate(
-                    record_type, item_key, q_key=q_key,
-                    items=[item], answer_attr=answer_attr
-                )
-            except dns.resolver.NoAnswer:
-                self.valid.append(False)
+    def _checked(self):
         is_valid = all(self.valid)
         self.valid = []
         return is_valid
 
+    def check_one_record(self, record_type, item_key,
+                         q_key='domain', item=None):
+        record_type = record_type.upper()
+        answer_attr = {'CNAME': 'target', 'A': 'address'}[record_type]
+        for ns in self.doc['nameservers']:
+            self._setup_resolver(ns)
+            self._validate(
+                record_type, item_key, q_key=q_key,
+                items=[item], answer_attr=answer_attr
+            )
+        return self._checked()
+
     def do_check(self):
         for ns in self.doc['nameservers']:
-            domain, ns = self.domain, ns
             self._setup_resolver(ns)
             self._validate('A', 'ip', q_key='host')
             self._validate('AAAA', 'ipv6', q_key='host')
@@ -89,52 +109,37 @@ class DnsValidator(object):
             self._validate(
                 'CNAME', 'host', q_key='alias', answer_attr='target'
             )
-            self._validate('TXT', 'name')
-        is_valid = all(self.valid)
-        self.valid = []
-        return is_valid
+            # the content of each TXT record, asked for at its own name
+            self._validate('TXT', 'content', q_key='name')
+        return self._checked()
 
 
-def host_to_fqdn(host, domain):
-    if host.endswith("."):
-        value = host[:-1]
-    elif host == '@':
-        value = domain
-    else:
-        value = ".".join([host, domain])
-    return value
+def to_fqdn(name, domain=None):
+    """Qualify a record name inside its zone.
 
-
-def cname_key_trans(name, domain):
-    if name.endswith("."):
+    A trailing dot means the name is already absolute -- the stored form drops
+    it. `@` is the zone apex. Anything else gets the domain appended, if there
+    is one to append.
+    """
+    if name.endswith('.'):
         return name[:-1]
-    else:
-        return ".".join([name, domain])
-
-
-def a_key_trans(host, domain):
-    if host != "@":
-        return ".".join([host, domain])
-    return domain
-
-
-def to_fqdn(entry, domain=None):
-    if entry.endswith('.'):
-        return entry[:-1]
+    if name == '@':
+        return domain or name
     if domain:
-        return "%s.%s" % (entry, domain)
-    return entry
+        return f'{name}.{domain}'
+    return name
 
 
-def reverse_fqdn(domain, record):
-    record, matched_domain, remainer = record.partition(".%s" % domain)
-    if record == domain:
+def from_fqdn(name, domain):
+    """The inverse of to_fqdn: a name in `domain` as the document spells it."""
+    name, matched_domain, remainder = name.partition(f'.{domain}')
+    if name == domain:
         return "@"
-    if not matched_domain and not record.endswith('.'):
-        record = "%s." % record
-    if record == ".":
+    if not matched_domain and not name.endswith('.'):
+        name = f'{name}.'
+    if name == ".":
         return ""
-    return record
+    return name
 
 
 def get_providers(doc):
@@ -155,21 +160,21 @@ class DnsBase(object, metaclass=abc.ABCMeta):
         {
             'name': 'a',
             'key_id': 'host',
-            'key_trans': a_key_trans,
+            'key_trans': to_fqdn,
             'value_id': 'ip',
         },
         {
             'name': 'aaaa',
             'key_id': 'host',
-            'key_trans': a_key_trans,
+            'key_trans': to_fqdn,
             'value_id': 'ipv6',
         },
         {
             'name': 'cname',
             'key_id': 'alias',
-            'key_trans': cname_key_trans,
+            'key_trans': to_fqdn,
             'value_id': 'host',
-            'value_trans': host_to_fqdn
+            'value_trans': to_fqdn
         },
         {
             'name': 'mx',
@@ -179,13 +184,13 @@ class DnsBase(object, metaclass=abc.ABCMeta):
         {
             'name': 'txt',
             'key_id': 'name',
-            'key_trans': host_to_fqdn,
+            'key_trans': to_fqdn,
             'value_id': 'content',
         },
         {
             'name': 'srv',
             'key_id': 'name',
-            # 'key_trans': host_to_fqdn, # don't add domains automatically
+            # no key_trans: don't add domains automatically
             'value_id': 'priority,weight,port,targethost'
         }
     ]

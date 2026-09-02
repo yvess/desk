@@ -12,11 +12,17 @@ import logging
 import os
 import unittest
 
+import dns.rdata
+import dns.rdataclass
+import dns.rdatatype
+import dns.resolver
 import httpx
 
 from desk import Worker
 from desk.plugin.base import Updater
-from desk.plugin.dns.dnsbase import DnsBase
+from desk.plugin.dns.dnsbase import (
+    DnsBase, DnsValidator, from_fqdn, to_fqdn
+)
 from desk.plugin.dns.powerdns import Powerdns, txt_content, txt_value
 from desk.utils import AttributeDict, CouchDBClient, ObjectDict
 
@@ -26,6 +32,170 @@ FIXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fixtures')
 def fixture(name):
     with open(os.path.join(FIXTURES, f'couchdb-{name}.json')) as f:
         return json.load(f)
+
+
+class StubResolver:
+    """A dns.resolver.Resolver that answers from a dict.
+
+    Keyed by (name, record type); anything not in it is NXDOMAIN, which is what
+    a nameserver that never got the record would say.
+    """
+
+    def __init__(self, answers=None):
+        self.answers = answers or {}
+        self.nameservers = []
+        self.asked = []
+
+    def resolve(self, name, record_type):
+        self.asked.append((name, record_type))
+        try:
+            texts = self.answers[(name, record_type)]
+        except KeyError:
+            raise dns.resolver.NXDOMAIN(qnames=[name])
+        return [
+            dns.rdata.from_text(
+                dns.rdataclass.IN, dns.rdatatype.from_text(record_type), text
+            )
+            for text in texts
+        ]
+
+
+class DnsValidatorTestCase(unittest.TestCase):
+    """`dworker dns-check` reads a zone back over DNS to confirm it landed."""
+
+    DOC = {
+        'domain': 'test',
+        'nameservers': ['ns1.localhost'],
+        'a': [{'host': 'www', 'ip': '172.17.1.20'},
+              {'host': '@', 'ip': '172.17.1.30'}],
+        'cname': [{'alias': 'blog', 'host': 'www'}],
+        'mx': [{'host': 'mx1.test', 'priority': '10'}],
+        'txt': [{'name': '@', 'content': 'v=spf1 -all'}],
+    }
+    ANSWERS = {
+        ('www.test', 'A'): ['172.17.1.20'],
+        ('test', 'A'): ['172.17.1.30'],
+        ('blog.test', 'CNAME'): ['www.test.'],
+        ('test', 'MX'): ['10 mx1.test.'],
+        ('test', 'TXT'): ['"v=spf1 -all"'],
+    }
+
+    def validator(self, doc=None, answers=None):
+        resolver = StubResolver(
+            self.ANSWERS if answers is None else answers
+        )
+        validator = DnsValidator(
+            doc or self.DOC, lookup={'ns1.localhost': '127.0.0.1'},
+            resolver=resolver,
+        )
+        self.resolver = resolver
+        return validator
+
+    def test_a_zone_that_matches_the_document_is_valid(self):
+        self.assertTrue(self.validator().do_check())
+
+    def test_it_points_the_resolver_at_the_documents_nameserver(self):
+        self.validator().do_check()
+
+        self.assertEqual(self.resolver.nameservers, ['127.0.0.1'])
+
+    def test_a_wrong_address_is_invalid(self):
+        answers = {**self.ANSWERS, ('www.test', 'A'): ['172.17.1.99']}
+
+        self.assertFalse(self.validator(answers=answers).do_check())
+
+    def test_a_missing_record_is_invalid_not_an_error(self):
+        """A nameserver that never got the record answers NXDOMAIN."""
+        answers = {
+            k: v for k, v in self.ANSWERS.items() if k != ('www.test', 'A')
+        }
+
+        self.assertFalse(self.validator(answers=answers).do_check())
+
+    def test_txt_content_is_compared_at_the_records_own_name(self):
+        """TXT used to be checked by asking the apex and comparing the record
+        *name*, with an answer_attr TXT rdata does not even have.
+        """
+        self.validator().do_check()
+
+        self.assertIn(('test', 'TXT'), self.resolver.asked)
+
+    def test_a_wrong_txt_body_is_invalid(self):
+        answers = {**self.ANSWERS, ('test', 'TXT'): ['"v=spf1 ~all"']}
+
+        self.assertFalse(self.validator(answers=answers).do_check())
+
+    def test_a_map_variable_is_resolved_before_comparing(self):
+        doc = dict(self.DOC, a=[{'host': 'www', 'ip': '$ip_web1'}])
+        validator = self.validator(doc=doc)
+        validator.lookup_map = {'$ip_web1': '172.17.1.20'}
+
+        self.assertTrue(validator.do_check())
+
+    def test_check_one_record_reports_a_single_item(self):
+        validator = self.validator()
+
+        self.assertTrue(validator.check_one_record(
+            'A', 'ip', q_key='host', item={'host': 'www', 'ip': '172.17.1.20'}
+        ))
+        self.assertFalse(validator.check_one_record(
+            'A', 'ip', q_key='host', item={'host': 'gone', 'ip': '1.1.1.1'}
+        ))
+
+    def test_a_plain_dict_document_is_read(self):
+        """MergedDoc hands over a plain dict when there is no template."""
+        doc = {'domain': 'test', 'nameservers': ['ns1.localhost'],
+               'a': [{'host': 'www', 'ip': '172.17.1.20'}]}
+
+        self.assertTrue(self.validator(doc=doc).do_check())
+
+
+class FqdnTestCase(unittest.TestCase):
+    """The one pair that replaced five near-duplicate helpers.
+
+    `host_to_fqdn`, `cname_key_trans`, `a_key_trans` and `to_fqdn` each handled
+    a different subset of the `@` and trailing-dot cases, so which one a record
+    type happened to reference decided whether those cases came out right.
+    """
+
+    def test_to_fqdn(self):
+        cases = [
+            # (name, domain, expected)
+            ('www', 'test', 'www.test'),
+            ('a.b', 'test', 'a.b.test'),
+            # `@` is the zone apex
+            ('@', 'test', 'test'),
+            # a trailing dot means the name is already absolute
+            ('www.', 'test', 'www'),
+            ('mail.other.ch.', 'test', 'mail.other.ch'),
+            # no domain to qualify with: the name stands as it is
+            ('ns1.test', None, 'ns1.test'),
+            ('ns1.test.', None, 'ns1.test'),
+            ('@', None, '@'),
+        ]
+        for name, domain, expected in cases:
+            with self.subTest(name=name, domain=domain):
+                self.assertEqual(to_fqdn(name, domain), expected)
+
+    def test_from_fqdn(self):
+        cases = [
+            ('www.test', 'test', 'www'),
+            ('mx1.test', 'test', 'mx1'),
+            # the zone apex comes back as `@`
+            ('test', 'test', '@'),
+            # a name outside the zone keeps its dot
+            ('other.ch.', 'test', 'other.ch.'),
+        ]
+        for name, domain, expected in cases:
+            with self.subTest(name=name, domain=domain):
+                self.assertEqual(from_fqdn(name, domain), expected)
+
+    def test_the_pair_round_trips(self):
+        for name in ('www', 'a.b', '@'):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    from_fqdn(to_fqdn(name, 'test'), 'test'), name
+                )
 
 
 class RecordingDns(DnsBase):
@@ -620,7 +790,7 @@ class PowerdnsExportTest(unittest.TestCase):
     def test_txt_content_is_unquoted(self):
         """The trailing dot is what the sqlite backend produced too.
 
-        `reverse_fqdn` is applied to every value type except A/AAAA, and on a
+        `from_fqdn` is applied to every value type except A/AAAA, and on a
         TXT body it just appends a dot. Kept as it was so the export of a zone
         can be diffed across the backend swap; it only affects this text dump,
         not what is served.

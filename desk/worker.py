@@ -10,7 +10,9 @@ from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
 from desk.command import WorkerCommand, MigrateCommand
 is_foreman = True if os.environ.get('WORKER_TYPE', 'worker') == 'foreman' else False
-from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
+from desk.plugin.dns.cmd_powerdns import (
+    DnsCheckCommand, PowerdnsExportCommand, PowerdnsRebuildCommand
+)
 if is_foreman:
     from desk.plugin.invoice.cmd import CreateInvoicesCommand, QrBillInvoicesCommand
 from desk.plugin.service.cmd import QueryServiceCommand
@@ -86,6 +88,7 @@ class SetupWorkerParser(object):
             ('migrate', MigrateCommand),
             ('dns-export-powerdns', PowerdnsExportCommand),
             ('dns-rebuild-powerdns', PowerdnsRebuildCommand),
+            ('dns-check', DnsCheckCommand),
             ('service-query', QueryServiceCommand),
         ])
         if is_foreman:

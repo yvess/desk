@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 import httpx
 
-from desk.plugin.dns import DnsBase, reverse_fqdn
+from desk.plugin.dns import DnsBase, from_fqdn
 
 SOA_FORMAT = (
     "{primary} {hostmaster} {serial} {soa_refresh} {soa_retry} "
@@ -293,7 +293,7 @@ class Powerdns(DnsBase):
             rtype = rrset['type'].lower()
             if rtype not in records:
                 continue
-            key = reverse_fqdn(domain, rrset['name'].rstrip('.'))
+            key = from_fqdn(rrset['name'].rstrip('.'), domain)
             for record in rrset['records']:
                 records[rtype].append(
                     (key, self._export_value(rtype, record['content'], domain))
@@ -310,5 +310,5 @@ class Powerdns(DnsBase):
         elif rtype == 'txt':
             content = txt_value(content)
         if rtype in ('cname', 'mx', 'ns', 'txt', 'srv'):
-            return reverse_fqdn(domain, content.rstrip('.'))
+            return from_fqdn(content.rstrip('.'), domain)
         return content

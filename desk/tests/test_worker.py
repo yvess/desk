@@ -4,6 +4,7 @@ Both talk to CouchDB through a real `CouchDBClient`; only the HTTP transport
 is stubbed. The DNS backend handed to the Updater is a plain recorder, the
 same shape `desk/plugin/dns` backends have.
 """
+import logging
 import unittest
 
 import httpx
@@ -113,6 +114,42 @@ class UpdaterLookupMapTestCase(unittest.TestCase):
         with AttributeError on the unset lookup_map."""
         with self.assertRaises(httpx.HTTPStatusError):
             self.updater(httpx.Response(500, json={'error': 'internal'}))
+
+
+class ProcessTasksTestCase(unittest.TestCase):
+    """A task is dispatched once, whatever the worker provides.
+
+    `provider_lookup` used to be filled inside the loop over `provides`, with
+    the dispatch `if` inside it as well and no reset -- so once a provider
+    matched, every further service type dispatched the task again. It was
+    correct only because `provides` has exactly one key today.
+    """
+
+    def dispatches(self, provides):
+        worker = object.__new__(Worker)
+        worker.logger = logging.getLogger('desk.test')
+        worker.provides = provides
+        run = []
+        worker._run_tasks = lambda task_id, docs: run.append(task_id)
+        worker._process_tasks([
+            {'doc': {'_id': 'task-1', 'provider': 'ns1', 'docs': ['d1']}}
+        ])
+        return run
+
+    def test_one_service_type(self):
+        self.assertEqual(
+            self.dispatches({'domain': [{'name': 'ns1'}]}), ['task-1']
+        )
+
+    def test_more_service_types_still_dispatch_once(self):
+        self.assertEqual(self.dispatches({
+            'domain': [{'name': 'ns1'}],
+            'mail': [{'name': 'mx1'}],
+            'web': [{'name': 'w1'}],
+        }), ['task-1'])
+
+    def test_a_provider_this_worker_does_not_have_is_skipped(self):
+        self.assertEqual(self.dispatches({'mail': [{'name': 'mx1'}]}), [])
 
 
 class DnsBaseLookupMapTestCase(unittest.TestCase):

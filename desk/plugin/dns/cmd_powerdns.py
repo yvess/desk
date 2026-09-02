@@ -2,6 +2,7 @@ import sys
 
 from desk.command import SettingsCommand, SettingsCommandDb
 from desk.utils import AttributeDict, get_doc
+from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.plugin.base import MergedDoc
 
@@ -103,3 +104,66 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
                         self._rebuild(domain)
                 else:
                     print("only deletion of data was requestd")
+
+
+class DnsCheckCommand(SettingsCommandDb):
+    """Read the zones back over DNS and compare them with CouchDB.
+
+    The worker writes zones through the PowerDNS API; this asks the nameservers
+    the documents name whether they actually answer with what the document
+    says. It is the only check that covers the whole path, and it is what the
+    old integration suite used to assert.
+    """
+
+    def setup_parser(self, subparsers, config_parser):
+        check_parser = subparsers.add_parser(
+            'dns-check',
+            help="""check the nameservers against the domain documents""",
+            description="""Queries every nameserver a domain names and reports
+            whether the answers match the document."""
+        )
+        check_parser.add_argument(
+            *config_parser['args'], **config_parser['kwargs']
+        )
+        check_parser.add_argument(
+            "target", default=None, nargs="?",
+            help="name of the domain to check, or nothing for all domains",
+        )
+        check_parser.add_argument(
+            "-n", "--nameserver", dest="nameservers",
+            action="append", default=[], metavar="NAME=ADDRESS",
+            help="""resolve a nameserver name to this address instead of
+                 looking it up (repeatable)""",
+        )
+        return check_parser
+
+    def run(self):
+        lookup = dict(
+            entry.split('=', 1) for entry in self.settings.nameservers
+        ) or None
+        map_response = self.db.get(DnsValidator.map_doc_id)
+        if map_response.status_code != 404:
+            map_response.raise_for_status()
+            DnsValidator.lookup_map = get_doc(map_response)['map']
+
+        domains = [self.settings.target] if self.settings.target else [
+            row['key'] for row in self.db.view("domain_by_name")
+        ]
+        failed = []
+        for domain in domains:
+            rows = self.db.view(
+                "domain_by_name", include_docs=True, key=domain
+            )
+            if not rows:
+                raise LookupError(
+                    f"domain {domain} not found in {self.db.db_name}"
+                )
+            doc = MergedDoc(self.db, AttributeDict(rows[0]['doc'])).doc
+            valid = DnsValidator(doc, lookup=lookup).do_check()
+            print("{} {}".format("ok  " if valid else "FAIL", domain))
+            if not valid:
+                failed.append(domain)
+        print("{}/{} zones match".format(
+            len(domains) - len(failed), len(domains)
+        ))
+        return not failed

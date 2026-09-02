@@ -1,5 +1,9 @@
+import logging
+
 from desk.plugin.extcrm.extcrmbase import ExtCrmBase, ContactBase
 import pymysql
+
+logger = logging.getLogger(__name__)
 
 
 class TodoyuContact(ContactBase):
@@ -104,7 +108,9 @@ class Todoyu(ExtCrmBase):
         elif data == self._address_map[pk]:
             pass
         else:
-            print("*** double company", data, self._address_map[pk])
+            logger.warning(
+                "double company %s: %s", pk, data
+            )
 
     def _fill_contact(self, cursor):
         contactinfo = ('contactinfo.info',)
@@ -142,7 +148,9 @@ class Todoyu(ExtCrmBase):
                 if (pk not in self._contact_map):
                     self._contact_map[pk] = TodoyuContact(data)
                 else:
-                    print("*** double contact", data, self._contact_map[pk])
+                    logger.warning(
+                        "double contact %s: %s", pk, data
+                    )
 
     def _fill_maps(self):
         conn = pymysql.connect(
@@ -162,8 +170,10 @@ class Todoyu(ExtCrmBase):
         try:
             return self._address_map[pk]
         except KeyError:
-            print(list(self._address_map.keys()))
-            print("key error", pk)
+            logger.error(
+                "no address for %s, have %s", pk,
+                list(self._address_map.keys())
+            )
             raise KeyError
 
     def get_contact(self, pk=None):

@@ -55,16 +55,16 @@ class Worker(object):
             self.provides = worker_result.json()[0]['provides']
 
     def _process_tasks(self, tasks):
+        provider_lookup = {
+            service['name']: service_type
+            for service_type, services in self.provides.items()
+            for service in services
+        }
         for seq in tasks:
             self.logger.info('ready for processing tasks')
-            provider_lookup = {}
             task_doc = AttributeDict(seq['doc'])
-            for (service_type, services) in self.provides.items():
-                for service in services:
-                    provider_lookup[service['name']] = service_type
-
-                if task_doc.provider in provider_lookup:
-                    self._run_tasks(task_id=task_doc._id, docs=task_doc.docs)
+            if task_doc.provider in provider_lookup:
+                self._run_tasks(task_id=task_doc._id, docs=task_doc.docs)
 
     def _run_tasks(self, task_id, docs):
         successfull_tasks = []

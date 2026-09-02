@@ -1,3 +1,4 @@
+import logging
 import tempfile
 import re
 from datetime import date
@@ -8,6 +9,8 @@ from qrbill import QRBill
 from cairosvg import svg2pdf
 from pypdf import PdfWriter
 from desk.utils import calc_esr_checksum
+
+logger = logging.getLogger(__name__)
 
 INVOICE_NAME_RE = re.compile(
     r"(?P<date>\d{4}-\d{2}-\d{2})_CHF(?P<amount>\d+\.\d+)_Nr(?P<invoice_nr>\d+).*"
@@ -21,11 +24,11 @@ class InvoiceQrBill(object):
         self.invoices_path = invoices_path
 
     def add_qrbill(self, invoice_path):
-        print('add_qrbill', invoice_path)
+        logger.info('add_qrbill %s', invoice_path)
         invoice_name = invoice_path.name
         match = INVOICE_NAME_RE.match(invoice_name)
         if match is None:
-            print(f'skip {invoice_name}, no invoice filename')
+            logger.warning('skip %s, no invoice filename', invoice_name)
             return
         matches = match.groupdict()
         amount = Decimal(matches['amount'])
