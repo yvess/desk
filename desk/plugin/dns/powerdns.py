@@ -6,7 +6,7 @@ also owns the SOA serial (`soa_edit_api` is `DEFAULT` on every zone the API
 creates, giving the same YYYYMMDDnn serial the old code built by hand), and it
 invalidates PowerDNS's own caches, so changes are served immediately.
 """
-import logging
+import re
 from collections import OrderedDict
 
 import httpx
@@ -14,11 +14,13 @@ import httpx
 from desk.plugin.dns import DnsBase, reverse_fqdn
 
 SOA_FORMAT = (
-    "{primary} {hostmaster} 1 {soa_refresh} {soa_retry} "
+    "{primary} {hostmaster} {serial} {soa_refresh} {soa_retry} "
     "{soa_expire} {soa_default_ttl}"
 )
 # every record type this worker manages; anything else in the zone is left alone
 MANAGED_TYPES = ('SOA', 'NS', 'A', 'AAAA', 'CNAME', 'MX', 'TXT', 'SRV')
+# a single <character-string> in a TXT record holds at most this many bytes
+TXT_CHUNK = 255
 
 
 def fqdn(name):
@@ -37,10 +39,28 @@ def soa_mailbox(address):
     return fqdn(f'{local}.{domain}') if at else fqdn(address)
 
 
+def txt_content(value):
+    """The document's TXT value as master-file content: quoted, escaped, and
+    split into 255-byte strings, which is as much as one string may hold --
+    a DKIM key is longer than that.
+    """
+    chunks = [
+        value[i:i + TXT_CHUNK] for i in range(0, len(value), TXT_CHUNK)
+    ] or ['']
+    return ' '.join(
+        '"{}"'.format(chunk.replace('\\', '\\\\').replace('"', '\\"'))
+        for chunk in chunks
+    )
+
+
+def txt_value(content):
+    """The reverse of txt_content: join the strings, drop the escapes."""
+    strings = re.findall(r'"((?:[^"\\]|\\.)*)"', content)
+    return ''.join(re.sub(r'\\(.)', r'\1', string) for string in strings)
+
+
 class Powerdns(DnsBase):
     def __init__(self, settings, transport=None):
-        self.logger = logging.getLogger(__name__)
-        self.settings = settings
         self.doc = None
         self.domain = None
         self.api = httpx.Client(
@@ -64,7 +84,7 @@ class Powerdns(DnsBase):
         response.raise_for_status()
         return response
 
-    def set_domain(self, domain, new=False):
+    def set_domain(self, domain):
         self.domain = domain
 
     @property
@@ -84,7 +104,7 @@ class Powerdns(DnsBase):
                 **{**value, 'targethost': fqdn(value['targethost'])}
             )
         if name == 'txt':
-            return '"{}"'.format(value.replace('"', '\\"'))
+            return txt_content(value)
         if name == 'cname':
             return fqdn(value)
         if value.startswith('$ip_'):
@@ -134,12 +154,19 @@ class Powerdns(DnsBase):
             ],
         }
 
-    def _zone_rrsets(self):
+    def _apex_rrsets(self, serial):
+        """The SOA and NS RRsets, rendered from the document.
+
+        `serial` is what PowerDNS's DEFAULT soa-edit-api policy starts from:
+        it bumps whatever it is handed, so an existing zone passes its current
+        serial back in and keeps climbing instead of restarting.
+        """
         ttl = self.get_ttl(self.doc)
-        rrsets = [
+        return [
             self._rrset(self.zone, 'SOA', [SOA_FORMAT.format(
                 primary=fqdn(self.doc['soa_primary']),
                 hostmaster=soa_mailbox(self.doc['soa_hostmaster']),
+                serial=serial,
                 **self.doc
             )], ttl),
             self._rrset(
@@ -147,16 +174,21 @@ class Powerdns(DnsBase):
                 [fqdn(ns) for ns in self.doc['nameservers']], ttl
             ),
         ]
-        return rrsets + self._record_rrsets()
+
+    def _current_serial(self, zone):
+        for rrset in zone['rrsets']:
+            if rrset['type'] == 'SOA' and rrset['records']:
+                return rrset['records'][0]['content'].split()[2]
+        return 1
 
     # -- zones -----------------------------------------------------------------
 
     def add_domain(self, domain=None):
         if domain:
-            self.set_domain(domain, new=True)
+            self.set_domain(domain)
         self._request('POST', '/zones', json={
             'name': self.zone, 'kind': 'Native', 'nameservers': [],
-            'rrsets': self._zone_rrsets(),
+            'rrsets': self._apex_rrsets(serial=1) + self._record_rrsets(),
         })
 
     def del_domain(self, domain=None):
@@ -183,66 +215,59 @@ class Powerdns(DnsBase):
         """
         if not self.doc:
             return False
-        self.set_domain(self.doc['domain'], new=True)
+        self.set_domain(self.doc['domain'])
         if self.domain not in self.get_domains():
             self.add_domain()
             return True
-        desired = self._zone_rrsets()
         zone = self._request('GET', f'/zones/{self.zone}').json()
-        gone = self._deletions(desired, [
-            rrset for rrset in zone['rrsets']
-            if rrset['type'] in MANAGED_TYPES
-        ])
-        self._request(
-            'PATCH', f'/zones/{self.zone}', json={'rrsets': desired + gone}
+        desired = (
+            self._apex_rrsets(self._current_serial(zone))
+            + self._record_rrsets()
         )
+        self._patch(zone, desired, MANAGED_TYPES)
         return True
 
-    def _deletions(self, desired, current):
-        """DELETE entries for the RRsets `desired` does not cover.
-
-        A REPLACE only reaches the names it names, so anything the document
-        dropped has to be deleted explicitly.
-        """
-        keep = {(rrset['name'], rrset['type']) for rrset in desired}
-        return [
-            {'name': rrset['name'], 'type': rrset['type'],
-             'changetype': 'DELETE'}
-            for rrset in current
-            if (rrset['name'], rrset['type']) not in keep
-        ]
-
     def update(self):
+        """Rebuild the record types the diff touched, plus SOA and NS.
+
+        The old backend deleted every row of a changed type and re-inserted
+        it, then rewrote the SOA from the document; an RRset REPLACE is the
+        same thing done atomically. SOA and NS go along every time because
+        the diff only covers the record types in `structure` -- a changed
+        refresh, hostmaster, nameserver or TTL would never show up in it.
+        """
         if not self.doc or not self.diff:
             return False
         self.set_domain(self.doc['domain'])
         changed = {
             name for section in self.diff.values() for name in section
         }
-        rrsets = []
+        zone = self._request('GET', f'/zones/{self.zone}').json()
+        desired = self._apex_rrsets(self._current_serial(zone))
         for name in changed:
-            rrsets.extend(self._replace_type(name))
-        if rrsets:
-            self._request('PATCH', f'/zones/{self.zone}', json={'rrsets': rrsets})
+            desired.extend(self._record_rrsets(only_rtype=name))
+        types = ('SOA', 'NS') + tuple(name.upper() for name in changed)
+        self._patch(zone, desired, types)
         return True
 
-    def _replace_type(self, name):
-        """Rebuild one record type from the document.
+    def _patch(self, zone, desired, types):
+        """One PATCH: REPLACE what the document has, DELETE what it dropped.
 
-        The old backend deleted every row of the type and re-inserted it; an
-        RRset REPLACE is the same thing done atomically. Names that the type no
-        longer covers are not reached by a REPLACE, so they are deleted here.
+        A REPLACE only reaches the names it names, so every RRset of the
+        `types` in the zone that `desired` does not cover is deleted
+        explicitly; other types are left alone.
         """
-        desired = self._record_rrsets(only_rtype=name)
-        return desired + self._deletions(
-            desired, self._current_rrsets(name.upper())
-        )
-
-    def _current_rrsets(self, rtype):
-        zone = self._request('GET', f'/zones/{self.zone}').json()
-        return [
-            rrset for rrset in zone['rrsets'] if rrset['type'] == rtype
+        keep = {(rrset['name'], rrset['type']) for rrset in desired}
+        gone = [
+            {'name': rrset['name'], 'type': rrset['type'],
+             'changetype': 'DELETE'}
+            for rrset in zone['rrsets']
+            if rrset['type'] in types
+            and (rrset['name'], rrset['type']) not in keep
         ]
+        self._request(
+            'PATCH', f'/zones/{self.zone}', json={'rrsets': desired + gone}
+        )
 
     def delete(self):
         if not self.doc:
@@ -283,7 +308,7 @@ class Powerdns(DnsBase):
         elif rtype == 'srv':  # priority is not exported, the rest is
             content = content.split(' ', 1)[1]
         elif rtype == 'txt':
-            content = content.strip('"').replace('\\"', '"')
+            content = txt_value(content)
         if rtype in ('cname', 'mx', 'ns', 'txt', 'srv'):
             return reverse_fqdn(domain, content.rstrip('.'))
         return content

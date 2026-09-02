@@ -192,7 +192,7 @@ class DnsBase(object, metaclass=abc.ABCMeta):
     map_doc_id = 'map-ips'
 
     @abc.abstractmethod
-    def set_domain(self, domain, new):
+    def set_domain(self, domain):
         """Set the current domain."""
 
     @abc.abstractmethod

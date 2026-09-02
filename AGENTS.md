@@ -10,13 +10,18 @@ files if asked, but the user finalizes (`git commit` / `git rebase --continue`).
 
 ## Style
 
-**Keep it simple; prefer explicit repetition over indirection.** Don't factor
-things out just because they repeat — a reader should be able to understand a
-block without jumping somewhere else to resolve it. Concretely: no YAML anchors
-or `x-` merge blocks in `docker-compose.yml` (services stay spelled out in full,
-even when `dnsa`/`dnsb` are near-identical), and no helper introduced to save a
-few duplicated lines. Factor out when the duplication is a real maintenance
-hazard, not to shorten the file.
+**Keep it simple.** KISS is the tiebreaker. No abstraction for a need that
+does not exist yet, and no helper introduced only to shorten a file.
+
+**Duplicated code: ask before touching it.** Repeated logic in Python is not a
+violation. When you think a duplication should be factored out or removed,
+ask the user first and leave it as it is until they decide; in reviews, report
+it as a judgement call, never as a hard finding.
+
+**YAML keeps explicit repetition.** Config is read top to bottom, so spell it
+out: no YAML anchors or `x-` merge blocks in `docker-compose.yml` (services
+stay spelled out in full, even when `dnsa`/`dnsb` are near-identical), and the
+same for any other YAML file.
 
 ## Project
 

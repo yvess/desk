@@ -17,7 +17,7 @@ import httpx
 from desk import Worker
 from desk.plugin.base import Updater
 from desk.plugin.dns.dnsbase import DnsBase
-from desk.plugin.dns.powerdns import Powerdns
+from desk.plugin.dns.powerdns import Powerdns, txt_content, txt_value
 from desk.utils import AttributeDict, CouchDBClient, ObjectDict
 
 FIXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fixtures')
@@ -31,7 +31,7 @@ def fixture(name):
 class RecordingDns(DnsBase):
     """A DnsBase that only carries `structure` -- the diff needs nothing else."""
 
-    def set_domain(self, domain, new=False):
+    def set_domain(self, domain):
         pass
 
     def create(self):
@@ -212,11 +212,14 @@ class WholeRecordTypeDiffTest(DiffFixture, unittest.TestCase):
         with api.backend(doc=doc, diff=diff) as pdns:
             pdns.update()
 
-        self.assertEqual(api.sent('PATCH')[0]['rrsets'], [{
+        rrsets = api.sent('PATCH')[0]['rrsets']
+        self.assertIn({
             'name': 'test.', 'type': 'TXT', 'ttl': 3600,
             'changetype': 'REPLACE',
             'records': [{'content': '"v=spf1 -all"', 'disabled': False}],
-        }])
+        }, rrsets)
+        # SOA and NS ride along on every update; nothing else does
+        self.assertEqual({r['type'] for r in rrsets}, {'SOA', 'NS', 'TXT'})
 
 
 class PowerdnsApiStub:
@@ -371,16 +374,39 @@ class PowerdnsCreateOnExistingZoneTest(unittest.TestCase):
             rrsets,
         )
 
+    def test_the_zones_serial_is_kept(self):
+        zone = {'rrsets': [
+            {'name': 'test.', 'type': 'SOA', 'ttl': 3600,
+             'records': [{'content':
+                          'ns1.localhost. dsnmaster.test. 2026090205 '
+                          '3600 3600 3600 3600'}]},
+        ]}
+        api = PowerdnsApiStub(zone=zone, zones=['test.'])
+        with api.backend(doc=merged_domain()) as pdns:
+            pdns.create()
+
+        soa = [r for r in api.sent('PATCH')[0]['rrsets']
+               if r['type'] == 'SOA'][0]
+        self.assertEqual(soa['records'][0]['content'].split()[2], '2026090205')
+
 
 class PowerdnsUpdateTest(unittest.TestCase):
-    """update() replaces whole RRsets for the record types the diff touched."""
+    """update() replaces whole RRsets for the record types the diff touched.
 
-    def rrsets_for(self, diff, zone=None):
+    The SOA and NS RRsets go along every time: the diff only covers the
+    record types in `structure`, so a changed refresh, hostmaster, nameserver
+    or TTL would otherwise never reach the zone.
+    """
+
+    def rrsets_for(self, diff, zone=None, doc=None):
         api = PowerdnsApiStub(zone=zone)
-        with api.backend(doc=merged_domain(), diff=diff) as pdns:
+        with api.backend(doc=doc or merged_domain(), diff=diff) as pdns:
             pdns.update()
         self.api = api
         return api.sent('PATCH')[0]['rrsets'] if api.sent('PATCH') else []
+
+    def record_types(self, rrsets):
+        return {r['type'] for r in rrsets} - {'SOA', 'NS'}
 
     def test_it_replaces_every_rrset_of_the_changed_type(self):
         rrsets = self.rrsets_for({
@@ -389,7 +415,7 @@ class PowerdnsUpdateTest(unittest.TestCase):
         })
 
         self.assertTrue(all(r['changetype'] == 'REPLACE' for r in rrsets))
-        self.assertEqual({r['type'] for r in rrsets}, {'A'})
+        self.assertEqual(self.record_types(rrsets), {'A'})
 
     def test_it_leaves_untouched_types_alone(self):
         rrsets = self.rrsets_for({
@@ -397,7 +423,18 @@ class PowerdnsUpdateTest(unittest.TestCase):
             'append': {'cname': [{'alias': 'shop', 'host': 'www'}]},
         })
 
-        self.assertEqual({r['type'] for r in rrsets}, {'CNAME'})
+        self.assertEqual(self.record_types(rrsets), {'CNAME'})
+
+    def test_it_reads_the_zone_once(self):
+        self.rrsets_for({
+            'update': {'a': [{'host': 'www', 'ip': '172.17.1.21'}]},
+            'append': {'cname': [{'alias': 'shop', 'host': 'www'}]},
+            'remove': {'txt': [{'name': '@', 'content': 'x'}]},
+        })
+
+        self.assertEqual(
+            [verb for verb, _, _ in self.api.requests], ['GET', 'PATCH']
+        )
 
     def test_a_name_the_type_no_longer_covers_is_deleted(self):
         """REPLACE only reaches names the document still has."""
@@ -415,11 +452,93 @@ class PowerdnsUpdateTest(unittest.TestCase):
                        'changetype': 'DELETE'}]
         )
 
+    def test_a_changed_soa_field_reaches_the_zone(self):
+        """The old backend rewrote the SOA from the document on every update;
+        the diff never carries soa_* fields, so this has to be unconditional.
+        """
+        doc = merged_domain()
+        doc['soa_refresh'] = 7200
+        rrsets = self.rrsets_for(
+            {'update': {}, 'append': {}, 'remove': {}}, doc=doc
+        )
+
+        soa = [r for r in rrsets if r['type'] == 'SOA'][0]
+        self.assertEqual(soa['changetype'], 'REPLACE')
+        self.assertEqual(
+            soa['records'][0]['content'].split()[3:], ['7200'] + ['3600'] * 3
+        )
+
+    def test_changed_nameservers_reach_the_zone(self):
+        doc = merged_domain()
+        doc['nameservers'] = ['ns1.localhost', 'ns2.localhost']
+        rrsets = self.rrsets_for(
+            {'update': {}, 'append': {}, 'remove': {}}, doc=doc
+        )
+
+        ns = [r for r in rrsets if r['type'] == 'NS'][0]
+        self.assertEqual(
+            [x['content'] for x in ns['records']],
+            ['ns1.localhost.', 'ns2.localhost.'],
+        )
+
+    def test_the_current_serial_is_handed_back_for_powerdns_to_bump(self):
+        """DEFAULT soa-edit-api bumps what it is given; handing it `1` would
+        restart the serial at today's 01, below what secondaries have seen.
+        """
+        zone = {'rrsets': [
+            {'name': 'test.', 'type': 'SOA', 'ttl': 3600,
+             'records': [{'content':
+                          'ns1.localhost. dsnmaster.test. 2026090205 '
+                          '3600 3600 3600 3600'}]},
+        ]}
+        rrsets = self.rrsets_for(
+            {'update': {}, 'append': {}, 'remove': {}}, zone=zone
+        )
+
+        soa = [r for r in rrsets if r['type'] == 'SOA'][0]
+        self.assertEqual(soa['records'][0]['content'].split()[2], '2026090205')
+
     def test_without_a_diff_it_does_nothing(self):
         api = PowerdnsApiStub()
         with api.backend(doc=merged_domain()) as pdns:
             self.assertFalse(pdns.update())
         self.assertEqual(api.requests, [])
+
+
+class TxtContentTest(unittest.TestCase):
+    """TXT content is quoted master-file syntax: escapes and 255-byte strings."""
+
+    def test_quotes_and_backslashes_are_escaped(self):
+        self.assertEqual(
+            txt_content('say "hi" c:\\temp'), '"say \\"hi\\" c:\\\\temp"'
+        )
+
+    def test_a_long_value_is_split_into_255_byte_strings(self):
+        """A DKIM key does not fit one <character-string>."""
+        content = txt_content('k' * 300)
+
+        strings = content.split('" "')
+        self.assertEqual([len(x.strip('"')) for x in strings], [255, 45])
+
+    def test_an_empty_value_is_one_empty_string(self):
+        self.assertEqual(txt_content(''), '""')
+
+    def test_the_export_reverses_it(self):
+        for value in ('v=spf1 -all', 'say "hi" c:\\temp', 'k' * 300, ''):
+            self.assertEqual(txt_value(txt_content(value)), value)
+
+    def test_the_backend_writes_the_escaped_form(self):
+        doc = merged_domain()
+        doc['txt'] = [{'name': '@', 'content': 'o\'brien says "hi"'}]
+        api = PowerdnsApiStub()
+        with api.backend(doc=doc) as pdns:
+            pdns.create()
+
+        txt = [r for r in api.sent('POST')[0]['rrsets']
+               if r['type'] == 'TXT'][0]
+        self.assertEqual(
+            txt['records'][0]['content'], '"o\'brien says \\"hi\\""'
+        )
 
 
 class PowerdnsZoneTest(unittest.TestCase):
@@ -477,7 +596,8 @@ class PowerdnsExportTest(unittest.TestCase):
             {'name': 'blog.test.', 'type': 'CNAME', 'ttl': 3600,
              'records': [{'content': 'www.test.'}]},
             {'name': 'test.', 'type': 'TXT', 'ttl': 3600,
-             'records': [{'content': '"v=spf1 -all"'}]},
+             'records': [{'content': '"v=spf1 -all"'},
+                         {'content': '"p=abc" "def"'}]},
         ]}
         api = PowerdnsApiStub(zone=zone)
         with api.backend() as pdns:
@@ -505,7 +625,9 @@ class PowerdnsExportTest(unittest.TestCase):
         can be diffed across the backend swap; it only affects this text dump,
         not what is served.
         """
-        self.assertEqual(self.records()['txt'], [('@', 'v=spf1 -all.')])
+        self.assertEqual(
+            self.records()['txt'], [('@', 'p=abcdef.'), ('@', 'v=spf1 -all.')]
+        )
 
 
 class WorkerBackendFailureTest(unittest.TestCase):

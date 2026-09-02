@@ -151,3 +151,20 @@ still reported the task done.
 **Left for later:** `desk/tests/test_dns.py` covers the diff and the backend, not
 `DnsValidator` (`dnsbase.py`), which still uses the removed
 `dns.resolver.Resolver.query` name and is exercised by nothing.
+
+---
+
+**Review follow-up (2026-09-02):**
+- `update()` now sends the SOA and NS RRsets with every PATCH. The diff only
+  covers the record types in `structure`, so a changed `soa_refresh`,
+  hostmaster, nameserver or TTL never showed up in it and never reached the
+  zone -- the old backend rewrote the SOA from the document on every update.
+- When patching an existing zone (`update()`, and `create()` on a zone that is
+  already there) the SOA carries the zone's *current* serial, not `1`. The
+  DEFAULT soa-edit-api policy bumps what it is handed; handing it `1` would
+  have restarted at today's `01`, below what secondaries had seen.
+- TXT content escapes backslashes as well as quotes and is split into 255-byte
+  strings (a DKIM key is longer than one string); the export joins them back.
+- `update()` reads the zone once instead of once per changed type; the dead
+  `new` parameter of `set_domain()` is gone.
+- Suite green, **145 tests**.
