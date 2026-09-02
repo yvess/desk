@@ -1,13 +1,12 @@
-import os
 from pathlib import Path
 from datetime import date
-from desk.command import SettingsCommand
+from desk.command import SettingsCommand, SettingsCommandDb
 from desk.utils import get_crm_module
 from desk.plugin.invoice.invoice import Invoice, InvoiceCycle
 from desk.plugin.invoice.qrbill import InvoiceQrBill
 
 
-class CreateInvoicesCommand(SettingsCommand):
+class CreateInvoicesCommand(SettingsCommandDb):
     def setup_parser(self, subparsers, config_parser):
         invoices_create_parser = subparsers.add_parser(
             'invoices-create',
@@ -50,27 +49,19 @@ class CreateInvoicesCommand(SettingsCommand):
 
         return invoices_create_parser
 
-    def _cmd(self, cmd):
-        return "{}/{}".format(self.settings.couchdb_db, cmd)
-
     def run(self):
         crm = get_crm_module(self.settings)
-        server = Server(self.settings.couchdb_uri)
-        db = server.get_db(self.settings.couchdb_db)
-
         invoice_cycle = InvoiceCycle(self.settings.invoice_nr)
-        clients = db.view(
-            self._cmd("client_is_billable"), include_docs=True
-        )
+        clients = self.db.view("client_is_billable", include_docs=True)
         counter = 0
         for client in clients:
             if not self.settings.limit_client_id or client['id'] == self.settings.limit_client_id:
                 try:
-                    # print(client['doc']['name'])
                     invoice = Invoice(
                         self.settings, crm=crm,
                         client_doc=client['doc'],
-                        invoice_cycle=invoice_cycle
+                        invoice_cycle=invoice_cycle,
+                        db=self.db
                     )
                     if invoice.client_doc is None:
                         # Invoice already printed why it gave up; without a
@@ -115,9 +106,6 @@ class QrBillInvoicesCommand(SettingsCommand):
         )
 
         return invoices_qrbill_parser
-
-    def _cmd(self, cmd):
-        return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def run(self):
         invoices_pdf_path = Path(self.settings.invoices_pdf_path)

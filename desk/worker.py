@@ -13,7 +13,7 @@ is_foreman = True if os.environ.get('WORKER_TYPE', 'worker') == 'foreman' else F
 from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
 if is_foreman:
     from desk.plugin.invoice.cmd import CreateInvoicesCommand, QrBillInvoicesCommand
-from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
+from desk.plugin.service.cmd import QueryServiceCommand
 
 
 DEFAULTS = {

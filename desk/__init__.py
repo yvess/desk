@@ -6,7 +6,7 @@ import logging
 import json
 import asyncio
 from desk.utils import ObjectDict, CouchDBClient, CouchDBClientAsync, AttributeDict
-from desk.utils import get_rows, decode_json, encode_json, get_doc, get_key
+from desk.utils import decode_json, encode_json, get_doc, get_key
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
 
@@ -15,7 +15,6 @@ __version__ = '0.1'
 DOC_TYPES = {
     'domain': dns
 }
-# logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(
     format="%(asctime)s %(levelname)s:%(name)s: %(message)s",
     level=logging.DEBUG,
@@ -107,16 +106,15 @@ class Worker(object):
             raise Exception("I doesn't provide the requested service")
 
     def _create_queue(self, item_function, run_once=False, queue_name=''):
-        # print('_create_queue', queue_name)
         if run_once is True:
             def queue_once():
-                items = get_rows(self.db_design.get(f'_view/{queue_name}', params={'include_docs': 'true'}))
+                items = self.db.view(queue_name, include_docs=True)
                 if items:
                     item_function(items)
             return queue_once
         else:
             async def queue():
-                items = get_rows(self.db_design.get(f'_view/{queue_name}', params={'include_docs': 'true'}))
+                items = self.db.view(queue_name, include_docs=True)
                 if items:
                     item_function(items)
 
@@ -173,7 +171,7 @@ class Foreman(Worker):
         for seq in orders:
             providers, docs = {}, []
             already_processed_orders = []
-            items = get_rows(self.db_design.get('_view/new_by_editor', params=dict(include_docs='true')))
+            items = self.db.view('new_by_editor', include_docs=True)
             order_doc = AttributeDict(seq['doc'])
             for item in map(AttributeDict, items):
                 if item.doc._id not in already_processed_orders:

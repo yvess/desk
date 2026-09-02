@@ -1,7 +1,5 @@
 from io import StringIO
-from copy import copy, deepcopy
-import logging
-import json
+from copy import deepcopy
 import json_diff
 from ..utils import get_doc, encode_json, AttributeDict
 
@@ -54,30 +52,6 @@ class MergedDoc(object):
         return AttributeDict(template_doc)
 
 
-class VersionDoc(object):
-    def __init__(self, db, doc):
-        self.db = db
-        self.doc = doc
-
-    def create_version(self):
-        old_doc = get_doc(self.db.get(self.doc['_id']))
-        old_doc = MergedDoc(self.db, old_doc).doc
-        self.doc.state = 'changed'
-        self.doc['prev_rev'] = old_doc['_rev']
-        # keep the old version as attachment named by its rev,
-        # same layout as the active doc attachments in Foreman._update_order
-        self.db.put(
-            url=f"{old_doc['_id']}/{old_doc['_rev']}",
-            content=encode_json(old_doc),
-            params=dict(rev=old_doc['_rev'])
-        )
-        new_doc_merged = get_doc(self.db.get(self.doc['_id']))
-        del self.doc['_rev']
-        new_doc_merged.update(self.doc)
-        self.doc = new_doc_merged
-        self.db.put(url=self.doc['_id'], content=encode_json(self.doc))
-
-
 class Updater(object):
     def __init__(self, db, doc, service):
         self.db, self.doc, self.active_doc = db, doc, None
@@ -98,12 +72,12 @@ class Updater(object):
         self.service = service
         self.service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
-            # TODO:fix
-            try:
-                lookup_map_doc = get_doc(self.db.get(self.service.map_doc_id))
-                self.service.set_lookup_map(lookup_map_doc)
-            except ResourceNotFound:
-                pass
+            # httpx does not raise on a 404: a missing map doc is tolerated,
+            # every other error (auth, server) must not run the task blindly
+            map_response = self.db.get(self.service.map_doc_id)
+            if map_response.status_code != 404:
+                map_response.raise_for_status()
+                self.service.set_lookup_map(get_doc(map_response))
 
         if self.active_doc and doc.state == 'changed':
             diff = self._create_diff()

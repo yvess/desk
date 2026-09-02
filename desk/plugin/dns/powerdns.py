@@ -1,8 +1,6 @@
 import sqlite3
 import time
-import os
 import logging
-from copy import copy
 from collections import OrderedDict
 import traceback
 from desk.plugin.dns import DnsBase, reverse_fqdn
@@ -35,7 +33,6 @@ class Powerdns(DnsBase):
 
     def _db(self, sql):
         error = None
-        # print(sql)
         try:
             self.logger.debug(sql)
             self._cursor.execute(sql)
@@ -45,16 +42,7 @@ class Powerdns(DnsBase):
             error += traceback.format_exc()
             self.logger.error(error)
 
-        # print(error)
         return (error, self._cursor)
-
-    def check_domain(self, domain):
-        error, result = self._db(
-            'SELECT id FROM domains WHERE name="{}"'.format(domain)
-        )
-        lookup_domain = result.fetchone()
-        has_domain = True if lookup_domain else False
-        return has_domain
 
     def set_domain(self, domain, new=False):
         self.domain = domain
@@ -104,8 +92,8 @@ class Powerdns(DnsBase):
             self.domain, new_soa,
             rtype="SOA", ttl=self.get_ttl(self.doc)
         )
-        # TODO sudoers
-        #os.system("pdns_control purge {}$".format(self.domain))
+        # TODO writing behind pdns' back leaves its packet cache stale;
+        # purging it needs sudo. Goes away with the PowerDNS HTTP API.
 
     def add_domain(self, domain=None):
         if domain:
@@ -134,21 +122,18 @@ class Powerdns(DnsBase):
 
     def add_record(self, key, value, rtype='A', ttl=3600,
                    priority='NULL', domain=None):
-        # print('add_record', 'key:"%s", value:"%s", rtype:"%s", domain:"%s"' % (key, value, rtype, domain or self.domain))
         if domain:
             self.set_domain(domain)
         priority = 'NULL'
         value_sql = None
 
         # MX
-        # print('test MX')
         if rtype.upper() == 'MX':
             key = self.domain
             value_sql = value['host']
             priority=int(value['priority'])
 
         # SRV
-        # print('test SRV')
         if rtype.upper() == 'SRV':
             value_sql = "{weight} {port} {targethost}".format(**value)
             priority=int(value['priority'])
@@ -218,7 +203,6 @@ class Powerdns(DnsBase):
             name, key_id, value_id = (
                 rtype['name'], rtype['key_id'], rtype['value_id']
             )
-            # print('name:"%s", key_id:"%s", value_id:"%s"' % (name, key_id, value_id))
             if name in self.doc and (not only_rtype or name == only_rtype):
                 for item in self.doc[name]:  # TODO merge with create logic
                     # do key/value transformations
@@ -271,7 +255,6 @@ class Powerdns(DnsBase):
                 name, key_id, value_id = (
                     rtype['name'], rtype['key_id'], rtype['value_id']
                 )
-                # print('name:"%s", key_id:"%s", value_id:"%s"' % (name, key_id, value_id))
                 remove, append = [], []
 
                 # remove records

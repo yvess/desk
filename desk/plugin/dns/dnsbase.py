@@ -145,6 +145,9 @@ def get_providers(doc):
 
 class DnsBase(object, metaclass=abc.ABCMeta):
     validator = DnsValidator
+    # filled by set_lookup_map(); empty until then so a $ip_ lookup fails
+    # with a KeyError naming the value instead of an AttributeError
+    lookup_map = {}
     structure = [
         {
             'name': 'a',

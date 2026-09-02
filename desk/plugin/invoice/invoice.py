@@ -6,7 +6,7 @@ from unicodedata import normalize
 from weasyprint import HTML
 from desk.plugin.invoice import filters
 from desk.plugin.base import MergedDoc
-from desk.utils import parse_date, calc_esr_checksum
+from desk.utils import parse_date, calc_esr_checksum, AttributeDict
 from jinja2 import Environment, FileSystemLoader
 
 
@@ -30,14 +30,13 @@ class Invoice(object):
     @classmethod
     def load_service_definitions(cls, db):
         service_definitons_results = db.view(
-            "%s/%s" % (db.dbname, "service_definition"),
-            include_docs=True
+            "service_definition", include_docs=True
         )
         for sd in service_definitons_results:
             cls.service_definitons[sd['doc']['service_type']] = sd['doc']
 
     """Invoice for generating HTML and PDF"""
-    def __init__(self, settings, crm, client_doc, invoice_cycle):
+    def __init__(self, settings, crm, client_doc, invoice_cycle, db):
         self.invoice_template_dir = settings.invoice_template_dir
         self.output_dir = settings.invoice_output_dir
         self.tax = float(settings.invoice_tax)
@@ -60,19 +59,15 @@ class Invoice(object):
         self.settings = settings
         self.invoice_cycle = invoice_cycle
         self.invoice_nr = invoice_cycle.current_nr
-        server = Server(self.settings.couchdb_uri)
-        self.db = server.get_db(self.settings.couchdb_db)
+        self.db = db
         if not Invoice.service_definitons:
             Invoice.load_service_definitions(self.db)
         self.setup_invoice()
 
     def client_name_normalized(self):
-        fname = normalize('NFKD', self.client_doc['name']).encode('ASCII', 'ignore').lower()
-        fname = fname.replace(" ", "-")
-        return fname
-
-    def _cmd(self, cmd):
-        return "{}/{}".format(self.settings.couchdb_db, cmd)
+        fname = normalize('NFKD', self.client_doc['name'])
+        fname = fname.encode('ASCII', 'ignore').decode('ASCII').lower()
+        return fname.replace(" ", "-")
 
     def setup_invoice(self):
         ref_nr = "%s%s" % (
@@ -140,16 +135,18 @@ class Invoice(object):
         services = {}
         cycle_start_date = self.invoice_cycle.doc['start_date']
         for result in self.db.view(
-                self._cmd("service_by_client"),
-                key=self.client_id, include_docs=True):
-            service_doc = MergedDoc(self.db, result['doc']).doc
+                "service_by_client", key=self.client_id, include_docs=True):
+            # view rows are plain dicts; MergedDoc reads doc.template_id
+            service_doc = MergedDoc(self.db, AttributeDict(result['doc'])).doc
             service_def = Invoice.service_definitons[service_doc['service_type']]
             package = service_def['packages'][service_doc['package_type']]
             # always keep the package list price next to the effective price,
             # so the invoice shows whether the price was overwritten on the service
             package_price = float(package['price']) if 'price' in package else None
             own_price = service_doc.get('price')
-            has_own_price = own_price is not None and own_price != ''
+            # MergedDoc turns an empty value into [] when the template has no
+            # price either, so [] means "no own price" just like '' and None
+            has_own_price = own_price not in (None, '', [])
             if not has_own_price:
                 service_doc.pop('price', None)
             service_doc['price'] = get_default('price', service_doc, package)
@@ -226,10 +223,10 @@ class Invoice(object):
         addons = []
         addon_items = service.get('addon_service_items') or []
         for addon in addon_items:
-            if isinstance(addon, str):
-                addon = {'name': addon}
-            elif not isinstance(addon, dict):
-                raise
+            if not isinstance(addon, dict):
+                raise TypeError(
+                    f"addon {addon!r} of service {service.get('_id')} is not an object"
+                )
             sd_addon = sd_addons[addon['itemType']]
             addon['price'] = get_default('price', addon, sd_addon)
             addon['title'] = get_default('title', addon, sd_addon)

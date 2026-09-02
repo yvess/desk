@@ -52,8 +52,18 @@ class Todoyu(ExtCrmBase):
             ON (address.id=p2a.id_address AND person_privat.id=p2a.id_person)
         LEFT JOIN (ext_contact_mm_company_person as c2p, ext_contact_person as person)
             ON (person.id=c2p.id_person AND company.id=c2p.id_company)
-        LEFT JOIN (ext_contact_contactinfotype as contactinfotype, ext_contact_contactinfo as contactinfo, ext_contact_mm_company_contactinfo as c2i)
-            ON (contactinfotype.id=1 AND contactinfo.id=c2i.id_contactinfo AND company.id=c2i.id_company AND contactinfo.id_contactinfotype=contactinfotype.id)
+        LEFT JOIN (
+            -- one email per company: the join through the m:m table would
+            -- otherwise repeat every address row once per contactinfo
+            SELECT c2i.id_company, MIN(contactinfo.id) as id
+            FROM ext_contact_mm_company_contactinfo as c2i, ext_contact_contactinfo as contactinfo
+            WHERE contactinfo.id=c2i.id_contactinfo
+            AND contactinfo.id_contactinfotype=1
+            AND contactinfo.deleted=0
+            GROUP BY c2i.id_company
+        ) as company_email ON (company_email.id_company=company.id)
+        LEFT JOIN (ext_contact_contactinfo as contactinfo)
+            ON (contactinfo.id=company_email.id)
         LEFT JOIN (static_country as country)
             ON (address.id_country=country.id)
         WHERE 1

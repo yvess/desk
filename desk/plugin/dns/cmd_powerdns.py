@@ -1,7 +1,7 @@
 import sys
 
 from desk.command import SettingsCommand, SettingsCommandDb
-from desk.utils import ObjectDict
+from desk.utils import ObjectDict, AttributeDict, get_doc
 from desk.plugin.dns.powerdns import Powerdns
 from desk.plugin.base import MergedDoc
 
@@ -84,10 +84,11 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
         return rebuild_powerdns_parser
 
     def _rebuild(self, domain, pre_delete=True):
-        unmerged_doc = self.db.view(
-            self._cmd("domain_by_name"), include_docs=True, key=domain
-        ).one()['doc']
-        doc = MergedDoc(self.db, unmerged_doc).doc
+        # view rows are plain dicts; MergedDoc reads doc.template_id
+        rows = self.db.view("domain_by_name", include_docs=True, key=domain)
+        if not rows:
+            raise LookupError(f"domain {domain} not found in {self.db.db_name}")
+        doc = MergedDoc(self.db, AttributeDict(rows[0]['doc'])).doc
         self.pdns.doc = doc
         if pre_delete:
             self.pdns.set_domain(domain)
@@ -105,14 +106,14 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
             'powerdns_db': self.settings.db
         }
         self.pdns = Powerdns(ObjectDict(**conf))
-        lookup_map_doc = self.db.get(self.pdns.map_doc_id)
-        self.pdns.set_lookup_map(lookup_map_doc)
+        # httpx does not raise on a 404, a missing map doc must abort here
+        map_response = self.db.get(self.pdns.map_doc_id)
+        map_response.raise_for_status()
+        self.pdns.set_lookup_map(get_doc(map_response))
 
-        domains = []
-        for domain in self.db.view(
-            self._cmd("domain_by_name"), include_docs=True
-        ):
-            domains.append(domain['key'])
+        domains = [
+            row['key'] for row in self.db.view("domain_by_name")
+        ]
         if self.settings.target:
             self._rebuild(self.settings.target)
         else:

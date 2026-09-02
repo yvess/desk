@@ -1,7 +1,9 @@
+import argparse
 import unittest
 
 import httpx
 
+from desk.plugin.extcrm.dummy import Dummy
 from desk.utils import (
     AttributeDict,
     CouchDBClient,
@@ -10,11 +12,24 @@ from desk.utils import (
     calc_esr_checksum,
     decode_json,
     encode_json,
+    get_crm_module,
     get_doc,
     get_key,
     get_rows,
     parse_date,
 )
+
+
+class GetCrmModuleTestCase(unittest.TestCase):
+    """`'worker_extcrm' in settings` raised TypeError on ObjectDict settings."""
+
+    def test_object_dict_settings_without_extcrm_give_the_dummy(self):
+        crm = get_crm_module(ObjectDict(couchdb_uri="http://cdb:5984"))
+        self.assertIsInstance(crm, Dummy)
+
+    def test_namespace_settings_without_extcrm_give_the_dummy(self):
+        crm = get_crm_module(argparse.Namespace(worker_extcrm=None))
+        self.assertIsInstance(crm, Dummy)
 
 
 class AttributeDictTestCase(unittest.TestCase):
@@ -198,6 +213,71 @@ class CouchDBClientTestCase(unittest.TestCase):
                 str(client.base_url), "http://localhost:5984/desk_drawer/"
             )
             self.assertEqual(client.get("/dns-test").rev, "2-abc")
+
+
+class ViewTestCase(unittest.TestCase):
+    """view() replaces couchdbkit's db.view("<ddoc>/<name>", **params)."""
+
+    def setUp(self):
+        self.requests = []
+
+    def _view_client(self, rows=(), status=200):
+        def handler(request):
+            self.requests.append(request)
+            return httpx.Response(status, json={"rows": list(rows)})
+
+        return CouchDBClient.db(
+            "http://cdb:5984", db_name="desk_drawer",
+            transport=httpx.MockTransport(handler),
+        )
+
+    def test_view_url_uses_the_design_doc_named_after_the_database(self):
+        with self._view_client() as client:
+            client.view("client_is_billable")
+        self.assertEqual(
+            self.requests[0].url.path,
+            "/desk_drawer/_design/desk_drawer/_view/client_is_billable",
+        )
+
+    def test_view_returns_the_rows(self):
+        rows = [{"id": "client-1", "key": "a", "doc": {"_id": "client-1"}}]
+        with self._view_client(rows) as client:
+            self.assertEqual(client.view("client_is_billable"), rows)
+
+    def test_keys_and_flags_are_json_encoded(self):
+        with self._view_client() as client:
+            client.view(
+                "service_by_client", key="client-1", include_docs=True
+            )
+        params = self.requests[0].url.params
+        # couchdb rejects a bare `client-1` key and a python-cased `True`
+        self.assertEqual(params["key"], '"client-1"')
+        self.assertEqual(params["include_docs"], "true")
+
+    def test_list_keys_are_json_encoded(self):
+        with self._view_client() as client:
+            client.view("service_type", startkey=["web"], endkey=["web", {}])
+        params = self.requests[0].url.params
+        self.assertEqual(params["startkey"], '["web"]')
+        self.assertEqual(params["endkey"], '["web", {}]')
+
+    def test_other_params_are_passed_through(self):
+        with self._view_client() as client:
+            client.view("version", limit=10)
+        self.assertEqual(self.requests[0].url.params["limit"], "10")
+
+    def test_explicit_ddoc_wins(self):
+        with self._view_client() as client:
+            client.view("version", ddoc="other")
+        self.assertEqual(
+            self.requests[0].url.path, "/desk_drawer/_design/other/_view/version"
+        )
+
+    def test_a_failing_view_raises(self):
+        # couchdbkit raised; httpx returns the error response, so view() checks
+        with self._view_client(status=404) as client:
+            with self.assertRaises(httpx.HTTPStatusError):
+                client.view("does_not_exist")
 
 
 class CouchDBClientAsyncTestCase(unittest.IsolatedAsyncioTestCase):

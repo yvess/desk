@@ -1,13 +1,9 @@
-from datetime import date, datetime
-from contextlib import asynccontextmanager
+from datetime import date
 import calendar
-import uuid
 import json
 import httpx
-import re
 import collections
 from json import JSONEncoder
-from urllib.parse import urljoin
 from importlib import import_module
 
 
@@ -89,10 +85,6 @@ class AttributeDict(collections.abc.MutableMapping):
     def copy(self):
         return copy.deepcopy(self)
 
-        ad = self.__class__()
-        ad.update(copy.deepcopy(self.__dict__))
-        return ad
-
     def update(self, adict={}):
         for (key, value) in adict.items():
             if key in self.readonly:
@@ -148,8 +140,21 @@ class FilesForCouch(object):
                 json.dump(content, outfile, indent=4)
 
 
+# couchdb expects these view parameters as JSON, not as plain strings
+VIEW_JSON_PARAMS = ('key', 'keys', 'startkey', 'endkey')
+
+
+def encode_view_params(params):
+    return {
+        name: json.dumps(value)
+        if name in VIEW_JSON_PARAMS or isinstance(value, bool) else value
+        for name, value in params.items()
+    }
+
+
 class CouchDBClientMixin:
     base_url = None
+    db_name = None
 
     @classmethod
     def _basic_base_url(cls, couchdb_uri):
@@ -164,13 +169,17 @@ class CouchDBClientMixin:
     def db(cls, couchdb_uri=None, db_name=None, **kwargs):
         base_url, auth = cls._basic_base_url(couchdb_uri)
         base_url = f'{base_url}/{db_name}'
-        return cls(base_url=base_url, auth=auth, **kwargs)
+        client = cls(base_url=base_url, auth=auth, **kwargs)
+        client.db_name = db_name
+        return client
 
     @classmethod
     def db_design(cls, couchdb_uri=None, db_name=None, **kwargs):
         base_url, auth = cls._basic_base_url(couchdb_uri)
         base_url = f'{base_url}/{db_name}/_design/{db_name}'
-        return cls(base_url=base_url, auth=auth, **kwargs)
+        client = cls(base_url=base_url, auth=auth, **kwargs)
+        client.db_name = db_name
+        return client
 
 def response_add_rev(response):
     etag = response.headers.get('ETag')
@@ -191,6 +200,19 @@ class CouchDBClient(httpx.Client, CouchDBClientMixin):
         response = self.head(*args, **kwargs)
         return response.rev
 
+    def view(self, name, ddoc=None, **params):
+        """GET {db}/_design/{ddoc}/_view/{name}, returns the view rows.
+
+        ddoc defaults to the design doc named after the database, the only one
+        this project installs (see desk/_design/).
+        """
+        response = self.get(
+            f'_design/{ddoc or self.db_name}/_view/{name}',
+            params=encode_view_params(params)
+        )
+        response.raise_for_status()
+        return get_rows(response)
+
 
 class CouchDBClientAsync(httpx.AsyncClient, CouchDBClientMixin):
     async def send(self, *args, **kwargs):
@@ -200,26 +222,6 @@ class CouchDBClientAsync(httpx.AsyncClient, CouchDBClientMixin):
     async def rev(self, *args, **kwargs):
         response = await self.head(*args, **kwargs)
         return response.rev
-
-
-def auth_from_uri(uri):
-    return tuple(uri.split("@")[0].split('//')[1].split(":"))
-
-
-def create_order_doc(uploader):
-    now = datetime.now()
-    # same format as javascript
-    current_time = "%s.%sZ" % (now.strftime('%Y-%m-%dT%H:%M:%S'), "%03.0f" % (now.microsecond / 1000.0))
-    order_id = "order-{}".format(str(uuid.uuid1()).replace('-',''))
-
-    order_doc = {
-        "_id": order_id,
-        "date": current_time,
-        "type": "order", "sender": "pad", "state": "new"
-    }
-    uploader.put(data=json.dumps(order_doc), doc_id=order_id)
-    uploader.update(handler='add-editor', doc_id=order_id)
-    return order_id
 
 
 def parse_date(date_string, force_day=None):
@@ -245,7 +247,7 @@ def calc_esr_checksum(ref_number):
 
 def get_crm_module(settings):
     crm_module = import_module('.extcrm', package='desk.plugin')
-    if 'worker_extcrm' in settings:
+    if getattr(settings, 'worker_extcrm', None):
         crm_classname = settings.worker_extcrm.split(':')[0].title()
         Crm = getattr(crm_module, crm_classname)
         crm = Crm(settings)
@@ -260,22 +262,9 @@ def decode_json(data, child=None):
     if child:
         return json_data[child]
     return json_data
-    # for debug
-    # try:
-    #     json_data = json.loads(data)
-    #     if child:
-    #         return json_data[child]
-    #     return json_data
-    # except json.decoder.JSONDecodeError:
-    #     import ipdb; ipdb.set_trace()
 
 def encode_json(data):
     return json.dumps(data, cls=JSONDefaultDictEncoder)
-    # for debug
-    # try:
-    #     return json.dumps(data, cls=JSONDefaultDictEncoder)
-    # except TypeError:
-    #     import ipdb; ipdb.set_trace()
 
 def get_rows(response):
     try:

@@ -69,8 +69,8 @@ class InvoiceTestCaseBase(unittest.TestCase):
         Invoice.service_definitons = self._saved_defs
 
     def make_invoice(self, service_docs=(), client_doc=None, tax=0.0):
-        # __init__ builds a live CouchDB client (ported in M2), so the object is
-        # assembled directly from the attributes the billing methods actually use.
+        # __init__ renders the whole invoice; the object is assembled directly
+        # here so each test can call setup_invoice() and look at the result.
         invoice = object.__new__(Invoice)
         cycle = InvoiceCycle(1)
         cycle.doc = {
@@ -221,6 +221,13 @@ class DropEmptyTestCase(InvoiceTestCaseBase):
         invoice.setup_invoice()
         self.assertEqual(len(self.services_of(invoice)), 1)
 
+    def test_a_malformed_addon_names_the_service(self):
+        """A bare `raise` used to give 'No active exception to reraise'."""
+        invoice = self.make_invoice([make_service(addon_service_items=[None])])
+        with self.assertRaises(TypeError) as raised:
+            invoice.setup_invoice()
+        self.assertIn('service-1', str(raised.exception))
+
     def test_raw_item_lists_are_removed_from_the_service_doc(self):
         service = make_service(
             addon_service_items=[{'itemType': 'mailbox', 'price': '2.00'}],
@@ -232,6 +239,17 @@ class DropEmptyTestCase(InvoiceTestCaseBase):
         self.assertNotIn('addon_service_items', billed)
         self.assertNotIn('included_service_items', billed)
         self.assertEqual(billed['included'][0]['months'], 12)
+
+
+class FilenameTestCase(InvoiceTestCaseBase):
+    """The client name in the pdf filename is ascii, lower case, no spaces."""
+
+    def test_client_name_normalized_is_a_str(self):
+        # under python 3 .encode() gave bytes and .replace(' ', '-') raised
+        invoice = self.make_invoice(
+            client_doc={'_id': 'client-1', 'name': 'Müller & Söhne AG'}
+        )
+        self.assertEqual(invoice.client_name_normalized(), 'muller-&-sohne-ag')
 
 
 class MissingExtcrmIdTestCase(InvoiceTestCaseBase):
@@ -246,6 +264,7 @@ class MissingExtcrmIdTestCase(InvoiceTestCaseBase):
                 settings, crm=Dummy(),
                 client_doc={'_id': 'client-1', 'name': 'no crm client'},
                 invoice_cycle=InvoiceCycle(1),
+                db=None,  # the client is unusable before any view is read
             )
         # invoices-create keys its skip on client_doc: setup_invoice never ran,
         # so reading invoice.doc would raise AttributeError instead.
