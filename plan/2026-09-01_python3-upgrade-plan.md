@@ -109,6 +109,13 @@ shared intro, the deferred items, and the tracking table.
 
 → [M6-consolidation-pass-optional-only-if-time-permits-yagni-applies.md](2026-09-01_python3-upgrade-plan/M6-consolidation-pass-optional-only-if-time-permits-yagni-applies.md)
 
+## M7 — Standalone dns image, decoupled from the worker image (added 2026-09-03)
+
+→ [M7-standalone-dns-image-decoupled-from-the-worker-image.md](2026-09-01_python3-upgrade-plan/M7-standalone-dns-image-decoupled-from-the-worker-image.md)
+
+The dns node needs three of the nine python packages and none of the cairo stack;
+building it `FROM desk-worker` makes every pdns/alpine bump a rebuild of both images.
+
 ---
 
 ## Deferred — frontend (`desk_pad/`, Cappuccino)
@@ -139,6 +146,7 @@ Out of scope for this upgrade. Noted for later:
 | M4 | CouchDB 1.6.1 → 3.5.2 | ☑ done 2026-09-02 (review follow-up same day) | usage audit against a live 3.5.2 (no code change needed), 1.6.1→3.5.2 replication 6/6 docs 0 failures + all 42 views build, fixtures→migrate→order→task→zone e2e, `invoices-create` clean, suite green (103 tests) |
 | M5 | PowerDNS HTTP API | ☑ done 2026-09-02 | export diff sqlite vs API identical (16/16 lines), dig A/CNAME/MX/SOA with no pdns restart, TXT quoting case fixed, 0 SQL sites left, suite green (135 tests) |
 | M6 | Consolidations (optional) | ☑ done 2026-09-02 | AttributeDict 107→44 lines (2 latent NameErrors gone), 5 FQDN helpers→1 pair (2 edge-case bugs fixed), `_process_tasks` dispatched once per service type, DnsValidator repaired + `dworker dns-check` verified live, suite green (162 tests) |
+| M7 | Standalone dns image | ☐ planned 2026-09-03 | dns image builds without the worker image; pdns bump rebuilds `build_dns` only; role test green |
 
 Update this table (and note decisions taken) as milestones complete, so any later
 session can pick up from here.
