@@ -1,4 +1,5 @@
 import codecs
+import logging
 import os
 from collections import OrderedDict
 from datetime import date, datetime
@@ -8,6 +9,8 @@ from desk.plugin.invoice import filters
 from desk.plugin.base import MergedDoc
 from desk.utils import parse_date, calc_esr_checksum, AttributeDict
 from jinja2 import Environment, FileSystemLoader
+
+logger = logging.getLogger(__name__)
 
 
 def get_default(attribute, part, defaults, special_attribute=None, date_force_day=None):
@@ -52,7 +55,10 @@ class Invoice(object):
             self.extcrm_id = client_doc['extcrm_id']
         except KeyError:
             extcrm_id = client_doc['extcrm_id'] if 'extcrm_id' in client_doc else "None"
-            print('\nNOT creating invoice missing extcrm_id:%s, %s' % (extcrm_id, client_doc['name']), client_doc)
+            logger.warning(
+                'not creating invoice, missing extcrm_id %s: %s',
+                extcrm_id, client_doc['name']
+            )
             self.client_doc = None
             return
         self.client_doc = client_doc

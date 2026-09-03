@@ -10,13 +10,32 @@ files if asked, but the user finalizes (`git commit` / `git rebase --continue`).
 
 ## Style
 
-**Keep it simple; prefer explicit repetition over indirection.** Don't factor
-things out just because they repeat — a reader should be able to understand a
-block without jumping somewhere else to resolve it. Concretely: no YAML anchors
-or `x-` merge blocks in `docker-compose.yml` (services stay spelled out in full,
-even when `dnsa`/`dnsb` are near-identical), and no helper introduced to save a
-few duplicated lines. Factor out when the duplication is a real maintenance
-hazard, not to shorten the file.
+**Keep it simple.** KISS is the tiebreaker. No abstraction for a need that
+does not exist yet, and no helper introduced only to shorten a file.
+
+**Duplicated code: ask before touching it.** Repeated logic in Python is not a
+violation. When you think a duplication should be factored out or removed,
+ask the user first and leave it as it is until they decide; in reviews, report
+it as a judgement call, never as a hard finding.
+
+**YAML keeps explicit repetition.** Config is read top to bottom, so spell it
+out: no YAML anchors or `x-` merge blocks in `docker-compose.yml` (services
+stay spelled out in full, even when `dnsa`/`dnsb` are near-identical), and the
+same for any other YAML file.
+
+## Where things go
+
+**This file is not user documentation.** `CLAUDE.md` is a symlink to
+`AGENTS.md`; both are instructions for the agent. Never put material a human is
+meant to copy or follow here — config files, setup snippets, runbook steps.
+Those belong in `docs/`. This file may mention such a thing in a line or two and
+point at the doc that holds it.
+
+- `docs/` — what an operator or developer executes: upgrade runbooks, the
+  files they copy, the commands they run.
+- `plan/` — decisions, findings and rationale from the milestones. Not runbooks:
+  when a milestone produces operator steps, write them into `docs/` and leave a
+  pointer behind.
 
 ## Project
 
@@ -46,18 +65,9 @@ Update the tracking table at the bottom of the plan as milestones complete.
 
 ## Dev environment
 
-Python 3.14, venv at the repo root (git-ignored):
-
-```bash
-python3 -m venv .venv
-.venv/bin/pip install -r desk/docker/worker/requirements3.txt
-.venv/bin/pip install -e .
-.venv/bin/pip install coverage       # only for ./coverage.sh
-```
-
-`desk/docker/worker/requirements3.txt` holds the 9 direct runtime dependencies,
-pinned transitively by `requirements3.lock`. Both images install them into a
-venv at `/opt/desk` (alpine's python is PEP 668 externally-managed).
+Python 3.14 with a venv at the repo root; setup steps are in
+`docs/dev-environment.md`. `desk/docker/worker/requirements3.txt` holds the
+direct runtime dependencies, pinned transitively by `requirements3.lock`.
 
 ## Docker
 
@@ -67,23 +77,24 @@ dispatched by `"$@"`:
 ```bash
 cd desk
 ./taskfile.sh build          # build_worker then build_dns (dns builds FROM worker)
-./taskfile.sh up             # docker compose -f docker-compose.yml -f docker-extra.yml up -d
 ./taskfile.sh push           # multi-arch push, worker first
 ./taskfile.sh help           # list the tasks
 ```
 
-Copy `docker-extra.yml.dist` to `docker-extra.yml` for the host-specific
-Cappuccino paths. Services are supervised by s6-overlay v3 (`s6-rc.d`, see
+Running the stack is plain `docker compose up -d` / `down` / `logs -f` from
+`desk/` -- the taskfile only carries what needs more than one command.
+
+On a dev host the Cappuccino checkouts are bind-mounted under `/opt/src` by
+`desk/docker-compose.override.yml` (git-ignored, auto-loaded, no `-f`); the file
+to copy is in `docs/upgrade-master-to-python3.md`. Production has no override
+file -- the deploy copies a release build into `desk_pad/Frameworks` instead.
+
+Services are supervised by s6-overlay v3 (`s6-rc.d`, see
 `tmp/s6-overlay-setup.md`) and each is opt-in via `START_WORKER` / `START_PDNS`.
 
 ## Tests
 
-```bash
-cd desk
-python -m unittest discover          # run tests (needs the venv on PATH)
-./taskfile.sh test                   # the same thing
-./coverage.sh                        # tests + HTML coverage report
-```
-
-Tests are unit-level and need no CouchDB or PowerDNS. Mock at the HTTP boundary
+`cd desk && python -m unittest discover` (or `./taskfile.sh test`) with the
+venv on PATH (see `docs/dev-environment.md`). Tests are
+unit-level and need no CouchDB or PowerDNS. Mock at the HTTP boundary
 (`httpx.MockTransport`), not inside `desk`.

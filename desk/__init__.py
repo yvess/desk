@@ -5,6 +5,7 @@ import time
 import logging
 import json
 import asyncio
+import httpx
 from desk.utils import ObjectDict, CouchDBClient, CouchDBClientAsync, AttributeDict
 from desk.utils import decode_json, encode_json, get_doc, get_key
 from desk.plugin.base import Updater, MergedDoc
@@ -54,16 +55,16 @@ class Worker(object):
             self.provides = worker_result.json()[0]['provides']
 
     def _process_tasks(self, tasks):
+        provider_lookup = {
+            service['name']: service_type
+            for service_type, services in self.provides.items()
+            for service in services
+        }
         for seq in tasks:
             self.logger.info('ready for processing tasks')
-            provider_lookup = {}
             task_doc = AttributeDict(seq['doc'])
-            for (service_type, services) in self.provides.items():
-                for service in services:
-                    provider_lookup[service['name']] = service_type
-
-                if task_doc.provider in provider_lookup:
-                    self._run_tasks(task_id=task_doc._id, docs=task_doc.docs)
+            if task_doc.provider in provider_lookup:
+                self._run_tasks(task_id=task_doc._id, docs=task_doc.docs)
 
     def _run_tasks(self, task_id, docs):
         successfull_tasks = []
@@ -99,8 +100,17 @@ class Worker(object):
                 if ServiceClass:
                     with ServiceClass(self.settings) as service:
                         updater = Updater(self.db, doc, service)
-                        was_successfull = updater.do_task()
-                        return was_successfull
+                        try:
+                            return updater.do_task()
+                        except httpx.HTTPError as error:
+                            # The backend rejects bad changes now instead of
+                            # logging and carrying on. Report the task failed
+                            # rather than letting the exception out, which
+                            # would take down the _changes queue with it.
+                            self.logger.error(
+                                "task failed on %s: %s", doc._id, error
+                            )
+                            return False
         else:
             self.logger.error("I doesn't provide the requested service")
             raise Exception("I doesn't provide the requested service")

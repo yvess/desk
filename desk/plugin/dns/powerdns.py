@@ -1,327 +1,314 @@
-import sqlite3
-import time
-import logging
-from collections import OrderedDict
-import traceback
-from desk.plugin.dns import DnsBase, reverse_fqdn
+"""PowerDNS backend, talking the authoritative server's built-in HTTP API.
 
-SOA_FORMAT = "{soa_primary} {soa_hostmaster} {serial} {soa_refresh} {soa_retry} {soa_expire} {soa_default_ttl}"
-logging.basicConfig(level=logging.INFO)
+The API works in RRsets -- every record of one name and type at once -- which is
+what the zone rebuild this worker does per record type already amounted to. It
+also owns the SOA serial (`soa_edit_api` is `DEFAULT` on every zone the API
+creates, giving the same YYYYMMDDnn serial the old code built by hand), and it
+invalidates PowerDNS's own caches, so changes are served immediately.
+"""
+import re
+from collections import OrderedDict
+
+import httpx
+
+from desk.plugin.dns import DnsBase, from_fqdn
+
+SOA_FORMAT = (
+    "{primary} {hostmaster} {serial} {soa_refresh} {soa_retry} "
+    "{soa_expire} {soa_default_ttl}"
+)
+# every record type this worker manages; anything else in the zone is left alone
+MANAGED_TYPES = ('SOA', 'NS', 'A', 'AAAA', 'CNAME', 'MX', 'TXT', 'SRV')
+# a single <character-string> in a TXT record holds at most this many bytes
+TXT_CHUNK = 255
+
+
+def fqdn(name):
+    """PowerDNS names records absolutely, with the trailing root dot."""
+    return name if name.endswith('.') else f'{name}.'
+
+
+def soa_mailbox(address):
+    """The SOA hostmaster is a domain name, not an address: a@b -> a.b.
+
+    The documents spell it `hostmaster@example.ch`, and writing that straight
+    into the database (as the sqlite backend did) left PowerDNS serving an
+    escaped `hostmaster\\@example.ch.`; the API rejects it outright.
+    """
+    local, at, domain = address.partition('@')
+    return fqdn(f'{local}.{domain}') if at else fqdn(address)
+
+
+def txt_content(value):
+    """The document's TXT value as master-file content: quoted, escaped, and
+    split into 255-byte strings, which is as much as one string may hold --
+    a DKIM key is longer than that.
+    """
+    chunks = [
+        value[i:i + TXT_CHUNK] for i in range(0, len(value), TXT_CHUNK)
+    ] or ['']
+    return ' '.join(
+        '"{}"'.format(chunk.replace('\\', '\\\\').replace('"', '\\"'))
+        for chunk in chunks
+    )
+
+
+def txt_value(content):
+    """The reverse of txt_content: join the strings, drop the escapes."""
+    strings = re.findall(r'"((?:[^"\\]|\\.)*)"', content)
+    return ''.join(re.sub(r'\\(.)', r'\1', string) for string in strings)
 
 
 class Powerdns(DnsBase):
-    SETTING_KEYS = ['backend', 'db', 'user', 'name']
-
-    def __init__(self, settings):
-        self.logger = logging.getLogger(__name__)
-        self.settings = settings
+    def __init__(self, settings, transport=None):
         self.doc = None
-        self.domain_id = None
         self.domain = None
-        if hasattr(settings, 'powerdns_backend') and (
-           settings.powerdns_backend == 'sqlite'):
-            self._conn = sqlite3.connect(settings.powerdns_db)
-            self._cursor = self._conn.cursor()
-        else:
-            raise Exception("can't get database connection")
+        self.api = httpx.Client(
+            base_url=(
+                f"{settings.powerdns_api_url.rstrip('/')}"
+                "/api/v1/servers/localhost"
+            ),
+            headers={'X-API-Key': settings.powerdns_api_key},
+            transport=transport,
+        )
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
-        self._conn.close()
+        self.api.close()
 
-    def _db(self, sql):
-        error = None
-        try:
-            self.logger.debug(sql)
-            self._cursor.execute(sql)
-            self._conn.commit()
-        except:
-            error = "%s\n\n" % sql
-            error += traceback.format_exc()
-            self.logger.error(error)
+    def _request(self, method, url, **kwargs):
+        """Every call raises on an error status -- nothing is swallowed."""
+        response = self.api.request(method, url, **kwargs)
+        response.raise_for_status()
+        return response
 
-        return (error, self._cursor)
-
-    def set_domain(self, domain, new=False):
+    def set_domain(self, domain):
         self.domain = domain
-        if not new:
-            error, result = self._db(
-                'SELECT id FROM domains WHERE name="{}"'.format(domain)
+
+    @property
+    def zone(self):
+        return fqdn(self.domain)
+
+    # -- turning a domain document into RRsets ---------------------------------
+
+    def _record_content(self, name, item, rtype):
+        """One record's content string, in the master-file syntax pdns wants."""
+        key_id, value_id = rtype['key_id'], rtype['value_id']
+        value = self._value_trans(value_id, rtype=rtype, item=item)
+        if name == 'mx':
+            return "{} {}".format(int(value['priority']), fqdn(value['host']))
+        if name == 'srv':
+            return "{priority} {weight} {port} {targethost}".format(
+                **{**value, 'targethost': fqdn(value['targethost'])}
             )
-            self.domain_id = result.fetchone()[0]
+        if name == 'txt':
+            return txt_content(value)
+        if name == 'cname':
+            return fqdn(value)
+        if value.startswith('$ip_'):
+            return self.lookup_map[value]
+        return value
 
-    def _calc_serial(self, previous=""):
-        serial_date = time.strftime("%Y%m%d", time.localtime())
-        if not previous or not previous.startswith(serial_date):
-            return "{}{}".format(serial_date, "00")
-        serial_number = int(previous[8:10])
-        serial_number += 1
-        return "{}{:02d}".format(serial_date, serial_number)
+    def _value_trans(self, value_id, rtype=None, item=None):
+        if ',' in value_id:
+            return {v: item[v] for v in value_id.split(',')}
+        if 'value_trans' in rtype:
+            return rtype['value_trans'](item[value_id], self.domain)
+        return item[value_id]
 
-    def add_soa(self):
-        serial = self._calc_serial(previous=None)
-        self.add_record(
-            self.domain,
-            SOA_FORMAT.format(serial=serial, **self.doc),
-            rtype="SOA",
-            ttl=self.get_ttl(self.doc)
-        )
+    def _key_trans(self, key, rtype=None):
+        if 'key_trans' in rtype:
+            return rtype['key_trans'](key, self.domain)
+        return key
 
-    def get_soa_serial(self):
-        error, result = self._db(
-            '''SELECT content FROM records WHERE name="{}"
-               AND type="SOA"'''.format(self.domain)
-        )
-        soa = result.fetchone()[0]
-        try:
-            current_serial = soa.split(" ")[2]
-        except IndexError:
-            current_serial = ""
-        return current_serial
+    def _record_rrsets(self, only_rtype=None):
+        """RRsets for the record types in `structure`, grouped by name+type."""
+        grouped = OrderedDict()
+        ttl = self.get_ttl(self.doc)
+        for rtype in self.structure:
+            name = rtype['name']
+            if name not in self.doc or (only_rtype and name != only_rtype):
+                continue
+            for item in self.doc[name]:
+                # MX records all hang off the zone apex, whatever their host
+                if name == 'mx':
+                    key = self.domain
+                else:
+                    key = self._key_trans(item[rtype['key_id']], rtype=rtype)
+                entry = (fqdn(key), name.upper())
+                grouped.setdefault(entry, []).append(
+                    self._record_content(name, item, rtype)
+                )
+        return [
+            self._rrset(name, rtype, contents, ttl)
+            for (name, rtype), contents in grouped.items()
+        ]
 
-    def update_soa(self, domain=None, serial=None):
-        if domain:
-            self.set_domain(domain)
-        if not serial:
-            serial = self.get_soa_serial()
+    def _rrset(self, name, rtype, contents, ttl):
+        return {
+            'name': name, 'type': rtype, 'ttl': ttl, 'changetype': 'REPLACE',
+            'records': [
+                {'content': content, 'disabled': False} for content in contents
+            ],
+        }
 
-        new_soa = SOA_FORMAT.format(serial=self._calc_serial(serial), **self.doc)
-        self.update_record(
-            self.domain, new_soa,
-            rtype="SOA", ttl=self.get_ttl(self.doc)
-        )
-        # TODO writing behind pdns' back leaves its packet cache stale;
-        # purging it needs sudo. Goes away with the PowerDNS HTTP API.
+    def _apex_rrsets(self, serial):
+        """The SOA and NS RRsets, rendered from the document.
+
+        `serial` is what PowerDNS's DEFAULT soa-edit-api policy starts from:
+        it bumps whatever it is handed, so an existing zone passes its current
+        serial back in and keeps climbing instead of restarting.
+        """
+        ttl = self.get_ttl(self.doc)
+        return [
+            self._rrset(self.zone, 'SOA', [SOA_FORMAT.format(
+                primary=fqdn(self.doc['soa_primary']),
+                hostmaster=soa_mailbox(self.doc['soa_hostmaster']),
+                serial=serial,
+                **self.doc
+            )], ttl),
+            self._rrset(
+                self.zone, 'NS',
+                [fqdn(ns) for ns in self.doc['nameservers']], ttl
+            ),
+        ]
+
+    def _current_serial(self, zone):
+        for rrset in zone['rrsets']:
+            if rrset['type'] == 'SOA' and rrset['records']:
+                return rrset['records'][0]['content'].split()[2]
+        return 1
+
+    # -- zones -----------------------------------------------------------------
 
     def add_domain(self, domain=None):
         if domain:
-            self.set_domain(domain, new=True)
-        error, result = self._db("""INSERT INTO domains (name, type)
-                    VALUES ('{}', 'NATIVE')""".format(self.domain))
-        self.domain_id = self._cursor.lastrowid
-        self.add_soa()
+            self.set_domain(domain)
+        self._request('POST', '/zones', json={
+            'name': self.zone, 'kind': 'Native', 'nameservers': [],
+            'rrsets': self._apex_rrsets(serial=1) + self._record_rrsets(),
+        })
 
     def del_domain(self, domain=None):
         if domain:
             self.set_domain(domain)
-        error, result = self._db(
-            "DELETE FROM records WHERE domain_id={}".format(self.domain_id)
-        )
-        error, result = self._db("DELETE FROM domains WHERE id={}".format(self.domain_id))
+        self._request('DELETE', f'/zones/{self.zone}')
 
     def del_domains(self):
-        error, result = self._db("DELETE FROM records")
-        error, result = self._db("DELETE FROM domains")
-
-    def _prepare_record_value(self, value):
-        if hasattr(value, 'startswith') and value.startswith('$ip_'):  # get ip value from hashmap
-            value = self.lookup_map[value]
-        return value
-
-    def add_record(self, key, value, rtype='A', ttl=3600,
-                   priority='NULL', domain=None):
-        if domain:
-            self.set_domain(domain)
-        priority = 'NULL'
-        value_sql = None
-
-        # MX
-        if rtype.upper() == 'MX':
-            key = self.domain
-            value_sql = value['host']
-            priority=int(value['priority'])
-
-        # SRV
-        if rtype.upper() == 'SRV':
-            value_sql = "{weight} {port} {targethost}".format(**value)
-            priority=int(value['priority'])
-
-        value_sql = self._prepare_record_value(value_sql or value)
-        sql = """
-        INSERT INTO records
-            (domain_id, name, content, type, ttl, prio)
-        VALUES
-            ({domain_id},'{key}','{value}','{rtype}',{ttl},{priority})
-        """.format(
-            domain_id=self.domain_id,
-            key=key, value=value_sql,
-            rtype=rtype, ttl=ttl, priority=priority
-        )
-        error, result = self._db(sql)
-
-    def update_record(self, key, value, rtype='A', ttl=3600,
-                      priority='NULL', domain=None, lookup='key'):
-        if domain:
-            self.set_domain(domain)
-        # TOOD set ttl
-        value = self._prepare_record_value(value)
-        if lookup == 'key':
-            where = "name='{}'".format(key)
-        elif lookup == 'value':
-            where = "content='{}'".format(value)
-        sql = """
-        UPDATE records
-        SET domain_id={domain_id}, name='{key}', content='{value}',
-            ttl={ttl}, prio={priority}
-        WHERE {lookup} AND type='{rtype}'
-        """.format(
-            domain_id=self.domain_id, key=key, value=value,
-            rtype=rtype, ttl=ttl, priority=priority, lookup=where
-        )
-        error, result = self._db(sql)
-
-    def del_record(self, key, value, rtype='A', domain=None):
-        if domain:
-            self.set_domain(domain)
-        sql = """
-        DELETE FROM records
-            WHERE name='{key}' AND type='{rtype}'
-        """.format(
-            domain_id=self.domain_id, key=key,
-            value=value, rtype=rtype
-        )
-        error, result = self._db(sql)
-
-    def _value_trans(self, value_id, rtype=None, item=None):
-        if ',' in value_id:
-            value = {}
-            for v in value_id.split(','):
-                value[v] = item[v]
-        else:
-            if 'value_trans' in rtype:
-                value = rtype['value_trans'](
-                    item[value_id], self.domain
-                )
-            else:
-                value = item[value_id]
-        return value
-
-    def _create_records(self, only_rtype=None):
-        for rtype in self.structure:
-            name, key_id, value_id = (
-                rtype['name'], rtype['key_id'], rtype['value_id']
-            )
-            if name in self.doc and (not only_rtype or name == only_rtype):
-                for item in self.doc[name]:  # TODO merge with create logic
-                    # do key/value transformations
-                    if 'key_trans' in rtype:
-                        key = rtype['key_trans'](item[key_id], self.domain)
-                    else:
-                        key = item[key_id]
-
-                    # special case for multi value ids
-                    value = self._value_trans(value_id, rtype=rtype, item=item)
-
-                    self.add_record(
-                        key, value, rtype=name.upper(), ttl=self.get_ttl(self.doc)
-                    )
-
-    def del_records(self, rtype, domain=None):
-        if domain:
-            self.set_domain(domain)
-        error, result = self._db(
-            """DELETE FROM records
-               WHERE domain_id='{domain_id}' AND type='{rtype}'
-            """.format(domain_id=self.domain_id, rtype=rtype.upper())
-        )
-
-    def _key_trans(self, key, rtype=None):
-        if 'key_trans' in rtype:
-            key = rtype['key_trans'](key, self.domain)
-        return key
-
-    def create(self):
-        was_sucessfull = False
-        if self.doc:
-            self.set_domain(self.doc['domain'], new=True)
-            self.add_domain()
-            for nameserver in self.doc['nameservers']:
-                self.add_record(self.domain, nameserver, rtype="NS",
-                                ttl=self.get_ttl(self.doc))
-            self._create_records()
-            was_sucessfull = True
-        return was_sucessfull
-
-    def update(self):
-        was_sucessfull = False
-        if self.doc:
-            self.set_domain(self.doc['domain'])
-
-        if self.diff:
-            # TODO nameserver record
-            for rtype in self.structure:
-                name, key_id, value_id = (
-                    rtype['name'], rtype['key_id'], rtype['value_id']
-                )
-                remove, append = [], []
-
-                # remove records
-                if name in self.diff['remove']:
-                    remove = self.diff['remove'][name]
-                    for item in remove:
-                        key = self._key_trans(item[key_id], rtype=rtype)
-                        value = self._value_trans(value_id, rtype=rtype, item=item)
-                        self.del_record(key, value, rtype=name.upper())
-
-                # update/reset records
-                if name in self.diff['update']:
-                    self.del_records(rtype=name)
-                    self._create_records(only_rtype=name)
-
-                # new records only needed without update/reset records
-                elif name in self.diff['append']:
-                    append = self.diff['append'][name]
-                    for item in append:
-                        key = self._key_trans(item[key_id], rtype=rtype)
-                        value = self._value_trans(value_id, rtype=rtype, item=item)
-                        self.add_record(
-                            key, value, rtype=name.upper(), ttl=self.get_ttl(self.doc)
-                        )
-            self.update_soa()
-            was_sucessfull = True
-        return was_sucessfull
-
-    def delete(self):
-        was_sucessfull = False
-        if self.doc:
-            self.del_domain(self.doc['domain'])
-            was_sucessfull = True
-        return was_sucessfull
+        for domain in self.get_domains():
+            self.del_domain(domain)
 
     def get_domains(self):
-        error, result = self._db(
-            "SELECT name FROM domains"
+        zones = self._request('GET', '/zones').json()
+        return [zone['name'].rstrip('.') for zone in zones]
+
+    # -- the three operations the worker drives --------------------------------
+
+    def create(self):
+        """Make the zone exist and match the document.
+
+        CouchDB is authoritative, so an existing zone is patched into shape
+        rather than refused: a task retried after a partial failure has to be
+        able to succeed, and the zone keeps its SOA serial that way.
+        """
+        if not self.doc:
+            return False
+        self.set_domain(self.doc['domain'])
+        if self.domain not in self.get_domains():
+            self.add_domain()
+            return True
+        zone = self._request('GET', f'/zones/{self.zone}').json()
+        desired = (
+            self._apex_rrsets(self._current_serial(zone))
+            + self._record_rrsets()
         )
-        domains = [d[0] for d in result.fetchall()]
-        return domains
+        self._patch(zone, desired, MANAGED_TYPES)
+        return True
+
+    def update(self):
+        """Rebuild the record types the diff touched, plus SOA and NS.
+
+        The old backend deleted every row of a changed type and re-inserted
+        it, then rewrote the SOA from the document; an RRset REPLACE is the
+        same thing done atomically. SOA and NS go along every time because
+        the diff only covers the record types in `structure` -- a changed
+        refresh, hostmaster, nameserver or TTL would never show up in it.
+        """
+        if not self.doc or not self.diff:
+            return False
+        self.set_domain(self.doc['domain'])
+        changed = {
+            name for section in self.diff.values() for name in section
+        }
+        zone = self._request('GET', f'/zones/{self.zone}').json()
+        desired = self._apex_rrsets(self._current_serial(zone))
+        for name in changed:
+            desired.extend(self._record_rrsets(only_rtype=name))
+        types = ('SOA', 'NS') + tuple(name.upper() for name in changed)
+        self._patch(zone, desired, types)
+        return True
+
+    def _patch(self, zone, desired, types):
+        """One PATCH: REPLACE what the document has, DELETE what it dropped.
+
+        A REPLACE only reaches the names it names, so every RRset of the
+        `types` in the zone that `desired` does not cover is deleted
+        explicitly; other types are left alone.
+        """
+        keep = {(rrset['name'], rrset['type']) for rrset in desired}
+        gone = [
+            {'name': rrset['name'], 'type': rrset['type'],
+             'changetype': 'DELETE'}
+            for rrset in zone['rrsets']
+            if rrset['type'] in types
+            and (rrset['name'], rrset['type']) not in keep
+        ]
+        self._request(
+            'PATCH', f'/zones/{self.zone}', json={'rrsets': desired + gone}
+        )
+
+    def delete(self):
+        if not self.doc:
+            return False
+        self.del_domain(self.doc['domain'])
+        return True
+
+    # -- reading a zone back ---------------------------------------------------
 
     def get_records(self, domain):
-        error, result = self._db(
-            "SELECT id FROM domains WHERE name='%s'" % domain
-        )
-        domain_id = result.fetchone()[0]
-        error, result = self._db(
-            """SELECT type, name, content
-            FROM records WHERE domain_id=%s
-            ORDER by type, name, content""" % domain_id
-        )
-        records = OrderedDict([
-            ('a', []),
-            ('aaaa', []),
-            ('cname', []),
-            ('mx', []),
-            ('ns', []),
-            ('txt', []),
-            ('srv', []),
-        ])
-        for row in result.fetchall():
-            rtype, key, value = row
-            key = reverse_fqdn(domain, key)
-            if rtype.lower() in ['cname', 'mx', 'ns', 'txt', 'srv']:
-                value = reverse_fqdn(domain, value)
+        """The zone as `dns-export-powerdns` wants it: rtype -> [(key, value)].
 
-            if rtype.lower() in records:
-                records[rtype.lower()].append((key, value))
+        Keys and values come back relative to the zone, the way they were
+        written into the domain document.
+        """
+        self.set_domain(domain)
+        zone = self._request('GET', f'/zones/{self.zone}').json()
+        records = OrderedDict(
+            (rtype, []) for rtype in
+            ('a', 'aaaa', 'cname', 'mx', 'ns', 'txt', 'srv')
+        )
+        for rrset in zone['rrsets']:
+            rtype = rrset['type'].lower()
+            if rtype not in records:
+                continue
+            key = from_fqdn(rrset['name'].rstrip('.'), domain)
+            for record in rrset['records']:
+                records[rtype].append(
+                    (key, self._export_value(rtype, record['content'], domain))
+                )
+        for rtype in records:
+            records[rtype].sort()
         return records
+
+    def _export_value(self, rtype, content, domain):
+        if rtype == 'mx':  # "10 mx1.example.ch." -- priority is not exported
+            content = content.split(' ', 1)[1]
+        elif rtype == 'srv':  # priority is not exported, the rest is
+            content = content.split(' ', 1)[1]
+        elif rtype == 'txt':
+            content = txt_value(content)
+        if rtype in ('cname', 'mx', 'ns', 'txt', 'srv'):
+            return from_fqdn(content.rstrip('.'), domain)
+        return content

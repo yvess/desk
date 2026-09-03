@@ -59,22 +59,6 @@ pull() {
     docker pull "${REGISTRY}/desk-dns:${DNS_VERSION}"
 }
 
-compose() {
-    docker compose -f docker-compose.yml -f docker-extra.yml "$@"
-}
-
-up() {
-    compose up -d "$@"
-}
-
-down() {
-    compose down "$@"
-}
-
-logs() {
-    compose logs -f "$@"
-}
-
 # Load the dev fixture set into the running stack's CouchDB. The fixtures are
 # pre-migration documents (no `version` property, `@ip_` map variables), so
 # `migrate` has to run after them to bring them to the current document version.
@@ -89,7 +73,7 @@ fixtures() {
             --data-binary "@$f" "${COUCHDB_ADMIN_URL}/desk_drawer/$id${rev:+?rev=$rev}"
         echo "  loaded $id"
     done
-    compose exec -T foreman ./dworker migrate
+    docker compose exec -T foreman ./dworker migrate
 }
 
 # shadows the `test` builtin for the rest of this file -- AGENTS.md documents

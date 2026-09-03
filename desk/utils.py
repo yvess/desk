@@ -15,16 +15,10 @@ class JSONDefaultDictEncoder(JSONEncoder):
         def default(self, o):
             return o.__dict__
 
-# from https://github.com/obspy/obspy/blob/master/obspy/core/util/AttributeDict.py
+# based on obspy's AttributeDict, trimmed to what this codebase uses: documents
+# come out of CouchDB as nested dicts and are read as `doc.a[0].host`
 class AttributeDict(collections.abc.MutableMapping):
-    defaults = {}
-    readonly = []
-    warn_on_non_default_key = False
-    do_not_warn_on = []
-    _types = {}
-
     def __init__(self, *args, **kwargs):
-        self.__dict__.update(self.defaults)
         self.update(dict(*args, **kwargs))
 
     def __repr__(self):
@@ -34,44 +28,18 @@ class AttributeDict(collections.abc.MutableMapping):
         try:
             return self.__dict__[name]
         except KeyError:
-            if name in self.defaults:
-                return self.defaults[name]
             if default is None:
                 raise
             return default
 
     def __setitem__(self, key, value):
-        if key in self.readonly:
-            msg = 'Attribute "%s" in %s object is read only!'
-            raise AttributeError(msg % (key, self.__class__.__name__))
-        if self.warn_on_non_default_key and key not in self.defaults:
-            if key in self.do_not_warn_on:
-                pass
-            else:
-                msg = ('Setting attribute "{}" which is not a default '
-                       'attribute ("{}").').format(
-                    key, '", "'.join(self.defaults.keys()))
-                warnings.warn(msg)
-        if key in self._types and not isinstance(value, self._types[key]):
-            value = self._cast_type(key, value)
-
-        mapping_instance = isinstance(value,
-                                      collections.abc.Mapping)
-        attr_dict_instance = isinstance(value, AttributeDict)
-        if mapping_instance and not attr_dict_instance:
-            self.__dict__[key] = AttributeDict(value)
-        else:
-            self.__dict__[key] = value
+        if (isinstance(value, collections.abc.Mapping)
+                and not isinstance(value, AttributeDict)):
+            value = AttributeDict(value)
+        self.__dict__[key] = value
 
     def __delitem__(self, name):
         del self.__dict__[name]
-
-    def __getstate__(self):
-        return self.__dict__
-
-    def __setstate__(self, adict):
-        self.__dict__.update(self.defaults)
-        self.update(adict)
 
     def __getattr__(self, name, default=None):
         try:
@@ -82,45 +50,15 @@ class AttributeDict(collections.abc.MutableMapping):
     __setattr__ = __setitem__
     __delattr__ = __delitem__
 
-    def copy(self):
-        return copy.deepcopy(self)
-
     def update(self, adict={}):
         for (key, value) in adict.items():
-            if key in self.readonly:
-                continue
             self.__setitem__(key, value)
-
-    def _pretty_str(self, priorized_keys=[], min_label_length=16):
-        keys = list(self.keys())
-        try:
-            i = max(max([len(k) for k in keys]), min_label_length)
-        except ValueError:
-            return ""
-        pattern = "%%%ds: %%s" % (i)
-        other_keys = [k for k in keys if k not in priorized_keys]
-        keys = priorized_keys + sorted(other_keys)
-        head = [pattern % (k, self.__dict__[k]) for k in keys]
-        return "\n".join(head)
-
-    def _cast_type(self, key, value):
-        typ = self._types[key]
-        new_type = (
-            typ[0] if isinstance(typ, collections.abc.Sequence)
-            else typ)
-        msg = ('Attribute "%s" must be of type %s, not %s. Attempting to '
-               'cast %s to %s') % (key, typ, type(value), value, new_type)
-        warnings.warn(msg)
-        return new_type(value)
 
     def __iter__(self):
         return iter(self.__dict__)
 
     def __len__(self):
         return len(self.__dict__)
-
-    def toJSON(self):
-        return json.dumps(self.__dict__)
 
 
 class FilesForCouch(object):
@@ -279,6 +217,19 @@ def get_doc(response):
     if isinstance(data, dict):
         return AttributeDict(data)
     return data
+
+def get_map_doc(db, doc_id):
+    """The `$ip_` lookup-map document, or None when there is none.
+
+    httpx does not raise on a 404: a missing map doc is tolerated, every other
+    error (auth, server) raises rather than letting the caller run blindly.
+    """
+    response = db.get(doc_id)
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+    return get_doc(response)
+
 
 def get_key(response, key):
     json_data = response.json()[key]

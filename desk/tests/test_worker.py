@@ -4,6 +4,7 @@ Both talk to CouchDB through a real `CouchDBClient`; only the HTTP transport
 is stubbed. The DNS backend handed to the Updater is a plain recorder, the
 same shape `desk/plugin/dns` backends have.
 """
+import logging
 import unittest
 
 import httpx
@@ -115,10 +116,45 @@ class UpdaterLookupMapTestCase(unittest.TestCase):
             self.updater(httpx.Response(500, json={'error': 'internal'}))
 
 
+class ProcessTasksTestCase(unittest.TestCase):
+    """A task is dispatched once, whatever the worker provides: the
+    provider lookup is built before the loop over service types, not inside
+    it.
+    """
+
+    def dispatches(self, provides):
+        worker = object.__new__(Worker)
+        worker.logger = logging.getLogger('desk.test')
+        worker.provides = provides
+        run = []
+        worker._run_tasks = lambda task_id, docs: run.append(task_id)
+        worker._process_tasks([
+            {'doc': {'_id': 'task-1', 'provider': 'ns1', 'docs': ['d1']}}
+        ])
+        return run
+
+    def test_one_service_type(self):
+        self.assertEqual(
+            self.dispatches({'domain': [{'name': 'ns1'}]}), ['task-1']
+        )
+
+    def test_more_service_types_still_dispatch_once(self):
+        self.assertEqual(self.dispatches({
+            'domain': [{'name': 'ns1'}],
+            'mail': [{'name': 'mx1'}],
+            'web': [{'name': 'w1'}],
+        }), ['task-1'])
+
+    def test_a_provider_this_worker_does_not_have_is_skipped(self):
+        self.assertEqual(self.dispatches({'mail': [{'name': 'mx1'}]}), [])
+
+
 class DnsBaseLookupMapTestCase(unittest.TestCase):
     def test_a_backend_starts_with_an_empty_lookup_map(self):
         # a $ip_ value then fails with KeyError naming it, not AttributeError
-        settings = ObjectDict(powerdns_backend='sqlite', powerdns_db=':memory:')
+        settings = ObjectDict(
+            powerdns_api_url='http://ns1:8081', powerdns_api_key='devkey'
+        )
         with Powerdns(settings) as pdns:
             self.assertEqual(pdns.lookup_map, {})
             with self.assertRaises(KeyError):

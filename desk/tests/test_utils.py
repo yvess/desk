@@ -1,5 +1,6 @@
 import argparse
 import unittest
+from copy import deepcopy
 
 import httpx
 
@@ -58,6 +59,24 @@ class AttributeDictTestCase(unittest.TestCase):
         self.assertEqual(sorted(ad), ["a", "b"])
         del ad["a"]
         self.assertEqual(list(ad), ["b"])
+
+    def test_it_survives_a_deepcopy(self):
+        """MergedDoc deepcopies documents before merging a template in."""
+        ad = AttributeDict({"domain": "test", "a": [{"host": "www"}]})
+
+        clone = deepcopy(ad)
+        clone.domain = "other"
+
+        self.assertIsInstance(clone, AttributeDict)
+        self.assertEqual(clone.a[0]["host"], "www")
+        self.assertEqual(ad.domain, "test")
+
+    def test_update_wraps_nested_mappings_too(self):
+        ad = AttributeDict({"a": 1})
+
+        ad.update({"provides": {"domain": []}})
+
+        self.assertIsInstance(ad.provides, AttributeDict)
 
 
 class ObjectDictTestCase(unittest.TestCase):

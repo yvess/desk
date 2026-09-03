@@ -1,7 +1,8 @@
 import sys
 
 from desk.command import SettingsCommand, SettingsCommandDb
-from desk.utils import ObjectDict, AttributeDict, get_doc
+from desk.utils import AttributeDict, get_map_doc
+from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.plugin.base import MergedDoc
 
@@ -18,11 +19,6 @@ class PowerdnsExportCommand(SettingsCommand):
         )
 
         export_powerdns_parser.add_argument(
-            "db",
-            help="""path to the sqlite database"""
-        )
-
-        export_powerdns_parser.add_argument(
             "dest",
             help="dest of the plain text dns data file",
         )
@@ -30,11 +26,7 @@ class PowerdnsExportCommand(SettingsCommand):
         return export_powerdns_parser
 
     def run(self):
-        conf = {
-            'powerdns_backend': "sqlite",
-            'powerdns_db': self.settings.db
-        }
-        pdns = Powerdns(ObjectDict(**conf))
+        pdns = Powerdns(self.settings)
         dest = self.settings.dest
         output = []
 
@@ -66,11 +58,6 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
         )
 
         rebuild_powerdns_parser.add_argument(
-            "db",
-            help="""path to the sqlite database"""
-        )
-
-        rebuild_powerdns_parser.add_argument(
             "target", default=None, nargs="?",
             help="name of the domain to process, or nothing for all domains (needs confirmation)",
         )
@@ -83,33 +70,26 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
 
         return rebuild_powerdns_parser
 
-    def _rebuild(self, domain, pre_delete=True):
+    def _rebuild(self, domain):
         # view rows are plain dicts; MergedDoc reads doc.template_id
         rows = self.db.view("domain_by_name", include_docs=True, key=domain)
         if not rows:
             raise LookupError(f"domain {domain} not found in {self.db.db_name}")
         doc = MergedDoc(self.db, AttributeDict(rows[0]['doc'])).doc
         self.pdns.doc = doc
-        if pre_delete:
-            self.pdns.set_domain(domain)
-            last_serial = self.pdns.get_soa_serial()
-            self.pdns.del_domain(domain)
-            self.pdns.create()
-            self.pdns.update_soa(serial=last_serial)
-        else:
-            self.pdns.create()
-            self.pdns.update_soa(serial=None)
+        # create() syncs an existing zone rather than recreating it, so the
+        # SOA serial keeps climbing instead of restarting
+        self.pdns.create()
 
     def run(self):
-        conf = {
-            'powerdns_backend': "sqlite",
-            'powerdns_db': self.settings.db
-        }
-        self.pdns = Powerdns(ObjectDict(**conf))
-        # httpx does not raise on a 404, a missing map doc must abort here
-        map_response = self.db.get(self.pdns.map_doc_id)
-        map_response.raise_for_status()
-        self.pdns.set_lookup_map(get_doc(map_response))
+        self.pdns = Powerdns(self.settings)
+        # a rebuild without the map would fail on the first `$ip_` value
+        map_doc = get_map_doc(self.db, self.pdns.map_doc_id)
+        if map_doc is None:
+            raise LookupError(
+                f"{self.pdns.map_doc_id} not found in {self.db.db_name}"
+            )
+        self.pdns.set_lookup_map(map_doc)
 
         domains = [
             row['key'] for row in self.db.view("domain_by_name")
@@ -124,6 +104,68 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
                 if not self.settings.only_delete:
                     for domain in domains:
                         print("adding:", domain)
-                        self._rebuild(domain, pre_delete=False)
+                        self._rebuild(domain)
                 else:
                     print("only deletion of data was requestd")
+
+
+class DnsCheckCommand(SettingsCommandDb):
+    """Read the zones back over DNS and compare them with CouchDB.
+
+    The worker writes zones through the PowerDNS API; this asks the nameservers
+    the documents name whether they actually answer with what the document
+    says. It is the only check that covers the whole path, and it is what the
+    old integration suite used to assert.
+    """
+
+    def setup_parser(self, subparsers, config_parser):
+        check_parser = subparsers.add_parser(
+            'dns-check',
+            help="""check the nameservers against the domain documents""",
+            description="""Queries every nameserver a domain names and reports
+            whether the answers match the document."""
+        )
+        check_parser.add_argument(
+            *config_parser['args'], **config_parser['kwargs']
+        )
+        check_parser.add_argument(
+            "target", default=None, nargs="?",
+            help="name of the domain to check, or nothing for all domains",
+        )
+        check_parser.add_argument(
+            "-n", "--nameserver", dest="nameservers",
+            action="append", default=[], metavar="NAME=ADDRESS",
+            help="""resolve a nameserver name to this address instead of
+                 looking it up (repeatable)""",
+        )
+        return check_parser
+
+    def run(self):
+        lookup = dict(
+            entry.split('=', 1) for entry in self.settings.nameservers
+        )
+        map_doc = get_map_doc(self.db, DnsValidator.map_doc_id)
+        lookup_map = map_doc['map'] if map_doc is not None else {}
+
+        domains = [self.settings.target] if self.settings.target else [
+            row['key'] for row in self.db.view("domain_by_name")
+        ]
+        failed = []
+        for domain in domains:
+            rows = self.db.view(
+                "domain_by_name", include_docs=True, key=domain
+            )
+            if not rows:
+                raise LookupError(
+                    f"domain {domain} not found in {self.db.db_name}"
+                )
+            doc = MergedDoc(self.db, AttributeDict(rows[0]['doc'])).doc
+            valid = DnsValidator(
+                doc, lookup=lookup, lookup_map=lookup_map
+            ).do_check()
+            print(f"{'ok  ' if valid else 'FAIL'} {domain}")
+            if not valid:
+                failed.append(domain)
+        print(f"{len(domains) - len(failed)}/{len(domains)} zones match")
+        # worker.py turns a False into exit status 1
+        return not failed

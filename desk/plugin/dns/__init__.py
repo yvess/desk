@@ -1,2 +1,2 @@
-from desk.plugin.dns.dnsbase import DnsBase, get_providers, reverse_fqdn
+from desk.plugin.dns.dnsbase import DnsBase, from_fqdn, get_providers, to_fqdn
 from desk.plugin.dns import powerdns

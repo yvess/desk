@@ -125,6 +125,9 @@ var defaultGrowlCenter = nil;
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
     // This is called when the application is done loading.
+    // every CouchResource path (add-editor, _uuids, ...) goes through the
+    // nginx /api rewrites in docker/capi/conf.d/desk.conf
+    [COResource setAPIPrefix:@"/api"];
     [clientsSwitchButton setAction:@selector(switchTabFromButton:)];
     [domainSwitchButton setAction:@selector(switchTabFromButton:)];
     [inspectorSwitchButton setAction:@selector(switchTabFromButton:)];
