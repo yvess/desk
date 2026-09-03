@@ -1,5 +1,3 @@
-# coding: utf-8
-from __future__ import absolute_import, print_function, division, unicode_literals
 import abc
 from socket import gethostbyname
 import dns.resolver
@@ -41,12 +39,12 @@ class DnsValidator(object):
                     answer_value = answer
                 else:
                     answer_value = getattr(answer, answer_attr)
-                answer_value = unicode(answer_value)
+                answer_value = str(answer_value)
                 is_fqdn = False
                 if answer_value.endswith("."):
                     is_fqdn = True
                 answers.append(answer_value)
-            item_value = unicode(item[item_key])
+            item_value = str(item[item_key])
             if item_value.startswith('$ip_'):
                 item_value = self.lookup_map[item_value]
             if is_fqdn and not item_value.endswith("."):
@@ -145,9 +143,11 @@ def get_providers(doc):
     return nameservers
 
 
-class DnsBase(object):
-    __metaclass__ = abc.ABCMeta
+class DnsBase(object, metaclass=abc.ABCMeta):
     validator = DnsValidator
+    # filled by set_lookup_map(); empty until then so a $ip_ lookup fails
+    # with a KeyError naming the value instead of an AttributeError
+    lookup_map = {}
     structure = [
         {
             'name': 'a',

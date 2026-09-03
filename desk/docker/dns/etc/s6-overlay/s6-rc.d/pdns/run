@@ -1,0 +1,7 @@
+#!/command/with-contenv sh
+
+PDNS_LOG=${PDNS_LOG:-/var/services/powerdns/log}
+FQHOSTNAME=$(hostname)
+
+exec /usr/sbin/pdns_server --config-dir=/etc/powerdns --daemon=no \
+    >> "${PDNS_LOG}/pdns.${FQHOSTNAME}.log" 2>&1

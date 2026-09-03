@@ -1,2 +1,6 @@
 container
 docker-extra.yml
+tmp
+var
+build
+dist

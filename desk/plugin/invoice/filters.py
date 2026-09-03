@@ -1,19 +1,16 @@
-# coding: utf-8
-# python3
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import re
-from jinja2 import evalcontextfilter, Markup, escape
+from jinja2 import pass_eval_context
+from jinja2.utils import markupsafe 
 
 _paragraph_re = re.compile(r'(?:\r\n|\r|\n){2,}')
 
 
-@evalcontextfilter
+@pass_eval_context
 def nl2br(eval_ctx, value):
     _paragraph_re = re.compile(r'(?:\r\n|\r(?!\n)|\n){2,}')
-    result = u'\n\n'.join(u'%s   ' % p.replace(u'\r\n', u'<br/>') for p in _paragraph_re.split(value))
+    result = '\n\n'.join('%s   ' % p.replace('\r\n', '<br/>') for p in _paragraph_re.split(value))
     if eval_ctx.autoescape:
-        result = Markup(result)
+        result = markupsafe.Markup(result)
     return result
 
 

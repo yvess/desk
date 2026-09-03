@@ -1,6 +1,4 @@
-# coding: utf-8
-from __future__ import absolute_import, print_function, unicode_literals, division  # python3
-
+from desk.utils import encode_json
 
 def main(doc, doc_type, db):
     def domainMigration(doc):
@@ -47,8 +45,6 @@ def main(doc, doc_type, db):
             del doc['prev_active_rev']
         if 'active_rev' in doc:
             del doc['active_rev']
-        # set state to new
-        doc['state'] = 'new'
 
     def mapMigration(doc):
         new_map = {}
@@ -65,4 +61,4 @@ def main(doc, doc_type, db):
         migrate = doc_types[doc['type']]
         migrate(doc)
     doc['version'] = 1
-    db.save_doc(doc)
+    db.put(url=doc['_id'], content=encode_json(doc))

@@ -92,7 +92,7 @@
     var clientkey = '"' + aClient.coId + '"',
         serviceItemsCouch = [
         DMService allWithParams:@{ @"startkey": clientkey, @"endkey": clientkey }
-                  withPath:@"/services_by_client"];
+                  withPath:@"/api/services_by_client"];
     [serviceItems removeAllObjects];
     [serviceItems addObjectsFromArray:serviceItemsCouch];
     [servicesAC setContent:serviceItems];
@@ -103,7 +103,7 @@
     var clientkey = '"' + aClient.coId + '"',
         domainItemsCouch = [
         DMDomain allWithParams:@{ @"startkey": clientkey, @"endkey": clientkey }
-                 withPath:@"/domains_by_client"];
+                 withPath:@"/api/domains_by_client"];
     [domainItems removeAllObjects];
     [domainItems addObjectsFromArray:domainItemsCouch];
     [domainsAC setContent:domainItems];

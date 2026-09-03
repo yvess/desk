@@ -317,6 +317,11 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
     return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
 }
 
++ (CPURL)resourcePath
+{
+    return [CPURL URLWithString:@"/api/" + [self underscoreName] + @"s"];
+}
+
 - (id)init
 {
     self = [super init];
@@ -518,6 +523,11 @@ var servicePropertyNamesArray = [[CPMutableArray alloc] init],
 {
     var cType = [[self class] underscoreName];
     return [CPString stringWithFormat:@"%@-%@", cType, [self nextUUID]];
+}
+
++ (CPURL)resourcePath
+{
+    return [CPURL URLWithString:@"/api/" + [self underscoreName] + @"s"];
 }
 
 - (CPString)nameIdentifierString

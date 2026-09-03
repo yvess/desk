@@ -1,70 +1,115 @@
-cdb:
-  image: yvess/couchdb:1.6.1a
-  hostname: cdb
-  environment:
-    - TERM=xterm-256color
-    - COUCHDB_ADMIN=admin
-    - COUCHDB_ADMINPASS=admin
-    - COUCHDB_LOCAL_HTTPD=[httpd]\nvhost_global_handlers = _utils, _uuids, _session, _oauth, _users, _rewrite, _desk_pad
-    - COUCHDB_LOCAL_HTTPD_GLOBAL_HANDLERS=[httpd_global_handlers]\n_desk_pad = {couch_httpd_misc_handlers, handle_utils_dir_req, "/opt/app/desk_pad"}
-    - COUCHDB_LOCAL_VHOSTS=[vhosts]\ndesk.docker:5984 = /desk_drawer/_design/desk_drawer/_rewrite/
-  volumes:
-    - ../:/opt/app/
-    - ./var:/var/services
-  ports:
-    - "5984:5984"
-  # command: tail -f /dev/null
+services:
+  cdb:
+    image: couchdb:3.5.2
+    hostname: cdb
+    environment:
+      TERM: xterm-256color
+      COUCHDB_USER: admin
+      COUCHDB_PASSWORD: admin
+    volumes:
+      - ./var/couchdb:/opt/couchdb/data
+      # not :ro -- the image's entrypoint chowns everything under
+      # /opt/couchdb under `set -e`, and a read-only mount makes it exit 1
+      - ./docker/cdb/local.d/desk.ini:/opt/couchdb/etc/local.d/desk.ini
+    ports:
+      - "5984:5984"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u \"$$COUCHDB_USER:$$COUCHDB_PASSWORD\" http://localhost:5984/_up"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
 
-dnsa:
-  image: yvess/desk-dns
-  hostname: dnsa.test
-  environment:
-    - TERM=xterm-256color
-    - COUCHDB_ADMIN=admin
-    - COUCHDB_ADMINPASS=admin
-    - START_WORKER=YES
-    - START_PDNS=YES
-  volumes:
-    - ../:/opt/app/
-    - ./var:/var/services
-  links:
-    - cdb
-  ports:
-    - "1053:53"
-  # command: tail -f /dev/null
+  # serves desk_pad and rewrites /api/... onto the desk_drawer design doc --
+  # CouchDB 3.x dropped the httpd_global_handlers/_rewrite machinery that used
+  # to do both
+  capi:
+    image: nginx:1.30-alpine
+    hostname: capi
+    volumes:
+      - ./docker/capi/conf.d:/etc/nginx/conf.d:ro
+      - ../desk_pad:/opt/app/desk_pad:ro
+    ports:
+      - "81:80"
+    depends_on:
+      cdb:
+        condition: service_healthy
 
-dnsb:
-  image: yvess/desk-dns
-  hostname: dnsb.test
-  environment:
-    - TERM=xterm-256color
-    - COUCHDB_ADMIN=admin
-    - COUCHDB_ADMINPASS=admin
-    - START_WORKER=YES
-    - START_PDNS=YES
-  volumes:
-    - ../:/opt/app/
-    - ./var:/var/services
-  links:
-    - cdb
-  ports:
-    - "2053:53"
-  # command: tail -f /dev/null
+  dnsa:
+    image: yvess/desk-dns:0.4.0
+    hostname: ns1.localhost
+    environment:
+      TERM: xterm-256color
+      PYTHONPATH: /opt/app
+      COUCHDB_ADMIN: admin
+      COUCHDB_ADMINPASS: admin
+      COUCHDB_HOST: cdb
+      COUCHDB_PORT: "5984"
+      START_WORKER: "YES"
+      START_PDNS: "YES"
+      DNS_PRIMARY: ns1.localhost
+    volumes:
+      - ..:/opt/app
+      - ./var:/var/services
+    working_dir: /opt/app/desk
+    ports:
+      - "1053:53/udp"
+      - "1053:53/tcp"
+    depends_on:
+      cdb:
+        condition: service_healthy
+    networks:
+      default:
+        # what the EXTRA_HOSTS/docker-link dance used to provide
+        aliases:
+          - ns1.localhost
 
-foreman:
-  image: yvess/desk-worker
-  hostname: foreman
-  environment:
-    - TERM=xterm-256color
-    - COUCHDB_ADMIN=admin
-    - COUCHDB_ADMINPASS=admin
-    - START_WORKER=YES
-  volumes:
-    - ../:/opt/app/
-    - ./var:/var/services
-  links:
-    - cdb
-    - dnsa
-    - dnsb
-  # command: tail -f /dev/null
+  dnsb:
+    image: yvess/desk-dns:0.4.0
+    hostname: ns2.localhost
+    environment:
+      TERM: xterm-256color
+      PYTHONPATH: /opt/app
+      COUCHDB_ADMIN: admin
+      COUCHDB_ADMINPASS: admin
+      COUCHDB_HOST: cdb
+      COUCHDB_PORT: "5984"
+      START_WORKER: "YES"
+      START_PDNS: "YES"
+      DNS_PRIMARY: ns1.localhost
+    volumes:
+      - ..:/opt/app
+      - ./var:/var/services
+    working_dir: /opt/app/desk
+    ports:
+      - "2053:53/udp"
+      - "2053:53/tcp"
+    depends_on:
+      cdb:
+        condition: service_healthy
+    networks:
+      default:
+        aliases:
+          - ns2.localhost
 
+  foreman:
+    image: yvess/desk-worker:0.4.0
+    hostname: foreman
+    environment:
+      TERM: xterm-256color
+      PYTHONPATH: /opt/app
+      COUCHDB_ADMIN: admin
+      COUCHDB_ADMINPASS: admin
+      COUCHDB_HOST: cdb
+      COUCHDB_PORT: "5984"
+      START_WORKER: "YES"
+    volumes:
+      - ..:/opt/app
+      - ./var:/var/services
+    working_dir: /opt/app/desk
+    depends_on:
+      cdb:
+        condition: service_healthy
+      dnsa:
+        condition: service_started
+      dnsb:
+        condition: service_started

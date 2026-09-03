@@ -1,27 +1,12 @@
-# coding: utf-8
-# python3
-from __future__ import absolute_import, print_function, unicode_literals, division
-import ast
-import os
-import shutil
-import ezodf
-from couchdbkit import Server
-from desk.command import SettingsCommand
 from desk.utils import get_crm_module
-from desk.plugin.extcrm.todoyu import Todoyu
-from desk.utils import CouchdbUploader, FilesForCouch
 
 
 class QueryServices(object):
-    def __init__(self, settings):
+    def __init__(self, settings, db):
         self.clients_extcrm_ids = {}
         self.settings = settings
-        self.server = Server(self.settings.couchdb_uri)
-        self.db = self.server.get_db(self.settings.couchdb_db)
+        self.db = db
         self.crm = get_crm_module(self.settings)
-
-    def _cmd(self, cmd):
-        return "{}/{}".format(self.settings.couchdb_db, cmd)
 
     def query(self):
         services = []
@@ -46,13 +31,13 @@ class QueryServices(object):
             else:
                 couchdb_view = 'service_type'
         for item in self.db.view(
-                self._cmd(couchdb_view),
+                couchdb_view,
                 startkey=startkey, endkey=endkey, include_docs=True):
-            # debug # print("----item", item)
-            if item and 'extcrm_id' in item['doc']:
-                if 'state' in item['doc'] and item['doc']['state'] == 'deleted':
-                   continue
-                client_doc  = item['doc']
+            # the view links the client doc; it is null once the client is deleted
+            client_doc = item.get('doc') or {}
+            if 'extcrm_id' in client_doc:
+                if client_doc.get('state') == 'deleted':
+                    continue
                 extcrm_id = client_doc['extcrm_id']
                 service_name = '-'.join([part for part in item['key'] if part])
                 included_items = []

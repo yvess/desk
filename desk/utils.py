@@ -1,12 +1,9 @@
-# coding: utf-8
-from __future__ import absolute_import, print_function, division  # unicode_literals
-import time
-from datetime import date, datetime
-import uuid
-import os
-import shutil
+from datetime import date
+import calendar
 import json
-import requests
+import httpx
+import collections
+from json import JSONEncoder
 from importlib import import_module
 
 
@@ -14,51 +11,116 @@ class ObjectDict(object):
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
+class JSONDefaultDictEncoder(JSONEncoder):
+        def default(self, o):
+            return o.__dict__
 
-class CouchdbUploader(object):
-    def __init__(self, couchdb_uri=None, couchdb_db=None, path=None, auth=()):
-        self.uri = couchdb_uri
-        self.db = couchdb_db
-        self.path = path
-        self.auth = auth
-        if couchdb_uri.count('@') == 1:
-            self.auth = auth_from_uri(couchdb_uri)
+# from https://github.com/obspy/obspy/blob/master/obspy/core/util/AttributeDict.py
+class AttributeDict(collections.abc.MutableMapping):
+    defaults = {}
+    readonly = []
+    warn_on_non_default_key = False
+    do_not_warn_on = []
+    _types = {}
 
-    def put(self, data, doc_id, only_status=True):
-        if data[0] == "@":
-            filename = "{}/{}".format(self.path, data[1:])
-            with open(filename, "r") as f:
-                # remove comments in json
-                data = "".join([
-                    l.strip() for l in f.readlines() if not (
-                        l.strip().find("//") == 0
-                    )
-                ])
-        url = "{}/{}/{}".format(
-            self.uri, self.db, doc_id.format(couchdb_db=self.db)
-        )
-        r = requests.put(
-            url, data=data,
-            headers={
-                'Content-type': 'application/json',
-                'Accept': 'text/plain'
-            },
-            auth=self.auth
-        )
-        return r.status_code if only_status else r
+    def __init__(self, *args, **kwargs):
+        self.__dict__.update(self.defaults)
+        self.update(dict(*args, **kwargs))
 
-    def update(self, handler, doc_id, only_status=True):
-        r = requests.put(
-            "{}/{}/_design/{}/_update/{}/{}".format(
-                self.uri, self.db, self.db, handler,
-                doc_id.format(couchdb_db=self.db)
-            ),
-            headers={
-                'Content-type': 'application/json', 'Accept': 'text/plain'
-            },
-            auth=self.auth
-        )
-        return r.status_code if only_status else r
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, self.__dict__)
+
+    def __getitem__(self, name, default=None):
+        try:
+            return self.__dict__[name]
+        except KeyError:
+            if name in self.defaults:
+                return self.defaults[name]
+            if default is None:
+                raise
+            return default
+
+    def __setitem__(self, key, value):
+        if key in self.readonly:
+            msg = 'Attribute "%s" in %s object is read only!'
+            raise AttributeError(msg % (key, self.__class__.__name__))
+        if self.warn_on_non_default_key and key not in self.defaults:
+            if key in self.do_not_warn_on:
+                pass
+            else:
+                msg = ('Setting attribute "{}" which is not a default '
+                       'attribute ("{}").').format(
+                    key, '", "'.join(self.defaults.keys()))
+                warnings.warn(msg)
+        if key in self._types and not isinstance(value, self._types[key]):
+            value = self._cast_type(key, value)
+
+        mapping_instance = isinstance(value,
+                                      collections.abc.Mapping)
+        attr_dict_instance = isinstance(value, AttributeDict)
+        if mapping_instance and not attr_dict_instance:
+            self.__dict__[key] = AttributeDict(value)
+        else:
+            self.__dict__[key] = value
+
+    def __delitem__(self, name):
+        del self.__dict__[name]
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, adict):
+        self.__dict__.update(self.defaults)
+        self.update(adict)
+
+    def __getattr__(self, name, default=None):
+        try:
+            return self.__getitem__(name, default)
+        except KeyError as e:
+            raise AttributeError(e.args[0])
+
+    __setattr__ = __setitem__
+    __delattr__ = __delitem__
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def update(self, adict={}):
+        for (key, value) in adict.items():
+            if key in self.readonly:
+                continue
+            self.__setitem__(key, value)
+
+    def _pretty_str(self, priorized_keys=[], min_label_length=16):
+        keys = list(self.keys())
+        try:
+            i = max(max([len(k) for k in keys]), min_label_length)
+        except ValueError:
+            return ""
+        pattern = "%%%ds: %%s" % (i)
+        other_keys = [k for k in keys if k not in priorized_keys]
+        keys = priorized_keys + sorted(other_keys)
+        head = [pattern % (k, self.__dict__[k]) for k in keys]
+        return "\n".join(head)
+
+    def _cast_type(self, key, value):
+        typ = self._types[key]
+        new_type = (
+            typ[0] if isinstance(typ, collections.abc.Sequence)
+            else typ)
+        msg = ('Attribute "%s" must be of type %s, not %s. Attempting to '
+               'cast %s to %s') % (key, typ, type(value), value, new_type)
+        warnings.warn(msg)
+        return new_type(value)
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def __len__(self):
+        return len(self.__dict__)
+
+    def toJSON(self):
+        return json.dumps(self.__dict__)
 
 
 class FilesForCouch(object):
@@ -78,57 +140,98 @@ class FilesForCouch(object):
                 json.dump(content, outfile, indent=4)
 
 
-class CreateJsonFiles(object):
-    def __init__(self, path, docs, couchdb_uri=None, couchdb_db=None):
-        self.path, self.docs, self.couchdb_uri = path, docs, couchdb_uri
-        self.create_files()
-        if couchdb_uri and couchdb_db:
-            self.upload()
-
-    def create_files(self):
-        if os.path.exists(self.path):
-            shutil.rmtree(self.path)
-        os.mkdir(self.path)
-        json_files = FilesForCouch(self.docs, self.path)
-        json_files.create()
-
-    def upload(self):
-        couch_up = CouchdbUploader(
-            path=self.path, couchdb_uri=self.couchdb_uri,
-            couchdb_db=self.couchdb_db
-        )
-
-        for fname in os.listdir(self.path):
-            couch_up.put(
-                data="@{}".format(fname),
-                doc_id=fname[:-5]
-            )
+# couchdb expects these view parameters as JSON, not as plain strings
+VIEW_JSON_PARAMS = ('key', 'keys', 'startkey', 'endkey')
 
 
-def auth_from_uri(uri):
-    return tuple(uri.split("@")[0].split('//')[1].split(":"))
-
-
-def create_order_doc(uploader):
-    now = datetime.now()
-    # same format as javascript
-    current_time = "%s.%sZ" % (now.strftime('%Y-%m-%dT%H:%M:%S'), "%03.0f" % (now.microsecond / 1000.0))
-    order_id = "order-{}".format(unicode(uuid.uuid1()).replace('-',''))
-
-    order_doc = {
-        "_id": order_id,
-        "date": current_time,
-        "type": "order", "sender": "pad", "state": "new"
+def encode_view_params(params):
+    return {
+        name: json.dumps(value)
+        if name in VIEW_JSON_PARAMS or isinstance(value, bool) else value
+        for name, value in params.items()
     }
-    uploader.put(data=json.dumps(order_doc), doc_id=order_id)
-    uploader.update(handler='add-editor', doc_id=order_id)
-    return order_id
+
+
+class CouchDBClientMixin:
+    base_url = None
+    db_name = None
+
+    @classmethod
+    def _basic_base_url(cls, couchdb_uri):
+        url = httpx.URL(couchdb_uri)
+        base_url = f'{url.scheme}://{url.host}'
+        if url.port:
+            base_url = f'{base_url}:{url.port}'
+        auth = (url.username, url.password) if url.username else None
+        return base_url, auth
+
+    @classmethod
+    def db(cls, couchdb_uri=None, db_name=None, **kwargs):
+        base_url, auth = cls._basic_base_url(couchdb_uri)
+        base_url = f'{base_url}/{db_name}'
+        client = cls(base_url=base_url, auth=auth, **kwargs)
+        client.db_name = db_name
+        return client
+
+    @classmethod
+    def db_design(cls, couchdb_uri=None, db_name=None, **kwargs):
+        base_url, auth = cls._basic_base_url(couchdb_uri)
+        base_url = f'{base_url}/{db_name}/_design/{db_name}'
+        client = cls(base_url=base_url, auth=auth, **kwargs)
+        client.db_name = db_name
+        return client
+
+def response_add_rev(response):
+    etag = response.headers.get('ETag')
+    if etag: # set couchdb rev in response, ETag may be weakened (W/) by proxies
+        response.rev = etag.removeprefix('W/').strip('"')
+    else:
+        response.rev = None
+    return response
+
+# rev is attached in send() so that request(), stream() and the
+# convenience methods all pass through the same seam
+class CouchDBClient(httpx.Client, CouchDBClientMixin):
+    def send(self, *args, **kwargs):
+        response = super().send(*args, **kwargs)
+        return response_add_rev(response)
+
+    def rev(self, *args, **kwargs):
+        response = self.head(*args, **kwargs)
+        return response.rev
+
+    def view(self, name, ddoc=None, **params):
+        """GET {db}/_design/{ddoc}/_view/{name}, returns the view rows.
+
+        ddoc defaults to the design doc named after the database, the only one
+        this project installs (see desk/_design/).
+        """
+        response = self.get(
+            f'_design/{ddoc or self.db_name}/_view/{name}',
+            params=encode_view_params(params)
+        )
+        response.raise_for_status()
+        return get_rows(response)
+
+
+class CouchDBClientAsync(httpx.AsyncClient, CouchDBClientMixin):
+    async def send(self, *args, **kwargs):
+        response = await super().send(*args, **kwargs)
+        return response_add_rev(response)
+
+    async def rev(self, *args, **kwargs):
+        response = await self.head(*args, **kwargs)
+        return response.rev
 
 
 def parse_date(date_string, force_day=None):
     year, month, day = [int(item) for item in date_string.split("-")]
     if force_day == 'start':
         day = 1
+    elif force_day == 'end':
+        day = calendar.monthrange(year, month)[1]
+    elif force_day is not None:
+        raise ValueError(f"unknown force_day value: {force_day!r}")
     return date(year, month, day)
 
 
@@ -144,7 +247,7 @@ def calc_esr_checksum(ref_number):
 
 def get_crm_module(settings):
     crm_module = import_module('.extcrm', package='desk.plugin')
-    if 'worker_extcrm' in settings:
+    if getattr(settings, 'worker_extcrm', None):
         crm_classname = settings.worker_extcrm.split(':')[0].title()
         Crm = getattr(crm_module, crm_classname)
         crm = Crm(settings)
@@ -152,3 +255,31 @@ def get_crm_module(settings):
         Crm = getattr(crm_module, 'Dummy')
         crm = Crm()
     return crm
+
+def decode_json(data, child=None):
+    data = data if isinstance(data, str) else data.decode('utf8')
+    json_data = json.loads(data)
+    if child:
+        return json_data[child]
+    return json_data
+
+def encode_json(data):
+    return json.dumps(data, cls=JSONDefaultDictEncoder)
+
+def get_rows(response):
+    try:
+        return response.json()['rows']
+    except (ValueError, KeyError, TypeError):
+        return None
+
+def get_doc(response):
+    data = response.json()
+    if 'doc' in data:
+        data = data['doc']
+    if isinstance(data, dict):
+        return AttributeDict(data)
+    return data
+
+def get_key(response, key):
+    json_data = response.json()[key]
+    return json_data

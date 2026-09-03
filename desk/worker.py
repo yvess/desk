@@ -1,25 +1,20 @@
-#!/usr/bin/env python
-# coding: utf-8
-from __future__ import absolute_import, print_function, unicode_literals, division  # python3
+#!/usr/bin/env python3
 
-from gevent import monkey; monkey.patch_all()
 import sys
 import re
 import signal
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
 import argparse
-import codecs
-import locale
+import os
 from collections import OrderedDict
 from desk.command import InstallDbCommand, InstallWorkerCommand
-from desk.command import WorkerCommand, UploadJsonCommand, MigrateCommand
-from desk.plugin.dns.cmd import ImportDnsCommand, LdifPlainDnsCommand
+from desk.command import WorkerCommand, MigrateCommand
+is_foreman = True if os.environ.get('WORKER_TYPE', 'worker') == 'foreman' else False
 from desk.plugin.dns.cmd_powerdns import PowerdnsExportCommand, PowerdnsRebuildCommand
-from desk.plugin.invoice.cmd import CreateInvoicesCommand
-from desk.plugin.service.cmd import ImportServiceCommand, QueryServiceCommand
+if is_foreman:
+    from desk.plugin.invoice.cmd import CreateInvoicesCommand, QrBillInvoicesCommand
+from desk.plugin.service.cmd import QueryServiceCommand
 
-# Wrap sys.stdout into a StreamWriter to allow writing unicode.
-sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
 DEFAULTS = {
     "couchdb_uri": "http://localhost:5984",
@@ -51,7 +46,7 @@ VERBOSE_PARSER = {
 
 BOOLEAN_TYPES = ['worker_daemon', 'worker_is_foreman']
 CONF_SECTIONS = ['couchdb', 'powerdns', 'worker', 'todoyu',
-                 'invoice', 'service_web', 'service_email']
+                 'invoice', 'invoice_qrbill', 'service_web', 'service_email']
 
 
 def to_snake_case(name):
@@ -89,17 +84,15 @@ class SetupWorkerParser(object):
             ('install-db', InstallDbCommand),
             ('install-worker', InstallWorkerCommand),
             ('migrate', MigrateCommand),
-            ('upload-json', UploadJsonCommand),
-            ('dns-import', ImportDnsCommand),
-            ('dns-ldifplain', LdifPlainDnsCommand),
             ('dns-export-powerdns', PowerdnsExportCommand),
             ('dns-rebuild-powerdns', PowerdnsRebuildCommand),
-            ('invoices-create', CreateInvoicesCommand),
-            ('service-import', ImportServiceCommand),
             ('service-query', QueryServiceCommand),
         ])
+        if is_foreman:
+            self.commands['invoices-create'] = CreateInvoicesCommand
+            self.commands['invoices-qrbill'] = QrBillInvoicesCommand
 
-        for command_name, command in self.commands.items():
+        for command_name, command in list(self.commands.items()):
             name_snake = to_snake_case(command.__name__)
             command_instance = command()
             command_parser = command_instance.setup_parser(
@@ -121,8 +114,9 @@ class SetupWorkerParser(object):
         # puts them into a dict format "section_option"
         merged_defaults = DEFAULTS.copy()
         if hasattr(args, 'config') and args.config:
-            config = SafeConfigParser()
-            config.readfp(codecs.open(args.config, "r", "utf8"))
+            config = ConfigParser()
+            with open(args.config, 'r') as file:
+                config.read_file(file)
             if not config:
                 print("Can't open file '{}'".format(args.config))
                 sys.exit(0)
@@ -152,10 +146,11 @@ def signal_handler(signum, frame):
     if signum == signal.SIGTERM or signum == signal.SIGHUP:
         sys.exit(0)
 
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGHUP, signal_handler)
-
 if __name__ == "__main__":
+    # only register for the daemon itself, importing this module must not
+    # change the importing process' signal handling
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGHUP, signal_handler)
     worker = SetupWorkerParser()
     if worker.settings.command == 'run':
         worker.worker_cmd.set_settings(worker.settings)

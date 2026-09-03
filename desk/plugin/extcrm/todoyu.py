@@ -1,5 +1,3 @@
-# coding: utf-8
-from __future__ import absolute_import, print_function, division, unicode_literals
 from desk.plugin.extcrm.extcrmbase import ExtCrmBase, ContactBase
 import pymysql
 
@@ -54,8 +52,18 @@ class Todoyu(ExtCrmBase):
             ON (address.id=p2a.id_address AND person_privat.id=p2a.id_person)
         LEFT JOIN (ext_contact_mm_company_person as c2p, ext_contact_person as person)
             ON (person.id=c2p.id_person AND company.id=c2p.id_company)
-        LEFT JOIN (ext_contact_contactinfotype as contactinfotype, ext_contact_contactinfo as contactinfo, ext_contact_mm_company_contactinfo as c2i)
-            ON (contactinfotype.id=1 AND contactinfo.id=c2i.id_contactinfo AND company.id=c2i.id_company AND contactinfo.id_contactinfotype=contactinfotype.id)
+        LEFT JOIN (
+            -- one email per company: the join through the m:m table would
+            -- otherwise repeat every address row once per contactinfo
+            SELECT c2i.id_company, MIN(contactinfo.id) as id
+            FROM ext_contact_mm_company_contactinfo as c2i, ext_contact_contactinfo as contactinfo
+            WHERE contactinfo.id=c2i.id_contactinfo
+            AND contactinfo.id_contactinfotype=1
+            AND contactinfo.deleted=0
+            GROUP BY c2i.id_company
+        ) as company_email ON (company_email.id_company=company.id)
+        LEFT JOIN (ext_contact_contactinfo as contactinfo)
+            ON (contactinfo.id=company_email.id)
         LEFT JOIN (static_country as country)
             ON (address.id_country=country.id)
         WHERE 1
@@ -74,7 +82,7 @@ class Todoyu(ExtCrmBase):
         cursor.execute(SQL)
         for r in cursor.fetchall():
             fields = [f.replace('.', '_') for f in (address + contactinfo + person_fields + company)]
-            data = dict(zip(fields, r))
+            data = dict(list(zip(fields, r)))
             pk_keys = (data['p_id'], 'p'), (data['company_id'], 'c')
             pk = "-".join(["%s%s" % (key, pk) for pk, key in pk_keys if pk])
             if pk:
@@ -128,7 +136,7 @@ class Todoyu(ExtCrmBase):
         cursor.execute(SQL)
         for item in cursor.fetchall():
             fields = [f.replace('.', '_') for f in (contactinfo + person_fields)]
-            data = dict(zip(fields, item))
+            data = dict(list(zip(fields, item)))
             pk = "p%s" % data['p_id']
             if pk:
                 if (pk not in self._contact_map):
@@ -154,7 +162,7 @@ class Todoyu(ExtCrmBase):
         try:
             return self._address_map[pk]
         except KeyError:
-            print(self._address_map.keys())
+            print(list(self._address_map.keys()))
             print("key error", pk)
             raise KeyError
 

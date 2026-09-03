@@ -1,6 +1,7 @@
 function(doc) {
     if (doc.type == 'inspector') {
-        for each (item in doc.items) {
+        for (var i = 0; i < doc.items.length; i++) {
+            var item = doc.items[i];
             emit(item.domain, {
                 'hostname': doc.hostname,
                 'sub_type': doc.sub_type,

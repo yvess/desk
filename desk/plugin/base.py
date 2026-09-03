@@ -1,11 +1,7 @@
-# coding: utf-8
-from __future__ import absolute_import, print_function, division, unicode_literals
-from StringIO import StringIO
-from copy import copy, deepcopy
-import logging
-from couchdbkit.exceptions import ResourceNotFound
-import json
+from io import StringIO
+from copy import deepcopy
 import json_diff
+from ..utils import get_doc, encode_json, AttributeDict
 
 
 class OptionsClassDiff(object):
@@ -23,14 +19,14 @@ class MergedDoc(object):
 
     def __init__(self, db, doc, cache_key=None):
         self.db = db
-        if len(MergedDoc.cache.keys()) > 50:
+        if len(list(MergedDoc.cache.keys())) > 50:
             MergedDoc.cache = {}
         merged_doc = None
         empty_keys = []
         if 'template_id' in doc:
-            merged_doc = deepcopy(self.get_template(doc['template_id'], cache_key))
+            merged_doc = deepcopy(self.get_template(doc.template_id, cache_key))
             doc_no_empty = {}
-            for item_key in doc.keys():
+            for item_key in list(doc.keys()):
                 if doc[item_key]:
                     doc_no_empty[item_key] = deepcopy(doc[item_key])
                 else:
@@ -41,7 +37,7 @@ class MergedDoc(object):
                     pass
                 else:
                     merged_doc[key] = []
-            del merged_doc['template_id']
+            del merged_doc.template_id
         self.doc = merged_doc if merged_doc else doc
 
     def get_template(self, template_id, cache_key):
@@ -49,32 +45,11 @@ class MergedDoc(object):
            and template_id in MergedDoc.cache[cache_key]:
             template_doc = MergedDoc.cache[cache_key][template_id]
         else:
-            template_doc = self.db.get(template_id)
+            template_doc = get_doc(self.db.get(template_id))
             if cache_key not in MergedDoc.cache:
                 MergedDoc.cache[cache_key] = {}
             MergedDoc.cache[cache_key][template_id] = template_doc
-        return template_doc
-
-
-class VersionDoc(object):
-    def __init__(self, db, doc):
-        self.db = db
-        self.doc = doc
-
-    def create_version(self):
-        old_doc = self.db.get(self.doc['_id'])
-        old_doc = MergedDoc(self.db, old_doc).doc
-        self.doc['state'] = 'changed'
-        self.doc['prev_rev'] = old_doc['_rev']
-        self.db.put_attachment(
-            old_doc, json.dumps(old_doc),
-            name=old_doc['_rev'], content_type="application/json"
-        )
-        new_doc_merged = self.db.get(self.doc['_id'])
-        del self.doc['_rev']
-        new_doc_merged.update(self.doc)
-        self.doc = new_doc_merged
-        self.db.save_doc(self.doc)
+        return AttributeDict(template_doc)
 
 
 class Updater(object):
@@ -87,23 +62,24 @@ class Updater(object):
         }
         self.task = None
         self.active_doc = None
-        if doc['state'] in choose_task:
-            self.task = choose_task[doc['state']]
+        if doc.state in choose_task:
+            self.task = choose_task[doc.state]
 
         self.merged_doc = MergedDoc(db, doc).doc
         if 'active_rev' in doc:
-            active_rev = doc['active_rev']
-            active_doc_json = db.fetch_attachment(doc['_id'], active_rev)
-            self.active_doc = MergedDoc(db, json.loads(active_doc_json)).doc
+            active_doc_json = get_doc(db.get(f'{doc._id}/{doc.active_rev}'))
+            self.active_doc = MergedDoc(db, active_doc_json).doc
         self.service = service
         self.service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
-            try:
-                lookup_map_doc = db.get(self.service.map_doc_id)
-                self.service.set_lookup_map(lookup_map_doc)
-            except ResourceNotFound:
-                pass
-        if self.active_doc and doc['state'] == 'changed':
+            # httpx does not raise on a 404: a missing map doc is tolerated,
+            # every other error (auth, server) must not run the task blindly
+            map_response = self.db.get(self.service.map_doc_id)
+            if map_response.status_code != 404:
+                map_response.raise_for_status()
+                self.service.set_lookup_map(get_doc(map_response))
+
+        if self.active_doc and doc.state == 'changed':
             diff = self._create_diff()
             self.service.set_diff(diff)
 
@@ -117,8 +93,8 @@ class Updater(object):
         active_doc = self._remove_attachment(self.service.active_doc) # old_doc
         doc = self._remove_attachment(self.service.doc) # new_doc
         diffator = json_diff.Comparator(
-            StringIO(json.dumps(active_doc)),
-            StringIO(json.dumps(doc)),
+            StringIO(encode_json(active_doc)),
+            StringIO(encode_json(doc)),
             opts=OptionsClassDiff()
         )
         diff = diffator.compare_dicts()
@@ -181,7 +157,6 @@ class Updater(object):
 
     def do_task(self):
         was_successfull = False
-        # print('do_task', self.task)
         if self.task:
             was_successfull = self.task()
         return was_successfull

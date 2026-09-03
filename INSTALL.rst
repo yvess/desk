@@ -42,8 +42,10 @@ Desk
 
 python
 ------
-- create virtual enviroment with virtualenv
-- pip install requirements.txt
+- create a virtual environment: `python3 -m venv .venv`
+- install the runtime dependencies:
+  `.venv/bin/pip install -r desk/docker/worker/requirements3.txt -c desk/docker/worker/requirements3.lock`
+- install desk itself: `.venv/bin/pip install -e .`
 
 etc
 ---

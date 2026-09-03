@@ -1,20 +1,18 @@
-FROM yvess/desk-worker:0.1.2d
-MAINTAINER Yves Serrano <y@yas.ch>
+# The dns node is a worker that also runs PowerDNS, so it builds on the worker
+# image instead of repeating its python install.
+ARG WORKER_VERSION
+FROM yvess/desk-worker:${WORKER_VERSION}
+LABEL org.opencontainers.image.authors="Yves Serrano <y@yas.ch>"
+LABEL org.opencontainers.image.source="https://github.com/yvess/desk"
 
-RUN sed 's/3.4/3.6/g' -i /etc/apk/repositories && \
-    apk update && \
-    apk add --no-cache \
+# sqlite is the CLI, used by pdns-init to create the zone database
+RUN apk add --no-cache \
         pdns \
         pdns-backend-sqlite3 \
-    && ln -s /usr/lib/pdns/pdns/libgsqlite3backend.so /usr/lib/pdns/libgsqlite3backend.so \
-    && rm -rf /var/cache/apk/*
-    # rm /etc/pdns.conf && \
+        sqlite
 
-ADD /etc/cont-init.d /etc/cont-init.d
-ADD /etc/desk /etc/desk
-ADD /etc/powerdns /etc/powerdns
-ADD /etc/services.d /etc/services.d
+COPY dns/etc /etc
 
-ENV WORKER_TYPE worker
-ENV WORKER_SUBTYPE dns
+ENV WORKER_TYPE=worker
+ENV WORKER_SUBTYPE=dns
 EXPOSE 53/udp 53/tcp
