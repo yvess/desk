@@ -11,21 +11,22 @@ class DnsValidator(object):
     whole path.
     """
 
-    # set by DnsBase.set_lookup_map, so `$ip_` values can be compared
-    lookup_map = {}
     map_doc_id = 'map-ips'
 
-    def __init__(self, doc, lookup=None, resolver=None):
+    def __init__(self, doc, lookup=None, resolver=None, lookup_map=None):
         self.doc = doc
         self.domain = doc['domain']
         self.resolver = resolver or dns.resolver.Resolver()
         # nameserver name -> address, for names the host cannot resolve itself
-        self.lookup = lookup
+        self.lookup = lookup or {}
+        # the `$ip_` map, so those values can be compared
+        self.lookup_map = lookup_map or {}
         self.valid = []
 
     def _setup_resolver(self, ns):
+        # a nameserver without an override is looked up the normal way
         self.resolver.nameservers = [
-            self.lookup[ns] if self.lookup else gethostbyname(ns)
+            self.lookup.get(ns) or gethostbyname(ns)
         ]
 
     def _answers(self, name, record_type, answer_attr):
@@ -56,7 +57,7 @@ class DnsValidator(object):
         if is_fqdn and not value.endswith("."):
             # an MX host is already qualified; the rest name this zone
             zone = None if record_type == "MX" else self.domain
-            value = "{}.".format(to_fqdn(value, zone))
+            value = f"{to_fqdn(value, zone)}."
         return value
 
     def _query_name(self, item, q_key):
@@ -67,37 +68,21 @@ class DnsValidator(object):
         return item[q_key]
 
     def _validate(self, record_type, item_key, q_key='domain',
-                  answer_attr='address', return_check=False, items=None):
-        if items is None:
-            items = self.doc.get(record_type.lower(), [])
-        for item in items:
+                  answer_attr='address'):
+        for item in self.doc.get(record_type.lower(), []):
             answers = self._answers(
                 self._query_name(item, q_key), record_type, answer_attr
             )
             is_fqdn = any(answer.endswith(".") for answer in answers)
-            valid = self._expected(
-                item, item_key, record_type, is_fqdn
-            ) in answers
-            if return_check:
-                return valid
-            self.valid.append(valid)
+            self.valid.append(
+                self._expected(item, item_key, record_type, is_fqdn)
+                in answers
+            )
 
     def _checked(self):
         is_valid = all(self.valid)
         self.valid = []
         return is_valid
-
-    def check_one_record(self, record_type, item_key,
-                         q_key='domain', item=None):
-        record_type = record_type.upper()
-        answer_attr = {'CNAME': 'target', 'A': 'address'}[record_type]
-        for ns in self.doc['nameservers']:
-            self._setup_resolver(ns)
-            self._validate(
-                record_type, item_key, q_key=q_key,
-                items=[item], answer_attr=answer_attr
-            )
-        return self._checked()
 
     def do_check(self):
         for ns in self.doc['nameservers']:
@@ -149,7 +134,6 @@ def get_providers(doc):
 
 
 class DnsBase(object, metaclass=abc.ABCMeta):
-    validator = DnsValidator
     # filled by set_lookup_map(); empty until then so a $ip_ lookup fails
     # with a KeyError naming the value instead of an AttributeError
     lookup_map = {}
@@ -239,7 +223,6 @@ class DnsBase(object, metaclass=abc.ABCMeta):
 
     def set_lookup_map(self, doc):
         self.lookup_map = doc['map']
-        self.validator.lookup_map = doc['map']
 
     def get_ttl(self, doc):
         if 'ttl' in doc:

@@ -133,3 +133,26 @@ This is the codified form of the `dig` checks M3-M5 were verified with by hand.
 rewriting `_create_diff`, and `MergedDoc.cache`.
 
 **Verified:** suite green, **145 → 162 tests**; `compileall` clean.
+
+---
+
+**Review follow-up (2026-09-02):**
+- `dns-check` now fails the process: `worker.py` exits 1 when a command's
+  `run()` returns `False` (only `dns-check` does). A `-n NAME=ADDRESS`
+  override for one nameserver no longer raises `KeyError` for the others --
+  they are looked up the normal way.
+- The `$ip_` map lives on the `DnsValidator` *instance* (`lookup_map=`), not
+  on the class; `DnsBase` no longer writes into the validator.
+  `DnsValidator.check_one_record` is gone (only its own test called it).
+- **DECISION (user):** the "read the map doc, tolerate a 404" block that
+  existed three times is one helper, `get_map_doc()` in `desk/utils.py`.
+  `dns-rebuild-powerdns` still aborts on a missing map, now with a
+  `LookupError` naming the doc.
+- **DECISION (user):** the two invoice diagnostics (`SKIP`, `ERROR`) are
+  logging calls; the progress dots and the total stay `print`.
+- The todoyu duplicate warnings show the existing entry again.
+- Tests: `dns-check` itself (parser, `-n` split, map 404, unknown target,
+  `False` on a failing zone), the `-n` partial override, the `@`-CNAME and
+  `www.`-A cases at the RRset level, `from_fqdn('.')`. History-narrating
+  docstrings trimmed to what each test pins.
+- Suite green, **171 tests**.

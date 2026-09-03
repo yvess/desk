@@ -218,6 +218,19 @@ def get_doc(response):
         return AttributeDict(data)
     return data
 
+def get_map_doc(db, doc_id):
+    """The `$ip_` lookup-map document, or None when there is none.
+
+    httpx does not raise on a 404: a missing map doc is tolerated, every other
+    error (auth, server) raises rather than letting the caller run blindly.
+    """
+    response = db.get(doc_id)
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+    return get_doc(response)
+
+
 def get_key(response, key):
     json_data = response.json()[key]
     return json_data

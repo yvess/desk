@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import unittest
+from unittest.mock import patch
 
 import dns.rdata
 import dns.rdataclass
@@ -113,8 +114,8 @@ class DnsValidatorTestCase(unittest.TestCase):
         self.assertFalse(self.validator(answers=answers).do_check())
 
     def test_txt_content_is_compared_at_the_records_own_name(self):
-        """TXT used to be checked by asking the apex and comparing the record
-        *name*, with an answer_attr TXT rdata does not even have.
+        """Each TXT record is asked for at its own name and compared on the
+        joined strings of the rdata.
         """
         self.validator().do_check()
 
@@ -127,20 +128,25 @@ class DnsValidatorTestCase(unittest.TestCase):
 
     def test_a_map_variable_is_resolved_before_comparing(self):
         doc = dict(self.DOC, a=[{'host': 'www', 'ip': '$ip_web1'}])
-        validator = self.validator(doc=doc)
-        validator.lookup_map = {'$ip_web1': '172.17.1.20'}
+        resolver = StubResolver(self.ANSWERS)
+        validator = DnsValidator(
+            doc, lookup={'ns1.localhost': '127.0.0.1'}, resolver=resolver,
+            lookup_map={'$ip_web1': '172.17.1.20'},
+        )
 
         self.assertTrue(validator.do_check())
 
-    def test_check_one_record_reports_a_single_item(self):
-        validator = self.validator()
+    def test_a_nameserver_without_an_override_is_looked_up(self):
+        """`-n` overrides one nameserver; the others still resolve."""
+        doc = dict(self.DOC, nameservers=['ns1.localhost', 'ns2.localhost'])
+        validator = self.validator(doc=doc)
+        with patch(
+            'desk.plugin.dns.dnsbase.gethostbyname', return_value='10.0.0.2'
+        ) as gethostbyname:
+            validator.do_check()
 
-        self.assertTrue(validator.check_one_record(
-            'A', 'ip', q_key='host', item={'host': 'www', 'ip': '172.17.1.20'}
-        ))
-        self.assertFalse(validator.check_one_record(
-            'A', 'ip', q_key='host', item={'host': 'gone', 'ip': '1.1.1.1'}
-        ))
+        gethostbyname.assert_called_once_with('ns2.localhost')
+        self.assertEqual(self.resolver.nameservers, ['10.0.0.2'])
 
     def test_a_plain_dict_document_is_read(self):
         """MergedDoc hands over a plain dict when there is no template."""
@@ -151,11 +157,8 @@ class DnsValidatorTestCase(unittest.TestCase):
 
 
 class FqdnTestCase(unittest.TestCase):
-    """The one pair that replaced five near-duplicate helpers.
-
-    `host_to_fqdn`, `cname_key_trans`, `a_key_trans` and `to_fqdn` each handled
-    a different subset of the `@` and trailing-dot cases, so which one a record
-    type happened to reference decided whether those cases came out right.
+    """`to_fqdn`/`from_fqdn` are the one place the `@` and trailing-dot
+    cases are decided, for every record type.
     """
 
     def test_to_fqdn(self):
@@ -185,6 +188,8 @@ class FqdnTestCase(unittest.TestCase):
             ('test', 'test', '@'),
             # a name outside the zone keeps its dot
             ('other.ch.', 'test', 'other.ch.'),
+            # the root itself has no name
+            ('.', 'test', ''),
         ]
         for name, domain, expected in cases:
             with self.subTest(name=name, domain=domain):
@@ -513,6 +518,32 @@ class PowerdnsCreateTest(unittest.TestCase):
 
     def test_nameservers_become_the_ns_rrset(self):
         self.assertEqual(self.rrsets[('test.', 'NS')], ['ns1.localhost.'])
+
+
+class PowerdnsFqdnEdgeCaseTest(unittest.TestCase):
+    """The `@` and trailing-dot cases, at the RRsets the backend builds."""
+
+    def rrsets(self, **records):
+        doc = dict(merged_domain(), **records)
+        api = PowerdnsApiStub()
+        with api.backend(doc=doc) as pdns:
+            pdns.create()
+        return {
+            (r['name'], r['type']): [x['content'] for x in r['records']]
+            for r in api.sent('POST')[0]['rrsets']
+        }
+
+    def test_a_cname_alias_of_at_is_the_zone_apex(self):
+        rrsets = self.rrsets(cname=[{'alias': '@', 'host': 'www'}])
+
+        self.assertEqual(rrsets[('test.', 'CNAME')], ['www.test.'])
+        self.assertNotIn(('@.test.', 'CNAME'), rrsets)
+
+    def test_an_a_host_with_a_trailing_dot_is_absolute(self):
+        rrsets = self.rrsets(a=[{'host': 'www.', 'ip': '172.17.1.20'}])
+
+        self.assertEqual(rrsets[('www.', 'A')], ['172.17.1.20'])
+        self.assertNotIn(('www..test.', 'A'), rrsets)
 
 
 class PowerdnsCreateOnExistingZoneTest(unittest.TestCase):

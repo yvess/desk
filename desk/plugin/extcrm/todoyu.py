@@ -109,7 +109,8 @@ class Todoyu(ExtCrmBase):
             pass
         else:
             logger.warning(
-                "double company %s: %s", pk, data
+                "double company %s: %s, have %s", pk, data,
+                self._address_map[pk]
             )
 
     def _fill_contact(self, cursor):
@@ -149,7 +150,8 @@ class Todoyu(ExtCrmBase):
                     self._contact_map[pk] = TodoyuContact(data)
                 else:
                     logger.warning(
-                        "double contact %s: %s", pk, data
+                        "double contact %s: %s, have %s", pk, data,
+                        self._contact_map[pk]
                     )
 
     def _fill_maps(self):

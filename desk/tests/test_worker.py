@@ -117,12 +117,9 @@ class UpdaterLookupMapTestCase(unittest.TestCase):
 
 
 class ProcessTasksTestCase(unittest.TestCase):
-    """A task is dispatched once, whatever the worker provides.
-
-    `provider_lookup` used to be filled inside the loop over `provides`, with
-    the dispatch `if` inside it as well and no reset -- so once a provider
-    matched, every further service type dispatched the task again. It was
-    correct only because `provides` has exactly one key today.
+    """A task is dispatched once, whatever the worker provides: the
+    provider lookup is built before the loop over service types, not inside
+    it.
     """
 
     def dispatches(self, provides):

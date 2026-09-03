@@ -161,4 +161,6 @@ if __name__ == "__main__":
     elif worker.settings.command in worker.commands:
         current_command = worker.commands[worker.settings.command]
         current_command.set_settings(worker.settings)
-        current_command.run()
+        # a command that reports a failed check (dns-check) returns False
+        if current_command.run() is False:
+            sys.exit(1)

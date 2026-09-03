@@ -19,6 +19,7 @@ import httpx
 from desk.command import FileDesignDocsLoader, InstallDbCommand
 from desk.command import InstallWorkerCommand, MigrateCommand
 from desk.plugin.base import MergedDoc
+from desk.plugin.dns.cmd_powerdns import DnsCheckCommand
 from desk.plugin.dns.cmd_powerdns import PowerdnsRebuildCommand
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.invoice.invoice import Invoice
@@ -344,13 +345,17 @@ class PowerdnsRebuildCommandTestCase(unittest.TestCase):
         self.assertEqual(self.command.pdns.lookup_map, {'$ip_web': '1.2.3.4'})
 
     def test_a_missing_lookup_map_aborts_the_run(self):
-        """httpx does not raise on the 404; the run used to fail later
-        with KeyError: 'map'."""
+        """A rebuild without the map would fail on the first `$ip_` value."""
         del self.couch.docs['map-ips']
-        with self.assertRaises(httpx.HTTPStatusError) as raised:
+        with self.assertRaises(LookupError) as raised:
             self.run_command()
         self.assertIn('map-ips', str(raised.exception))
         self.assertIsNone(self.command.pdns.lookup_map)
+
+    def test_a_failing_couchdb_aborts_the_run(self):
+        self.couch.failing['map-ips'] = 500
+        with self.assertRaises(httpx.HTTPStatusError):
+            self.run_command()
 
     def test_rebuild_of_an_unknown_domain_names_it(self):
         """An empty view result used to raise a bare IndexError."""
@@ -413,6 +418,112 @@ class QueryServicesTestCase(unittest.TestCase):
         _, out = self.query(extra_rows=[orphan])
         self.assertIn('*** no extcrm_id', out)
         self.assertIn('total: 1', out)
+
+
+class StubValidator:
+    """Records how dns-check builds its validators; answers as told."""
+
+    map_doc_id = 'map-ips'
+    built = []
+    valid = {}
+
+    def __init__(self, doc, lookup=None, lookup_map=None):
+        self.doc = doc
+        self.lookup = lookup
+        self.lookup_map = lookup_map
+        StubValidator.built.append(self)
+
+    def do_check(self):
+        return StubValidator.valid.get(self.doc['domain'], True)
+
+
+class DnsCheckCommandTestCase(unittest.TestCase):
+    """dns-check — one validator per domain, exit status from the result."""
+
+    def setUp(self):
+        MergedDoc.cache = {}
+        StubValidator.built = []
+        StubValidator.valid = {}
+        self.couch = CouchStub(
+            views={'domain_by_name': [
+                {'id': 'domain-a', 'key': 'a.ch', 'doc': {
+                    '_id': 'domain-a', 'type': 'domain', 'domain': 'a.ch',
+                    'nameservers': ['ns1.a.ch'],
+                }},
+                {'id': 'domain-b', 'key': 'b.ch', 'doc': {
+                    '_id': 'domain-b', 'type': 'domain', 'domain': 'b.ch',
+                    'nameservers': ['ns1.b.ch'],
+                }},
+            ]},
+            docs={
+                'map-ips': {'_id': 'map-ips', 'map': {'$ip_web': '1.2.3.4'}},
+            },
+        )
+        self.command = DnsCheckCommand()
+
+    def run_command(self, target=None, nameservers=()):
+        self.command.set_settings(
+            settings(target=target, nameservers=list(nameservers))
+        )
+        self.command.db.close()
+        self.command.db = self.couch.client()
+        self.addCleanup(self.command.db.close)
+        self.output = io.StringIO()
+        with patch('desk.plugin.dns.cmd_powerdns.DnsValidator', StubValidator):
+            with redirect_stdout(self.output):
+                return self.command.run()
+
+    def test_the_parser_collects_nameserver_overrides(self):
+        parser = argparse.ArgumentParser()
+        self.command.setup_parser(
+            parser.add_subparsers(dest='command'),
+            {'args': ['-c'], 'kwargs': {'dest': 'config'}},
+        )
+        args = parser.parse_args(
+            ['dns-check', 'a.ch', '-n', 'ns1.a.ch=127.0.0.1',
+             '-n', 'ns2.a.ch=127.0.0.2']
+        )
+
+        self.assertEqual(args.target, 'a.ch')
+        self.assertEqual(
+            args.nameservers, ['ns1.a.ch=127.0.0.1', 'ns2.a.ch=127.0.0.2']
+        )
+
+    def test_every_domain_is_checked_when_no_target_is_given(self):
+        """The stub view ignores `key`, so both lookups answer a.ch; what is
+        pinned is one validator per listed domain and the summary line.
+        """
+        self.assertTrue(self.run_command())
+
+        self.assertEqual(len(StubValidator.built), 2)
+        self.assertIn('2/2 zones match', self.output.getvalue())
+
+    def test_a_failing_zone_makes_the_run_report_false(self):
+        """worker.py turns the False into exit status 1."""
+        StubValidator.valid = {'a.ch': False}
+
+        self.assertFalse(self.run_command(target='a.ch'))
+        self.assertIn('FAIL a.ch', self.output.getvalue())
+        self.assertIn('0/1 zones match', self.output.getvalue())
+
+    def test_nameserver_overrides_are_split_and_the_map_is_read(self):
+        self.run_command(target='a.ch', nameservers=['ns1.a.ch=127.0.0.1'])
+
+        validator, = StubValidator.built
+        self.assertEqual(validator.lookup, {'ns1.a.ch': '127.0.0.1'})
+        self.assertEqual(validator.lookup_map, {'$ip_web': '1.2.3.4'})
+
+    def test_a_missing_map_doc_is_tolerated(self):
+        del self.couch.docs['map-ips']
+        self.run_command(target='a.ch')
+
+        self.assertEqual(StubValidator.built[0].lookup_map, {})
+
+    def test_an_unknown_target_names_it(self):
+        self.couch.views['domain_by_name'] = []
+        with self.assertRaises(LookupError) as raised:
+            self.run_command(target='nope.ch')
+        self.assertIn('nope.ch', str(raised.exception))
 
 
 class InstallDbCommandTest(unittest.TestCase):

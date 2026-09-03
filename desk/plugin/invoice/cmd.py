@@ -1,9 +1,12 @@
+import logging
 from pathlib import Path
 from datetime import date
 from desk.command import SettingsCommand, SettingsCommandDb
 from desk.utils import get_crm_module
 from desk.plugin.invoice.invoice import Invoice, InvoiceCycle
 from desk.plugin.invoice.qrbill import InvoiceQrBill
+
+logger = logging.getLogger(__name__)
 
 
 class CreateInvoicesCommand(SettingsCommandDb):
@@ -74,7 +77,10 @@ class CreateInvoicesCommand(SettingsCommandDb):
                                 service_item['start_date']
                             )
                     if not start_dates:
-                        print("\nSKIP no billable services:", client['doc']['name'])
+                        logger.warning(
+                            "no billable services, skipping %s",
+                            client['doc']['name']
+                        )
                         continue
                     invoice_start_date = min(start_dates)
                     if invoice_start_date < invoice_cycle.doc['end_date']:
@@ -85,7 +91,7 @@ class CreateInvoicesCommand(SettingsCommandDb):
                     if self.settings.max != 0 and counter >= self.settings.max:
                         break
                 except KeyError:
-                    print("ERROR: invoice not generated for", client)
+                    logger.error("invoice not generated for %s", client)
 
         print("\n", "total", invoice_cycle.get_total())
 

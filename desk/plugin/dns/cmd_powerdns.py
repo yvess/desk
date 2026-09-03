@@ -1,7 +1,7 @@
 import sys
 
 from desk.command import SettingsCommand, SettingsCommandDb
-from desk.utils import AttributeDict, get_doc
+from desk.utils import AttributeDict, get_map_doc
 from desk.plugin.dns.dnsbase import DnsValidator
 from desk.plugin.dns.powerdns import Powerdns
 from desk.plugin.base import MergedDoc
@@ -83,10 +83,13 @@ class PowerdnsRebuildCommand(SettingsCommandDb):
 
     def run(self):
         self.pdns = Powerdns(self.settings)
-        # httpx does not raise on a 404, a missing map doc must abort here
-        map_response = self.db.get(self.pdns.map_doc_id)
-        map_response.raise_for_status()
-        self.pdns.set_lookup_map(get_doc(map_response))
+        # a rebuild without the map would fail on the first `$ip_` value
+        map_doc = get_map_doc(self.db, self.pdns.map_doc_id)
+        if map_doc is None:
+            raise LookupError(
+                f"{self.pdns.map_doc_id} not found in {self.db.db_name}"
+            )
+        self.pdns.set_lookup_map(map_doc)
 
         domains = [
             row['key'] for row in self.db.view("domain_by_name")
@@ -140,11 +143,9 @@ class DnsCheckCommand(SettingsCommandDb):
     def run(self):
         lookup = dict(
             entry.split('=', 1) for entry in self.settings.nameservers
-        ) or None
-        map_response = self.db.get(DnsValidator.map_doc_id)
-        if map_response.status_code != 404:
-            map_response.raise_for_status()
-            DnsValidator.lookup_map = get_doc(map_response)['map']
+        )
+        map_doc = get_map_doc(self.db, DnsValidator.map_doc_id)
+        lookup_map = map_doc['map'] if map_doc is not None else {}
 
         domains = [self.settings.target] if self.settings.target else [
             row['key'] for row in self.db.view("domain_by_name")
@@ -159,11 +160,12 @@ class DnsCheckCommand(SettingsCommandDb):
                     f"domain {domain} not found in {self.db.db_name}"
                 )
             doc = MergedDoc(self.db, AttributeDict(rows[0]['doc'])).doc
-            valid = DnsValidator(doc, lookup=lookup).do_check()
-            print("{} {}".format("ok  " if valid else "FAIL", domain))
+            valid = DnsValidator(
+                doc, lookup=lookup, lookup_map=lookup_map
+            ).do_check()
+            print(f"{'ok  ' if valid else 'FAIL'} {domain}")
             if not valid:
                 failed.append(domain)
-        print("{}/{} zones match".format(
-            len(domains) - len(failed), len(domains)
-        ))
+        print(f"{len(domains) - len(failed)}/{len(domains)} zones match")
+        # worker.py turns a False into exit status 1
         return not failed

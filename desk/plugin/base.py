@@ -1,7 +1,7 @@
 from io import StringIO
 from copy import deepcopy
 import json_diff
-from ..utils import get_doc, encode_json, AttributeDict
+from ..utils import get_doc, get_map_doc, encode_json, AttributeDict
 
 
 class OptionsClassDiff(object):
@@ -72,12 +72,9 @@ class Updater(object):
         self.service = service
         self.service.set_docs(self.merged_doc, self.active_doc)
         if hasattr(service, 'map_doc_id'):
-            # httpx does not raise on a 404: a missing map doc is tolerated,
-            # every other error (auth, server) must not run the task blindly
-            map_response = self.db.get(self.service.map_doc_id)
-            if map_response.status_code != 404:
-                map_response.raise_for_status()
-                self.service.set_lookup_map(get_doc(map_response))
+            map_doc = get_map_doc(self.db, self.service.map_doc_id)
+            if map_doc is not None:
+                self.service.set_lookup_map(map_doc)
 
         if self.active_doc and doc.state == 'changed':
             diff = self._create_diff()
