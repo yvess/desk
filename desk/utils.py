@@ -186,8 +186,11 @@ def calc_esr_checksum(ref_number):
 def get_crm_module(settings):
     crm_module = import_module('.extcrm', package='desk.plugin')
     if getattr(settings, 'worker_extcrm', None):
-        crm_classname = settings.worker_extcrm.split(':')[0].title()
-        Crm = getattr(crm_module, crm_classname)
+        backend_name = settings.worker_extcrm.split(':')[0]
+        # the backend module is imported only once it is named: todoyu imports
+        # pymysql, which only the foreman image installs
+        backend = import_module('.' + backend_name, package='desk.plugin.extcrm')
+        Crm = getattr(backend, backend_name.title())
         crm = Crm(settings)
     else:
         Crm = getattr(crm_module, 'Dummy')

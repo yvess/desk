@@ -125,14 +125,12 @@ Each ends green (`cd desk && python -m unittest discover`).
   serves the zones. That is the acceptance test.
 - Suite green, including the new role test from step 3.
 
-## DECISIONS (user)
+## DECISIONS (user, taken 2026-09-03)
 
-- **Dockerfile duplication** (step 5): the s6-overlay block and `ENV` lines
-  appear in both Dockerfiles. Recommended: accept it, for the reasons in step 5.
-  Alternative: a tiny `desk-base` image with alpine + s6 that both build from —
-  cheaper diff, but it is the coupling this milestone removes.
-- **`service-query` on dns nodes** (step 1): recommended: foreman-only.
-  Alternative: keep it everywhere and add PyMySQL to the dns requirement file.
+- **Dockerfile duplication** (step 5): **accepted.** The s6-overlay block and
+  the `ENV` lines are spelled out in both Dockerfiles; no `desk-base` image.
+- **`service-query` on dns nodes** (step 1): **foreman-only.** PyMySQL stays out
+  of the dns requirement file.
 
 ## Explicitly NOT in scope (decided 2026-09-03)
 
@@ -161,3 +159,45 @@ working directory (`command.py:111`), and then `PYTHONPATH`, `working_dir` and
 the `..:/opt/app` volume disappear from production compose. Dev keeps live
 editing through `docker-compose.override.yml`, the mechanism already used for
 the Cappuccino checkouts.
+
+## Executed 2026-09-03 (Opus)
+
+All seven steps as written, both decisions as recommended. What the run showed:
+
+- **Sizes: `desk-dns` 238MB → 129MB**, `desk-worker` unchanged at 225MB. The dns
+  image lost cairo/pango/fontconfig/ttf-freefont, the six foreman-only packages
+  and their transitive C extensions.
+- **Independence is proven by construction**: `./taskfile.sh build_dns` produced
+  `desk-dns:0.5.0` while no `desk-worker:0.5.0` existed in the local store at
+  all. No `.build-deps` stage was needed — all three dns packages ship wheels or
+  are pure python (json-diff builds its own wheel from an sdist, no compiler).
+- **`ENTRYPOINT ["/init"]` had to be added** to the dns Dockerfile: it used to
+  inherit it from the worker image, and nothing in the plan mentioned it. Same
+  for `wget`, which the s6-overlay install block uses.
+- **`get_crm_module` picks the backend module by name** (`.todoyu` for
+  `todoyu:mycompany`) rather than reading it off the package, so
+  `plugin/extcrm/__init__.py` is down to the `Dummy` import.
+- **The guard test lives in `tests/test_dworker_roles.py`** (4 tests). It runs
+  the real entry point through `runpy` in a subprocess and dumps `sys.modules`
+  over stderr behind a `MODULES` marker. Verified it bites: restoring the eager
+  `from .todoyu import Todoyu` fails it. An in-process assertion was not an
+  option — `test_imports.py` imports every module in the package, todoyu
+  included, so `sys.modules` is already polluted by the time it runs.
+
+Verification against a live stack (run under a separate compose project on
+shifted host ports, because another checkout's stack held 5984/81):
+
+- `dig` on both nodes answers SOA/NS/A for `test` after
+  `dns-rebuild-powerdns`, i.e. httpx + the pdns HTTP API work from the lean image.
+- `dworker dns-check` → `2/2 zones match`, exit 0, on `dnsa` **and** `dnsb`.
+- `dworker service-query web` on `dnsa`: argparse `invalid choice`, exit 2.
+  On `foreman`: exit 0. `invoices-create` on the foreman still loads WeasyPrint
+  and runs clean.
+
+**Not an M7 regression, worth knowing:** a zone created through the API is
+REFUSED for non-apex names until pdns refreshes its zone cache
+(`zone-cache-refresh-interval`, default 300s); `s6-svc -r /run/service/pdns`
+clears it immediately. M4 already noted this. `dns-check` surfaces it as an
+uncaught `dns.resolver.NoNameservers` traceback rather than a reported failure —
+`dnsbase._answers` (`plugin/dns/dnsbase.py:39`) does not catch it. Pre-existing,
+left alone.

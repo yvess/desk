@@ -76,8 +76,8 @@ dispatched by `"$@"`:
 
 ```bash
 cd desk
-./taskfile.sh build          # build_worker then build_dns (dns builds FROM worker)
-./taskfile.sh push           # multi-arch push, worker first
+./taskfile.sh build          # both images; they are independent, order is free
+./taskfile.sh push           # multi-arch push of both
 ./taskfile.sh help           # list the tasks
 ```
 

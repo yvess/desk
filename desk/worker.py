@@ -14,8 +14,8 @@ from desk.plugin.dns.cmd_powerdns import (
     DnsCheckCommand, PowerdnsExportCommand, PowerdnsRebuildCommand
 )
 if is_foreman:
+    from desk.plugin.service.cmd import QueryServiceCommand
     from desk.plugin.invoice.cmd import CreateInvoicesCommand, QrBillInvoicesCommand
-from desk.plugin.service.cmd import QueryServiceCommand
 
 
 DEFAULTS = {
@@ -89,9 +89,9 @@ class SetupWorkerParser(object):
             ('dns-export-powerdns', PowerdnsExportCommand),
             ('dns-rebuild-powerdns', PowerdnsRebuildCommand),
             ('dns-check', DnsCheckCommand),
-            ('service-query', QueryServiceCommand),
         ])
         if is_foreman:
+            self.commands['service-query'] = QueryServiceCommand
             self.commands['invoices-create'] = CreateInvoicesCommand
             self.commands['invoices-qrbill'] = QrBillInvoicesCommand
 

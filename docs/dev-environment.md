@@ -12,8 +12,10 @@ python3 -m venv .venv
 ```
 
 `desk/docker/worker/requirements3.txt` holds the 9 direct runtime dependencies,
-pinned transitively by `requirements3.lock`. Both images install them into a
-venv at `/opt/desk` (alpine's python is PEP 668 externally-managed).
+pinned transitively by `requirements3.lock`; install that one, it is the
+superset. The dns image installs only the three it needs
+(`desk/docker/dns/requirements3.txt`) against the same lock. Both images put
+them in a venv at `/opt/desk` (alpine's python is PEP 668 externally-managed).
 
 ## Tests
 

@@ -169,7 +169,7 @@ See step 4.
 
 **`dnsa` / `dnsb` / `foreman`.**
 
-- Images are pinned: `yvess/desk-dns:0.4.0`, `yvess/desk-worker:0.4.0`.
+- Images are pinned: `yvess/desk-dns:0.5.0`, `yvess/desk-worker:0.5.0`.
 - New environment: `COUCHDB_HOST` / `COUCHDB_PORT` (they replace the link name),
   `PYTHONPATH: /opt/app` and `working_dir: /opt/app/desk` (the images no longer
   ship a bundled binary, so the package is imported from the mount), and
