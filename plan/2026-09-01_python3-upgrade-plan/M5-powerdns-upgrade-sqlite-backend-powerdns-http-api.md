@@ -168,3 +168,24 @@ still reported the task done.
 - `update()` reads the zone once instead of once per changed type; the dead
   `new` parameter of `set_domain()` is gone.
 - Suite green, **145 tests**.
+
+---
+
+## Runbook — upgrading an existing gsqlite3 database to PowerDNS 5.0
+
+Written up for operators as **[docs/runbook-powerdns-4.x-to-5.0.md](../../docs/runbook-powerdns-4.x-to-5.0.md)**,
+reached from [docs/upgrade-master-to-python3.md](../../docs/upgrade-master-to-python3.md).
+
+Found 2026-09-03 on a test system: pdns 5.0.7 refuses to start on the pre-M3 2014
+schema (`no such column: domains.catalog`), because M3 replaced
+`powerdns-setup.sql` with the 5.0 schema and that only affects **new** databases.
+The fix ships in the dns image as
+`desk/docker/dns/etc/powerdns/powerdns-upgrade-4.x-to-5.0.sql`; it keeps the
+original serials, which is what secondaries depend on.
+
+Two decisions taken here and recorded in the runbook: the migration also writes an
+`SOA-EDIT-API = DEFAULT` row per zone, without which pre-API zones would never
+have their serial bumped again now that M5 deleted the worker's serial code; and
+`pdns-init` deliberately does **not** apply the upgrade on its own, because
+rewriting a production zone database at container boot is not a start-up script's
+job.

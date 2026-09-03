@@ -92,73 +92,17 @@ together with the `_show`/`_update` routes it still calls.
 
 ## Step 4 — migration runbook (1.6.1 → 3.5.2)
 
-Verified by replicating from a populated `yvess/couchdb:1.6.1a` into a fresh
-`couchdb:3.5.2`. Three things bite, in this order:
+Written up for operators as **[docs/runbook-couchdb-1.6-to-3.5.md](../../docs/runbook-couchdb-1.6-to-3.5.md)**,
+reached from [docs/upgrade-master-to-python3.md](../../docs/upgrade-master-to-python3.md).
 
-1. **Install the current design doc on the OLD server first.**
-   Replication copies `_design/desk_drawer` like any other document, and 3.5.2
-   *validates map functions on write*: the pre-M3 design doc fails with
-   `{"error":"doc_write_failed","reason":"compilation_error ... 'inspector_items'
-   ... Unexpected identifier"}` (`for each`) and **the whole replication aborts**.
-   The ported design doc is valid in both engines — verified: it installs on
-   1.6.1 and all four rewritten views still build there. So:
-   `./dworker install-db -c <config pointing at the 1.6 server>`.
-   Filtering design docs out of the replication instead does *not* work: a
-   `selector` needs Mango on the source (`changes_req_failed,400`), which 1.6
-   predates.
-2. **Turn off the replicator's session auth on the NEW server.** 3.x tries cookie
-   auth first and 1.6's `_session` closes the connection, giving
-   `{"error":"replication_auth_error","reason":"{session_request_failed,...}"}` —
-   including when `auth.basic` is supplied. Fix:
-   `curl -X PUT -d '"couch_replicator_auth_noop"' \
-     "$NEW/_node/_local/_config/replicator/auth_plugins"`
-3. **Then replicate**, giving the source credentials explicitly:
-   ```
-   curl -X POST -H 'Content-Type: application/json' -d '{
-     "source": {"url": "http://OLD:5984/desk_drawer",
-                "auth": {"basic": {"username": "admin", "password": "admin"}}},
-     "target": "desk_drawer"
-   }' "$NEW/_replicate"
-   ```
-   Result on the test corpus: `docs_read 6, docs_written 6,
-   doc_write_failures 0`. Attachments — including the rev-named active-doc
-   snapshots — come across and read back byte-identical.
-
-4. **Verify.** Run this with `OLD`/`NEW` set to the two credentialed base URLs
-   (`OLD=http://admin:admin@old:5984 NEW=http://admin:admin@new:5984 bash verify.sh`):
-   ```bash
-   #!/usr/bin/env bash
-   set -euo pipefail
-   OLD=${OLD:?}
-   NEW=${NEW:?}
-
-   echo "doc counts (must match):"
-   for db in "$OLD" "$NEW"; do
-       curl -fsS "$db/desk_drawer" | python3 -c \
-           'import json,sys; d=json.load(sys.stdin); print(" ", d["doc_count"], "docs,", d["doc_del_count"], "deleted")'
-   done
-
-   echo "views:"
-   views=$(curl -fsS "$NEW/desk_drawer/_design/desk_drawer" | python3 -c \
-       'import json,sys; print(" ".join(sorted(json.load(sys.stdin)["views"])))')
-   failed=0
-   for v in $views; do
-       code=$(curl -s -o /dev/null -w '%{http_code}' \
-           "$NEW/desk_drawer/_design/desk_drawer/_view/$v?limit=1")
-       [ "$code" = 200 ] || { echo "  FAILED $v -> $code"; failed=$((failed + 1)); }
-   done
-   echo "  $(set -- $views; echo $#) views build, $failed failed"
-
-   echo "other databases on the source (migrate real users separately):"
-   curl -fsS "$OLD/_all_dbs" | python3 -c \
-       'import json,sys; print("  ", json.load(sys.stdin))'
-   curl -fsS "$OLD/_users/_all_docs" | python3 -c \
-       'import json,sys; rows=json.load(sys.stdin)["rows"]; u=[r["id"] for r in rows if r["id"].startswith("org.couchdb.user:")]; print("  ", len(u), "user docs:", u)'
-   ```
-   On the test corpus it prints `6 docs, 0 deleted` twice, `42 views build,
-   0 failed`, and `0 user docs`. Real `org.couchdb.user:*` documents have to be
-   replicated separately — and do **not** copy `_users/_design/_auth`, 3.x ships
-   its own.
+Verified by replicating a populated `yvess/couchdb:1.6.1a` into a fresh
+`couchdb:3.5.2`. The three failure modes the runbook is built around were all
+found here, and they bite in this order: the current design doc has to be
+installed on the **old** server first (3.5 validates map functions on write and
+`for each` aborts the whole replication); the **new** server needs
+`replicator/auth_plugins = couch_replicator_auth_noop`; and the source
+credentials have to be passed in the `_replicate` body. Filtering design docs out
+instead does not work — a `selector` needs Mango, which 1.6 predates.
 
 ## Step 5 — fixtures + end-to-end on 3.5.2
 

@@ -28,6 +28,12 @@ services:
     volumes:
       - ./docker/capi/conf.d:/etc/nginx/conf.d:ro
       - ../desk_pad:/opt/app/desk_pad:ro
+      # Dev host only: add a docker-compose.override.yml next to this file
+      # (git-ignored, compose loads it automatically) that bind-mounts the
+      # Cappuccino checkouts under /opt/src -- desk_pad/Frameworks are symlinks
+      # into there. The file to copy is in docs/upgrade-master-to-python3.md.
+      # Production copies a release build into desk_pad/Frameworks and needs
+      # no override file.
     ports:
       - "81:80"
     depends_on:
