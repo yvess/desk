@@ -6,4 +6,4 @@ json-diff==1.5.0
 PyMySQL==1.2.0
 pypdf==6.16.2
 qrbill==1.2.0
-WeasyPrint==69.0
+WeasyPrint==70.0
