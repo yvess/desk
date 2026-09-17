@@ -3,14 +3,14 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-WORKER_VERSION=0.4.0
-DNS_VERSION=0.4.0
+WORKER_VERSION=0.5.0
+DNS_VERSION=0.5.0
 REGISTRY=yvess
 PUSH_PLATFORMS=linux/amd64,linux/arm64
 # buildx auto-creates a "docker" driver builder named after the active context.
-# That driver builds against the local image store, which is what lets the dns
-# image use the just-built worker image as its base; a docker-container builder
-# (often the selected one) only ever sees the registry.
+# That driver builds against the local image store, which is where --load puts
+# the images the compose stack then runs; a docker-container builder (often the
+# selected one) only ever sees the registry.
 LOCAL_BUILDER="$(docker context show)"
 # the cdb service's published port, with the dev admin credentials from
 # docker-compose.yml embedded -- used by the `fixtures` task
@@ -18,7 +18,8 @@ COUCHDB_ADMIN_URL=${COUCHDB_ADMIN_URL:-http://admin:admin@127.0.0.1:5984}
 
 # One buildx invocation per image, spelled once. "$@" carries the flags that
 # differ between a local build (--load) and a registry push (--push --platform).
-# The build context is docker/, so the dns image can COPY from worker/.
+# The build context is docker/, so the dns image can COPY worker/'s lock file
+# and s6 services -- that is all the two images share.
 _buildx_worker() {
     docker buildx build "$@" \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
@@ -29,7 +30,6 @@ _buildx_worker() {
 _buildx_dns() {
     docker buildx build "$@" \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
-        --build-arg "WORKER_VERSION=${WORKER_VERSION}" \
         -t "${REGISTRY}/desk-dns:${DNS_VERSION}" \
         -f docker/dns/Dockerfile docker
 }
@@ -38,7 +38,6 @@ build_worker() {
     _buildx_worker --builder "${LOCAL_BUILDER}" --load
 }
 
-# needs desk-worker:${WORKER_VERSION} locally or in the registry
 build_dns() {
     _buildx_dns --builder "${LOCAL_BUILDER}" --load
 }
@@ -48,7 +47,6 @@ build() {
     build_dns
 }
 
-# desk-dns builds FROM desk-worker, so the worker push has to land first.
 push() {
     _buildx_worker --push --platform "${PUSH_PLATFORMS}"
     _buildx_dns --push --platform "${PUSH_PLATFORMS}"

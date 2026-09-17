@@ -12,6 +12,7 @@ import os
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from datetime import date
 from unittest.mock import patch
 
 import httpx
@@ -138,7 +139,8 @@ class CreateInvoicesCommandTestCase(unittest.TestCase):
         )
         self.command = CreateInvoicesCommand()
         self.command.set_settings(settings(
-            invoice_nr=100, invoice_date='2026-12-31', invoice_tax='0.0',
+            invoice_nr=100, year=2026,
+            invoice_date='2026-12-31', invoice_tax='0.0',
             invoice_template_dir='.', invoice_output_dir='.',
             limit_client_id=None, max=0,
         ))
@@ -181,6 +183,14 @@ class CreateInvoicesCommandTestCase(unittest.TestCase):
         self.assertEqual(service['price'], 10.0)
         self.assertEqual(service['months'], 12)
         self.assertEqual(doc['amount'], 120.0)
+
+    def test_the_year_setting_decides_the_billed_period(self):
+        """--year was parsed and then ignored: the cycle always took today's."""
+        self.command.settings.year = 2024
+        self.run_command()
+        service = self.invoices[0].doc['services']['hosting']['items'][0]
+        self.assertEqual(service['start_date'], date(2024, 1, 1))
+        self.assertEqual(service['end_date'], date(2024, 12, 31))
 
     def test_limit_client_id_skips_other_clients(self):
         self.command.settings.limit_client_id = 'client-2'

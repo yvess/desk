@@ -1,10 +1,12 @@
 import argparse
 import unittest
+from unittest.mock import patch
 from copy import deepcopy
 
 import httpx
 
 from desk.plugin.extcrm.dummy import Dummy
+from desk.plugin.extcrm.todoyu import Todoyu
 from desk.utils import (
     AttributeDict,
     CouchDBClient,
@@ -31,6 +33,13 @@ class GetCrmModuleTestCase(unittest.TestCase):
     def test_namespace_settings_without_extcrm_give_the_dummy(self):
         crm = get_crm_module(argparse.Namespace(worker_extcrm=None))
         self.assertIsInstance(crm, Dummy)
+
+    def test_extcrm_todoyu_gives_the_todoyu_backend(self):
+        settings = argparse.Namespace(worker_extcrm="todoyu:mycompany")
+        with patch.object(Todoyu, "_fill_maps"):  # would open the MySQL connection
+            crm = get_crm_module(settings)
+        self.assertIsInstance(crm, Todoyu)
+        self.assertIs(crm.settings, settings)
 
 
 class AttributeDictTestCase(unittest.TestCase):

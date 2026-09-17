@@ -72,11 +72,7 @@ class InvoiceTestCaseBase(unittest.TestCase):
         # __init__ renders the whole invoice; the object is assembled directly
         # here so each test can call setup_invoice() and look at the result.
         invoice = object.__new__(Invoice)
-        cycle = InvoiceCycle(1)
-        cycle.doc = {
-            'start_date': date(YEAR, 1, 1),
-            'end_date': date(YEAR, 12, 31),
-        }
+        cycle = InvoiceCycle(1, YEAR)
         invoice.tax = tax
         invoice.crm = Dummy()
         invoice.settings = ObjectDict(
@@ -263,7 +259,7 @@ class MissingExtcrmIdTestCase(InvoiceTestCaseBase):
             invoice = Invoice(
                 settings, crm=Dummy(),
                 client_doc={'_id': 'client-1', 'name': 'no crm client'},
-                invoice_cycle=InvoiceCycle(1),
+                invoice_cycle=InvoiceCycle(1, YEAR),
                 db=None,  # the client is unusable before any view is read
             )
         # invoices-create keys its skip on client_doc: setup_invoice never ran,

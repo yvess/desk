@@ -83,3 +83,18 @@ alter one that already exists — silently rewriting a production zone database 
 container boot is not something a start-up script should do. The cost is that a
 container with an old database crash-loops on the `domains.catalog` error above
 until this runbook is applied.
+
+## Updating PowerDNS itself
+
+PowerDNS comes from the alpine package, so a pdns update is an alpine bump of
+the dns image alone -- `desk-dns` shares nothing with `desk-worker`:
+
+```bash
+# desk/docker/dns/Dockerfile: raise the alpine tag in the FROM line
+cd desk
+./taskfile.sh build_dns       # the worker image is not touched
+```
+
+Bump `DNS_VERSION` in `desk/taskfile.sh` and the `yvess/desk-dns` tag in
+`docker-compose.yml` with it. If the packaged pdns crossed a schema version,
+this runbook applies again on the first start.

@@ -1,0 +1,6 @@
+# The dns node runs the worker and PowerDNS, nothing of the invoice stack.
+# Installed against worker/requirements3.lock, so these versions and the
+# transitive ones stay identical in both images.
+dnspython==2.8.0
+httpx==0.28.1
+json-diff==1.5.0

@@ -2,7 +2,7 @@ import codecs
 import logging
 import os
 from collections import OrderedDict
-from datetime import date, datetime
+from datetime import date
 from unicodedata import normalize
 from weasyprint import HTML
 from desk.plugin.invoice import filters
@@ -283,14 +283,13 @@ class Invoice(object):
 
 class InvoiceCycle(object):
     """One Invoice Run for a given period"""
-    def __init__(self, invoice_nr):
+    def __init__(self, invoice_nr, year):
         self.start_nr = invoice_nr
         self.current_nr = self.start_nr
         self.invoices = []
-        current_year = datetime.now().year  # TODO create setting
         self.doc = {
-            'start_date': date(current_year, 1, 1),
-            'end_date': date(current_year, 12, 31),
+            'start_date': date(year, 1, 1),
+            'end_date': date(year, 12, 31),
         }
 
     def add_invoice(self, invoice):
