@@ -41,8 +41,8 @@ point at the doc that holds it.
 
 `desk` — service data manager. Python package under `desk/`, with plugins in
 `desk/plugin/` (e.g. `invoice/`, `extcrm/`, `service/`, `base.py`). Data is
-stored in CouchDB; the codebase is mid-migration from `couchdbkit` to plain
-`requests` (see helpers like `get_doc`, `encode_json`).
+stored in CouchDB and reached over plain HTTP with `httpx` (`CouchDBClient` and
+helpers like `get_doc`, `encode_json` in `desk/utils.py`); `couchdbkit` is gone.
 
 Active work is on the `python3` branch: a Python 2 → Python 3 port. When
 resolving conflicts against `master`, prefer the Python 3 idioms

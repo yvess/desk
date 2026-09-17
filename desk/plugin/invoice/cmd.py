@@ -54,7 +54,7 @@ class CreateInvoicesCommand(SettingsCommandDb):
 
     def run(self):
         crm = get_crm_module(self.settings)
-        invoice_cycle = InvoiceCycle(self.settings.invoice_nr)
+        invoice_cycle = InvoiceCycle(self.settings.invoice_nr, self.settings.year)
         clients = self.db.view("client_is_billable", include_docs=True)
         counter = 0
         for client in clients:

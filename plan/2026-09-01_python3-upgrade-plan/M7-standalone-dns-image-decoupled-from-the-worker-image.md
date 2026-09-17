@@ -45,8 +45,7 @@ Two images that share nothing but the lock file and the s6 layout:
 The dns image keeps running the worker (it registers itself, applies
 migrations, and serves `dns-check` / `dns-rebuild-powerdns`), so it still needs
 python and the `worker`/`worker-init` s6 services. It just stops needing the
-invoice stack. Code still comes from the `..:/opt/app` mount in both images —
-installing the package into the image is a separate step (see *Follow-up*).
+invoice stack. Code still comes from the `..:/opt/app` mount in both images.
 
 ## Steps
 
@@ -80,10 +79,9 @@ Each ends green (`cd desk && python -m unittest discover`).
 4. **Two requirement files, one lock.** Add `docker/dns/requirements3.txt`
    with the three dns packages; `docker/worker/requirements3.txt` stays as it
    is. Both images `pip install -r <their file> -c worker/requirements3.lock`,
-   so the versions cannot diverge. (`extras_require` in `setup.py` is the
-   nicer mechanism, but it only pays off once the package itself is installed
-   into the image — see *Follow-up*. Until then a three-line file is the KISS
-   answer.) Update `docs/dev-environment.md`: the host venv installs the worker
+   so the versions cannot diverge. (`extras_require` in `setup.py` would only
+   pay off if the package itself were installed into the image, which is not
+   planned; a three-line file is the KISS answer.) Update `docs/dev-environment.md`: the host venv installs the worker
    file, which is the superset.
 
 5. **Standalone `docker/dns/Dockerfile`.** `FROM alpine:3.24`; `apk add`
@@ -151,17 +149,11 @@ Each ends green (`cd desk && python -m unittest discover`).
   generality: image size is decided at build time by what is installed, and the
   existing `WORKER_TYPE` role gate already decides what is registered. There is
   no deployment shape where one image serves several roles.
-
-## Follow-up (own milestone, not blocked on this one)
-
-**Install the package into the images** instead of bind-mounting the repo:
-`pip install .[dns]` / `.[foreman]` (that is when `extras_require` replaces the
-requirement files), a `console_scripts` entry point for `dworker`, `_design/`
-as package data resolved next to the package instead of relative to the
-working directory (`command.py:111`), and then `PYTHONPATH`, `working_dir` and
-the `..:/opt/app` volume disappear from production compose. Dev keeps live
-editing through `docker-compose.override.yml`, the mechanism already used for
-the Cappuccino checkouts.
+- **Installing the package into the images** (`pip install .[dns]` /
+  `.[foreman]`, a `console_scripts` entry point, `_design/` as package data)
+  instead of bind-mounting the repo. First noted here as a follow-up milestone;
+  **rejected by the user 2026-09-17** — the `..:/opt/app` mount with
+  `PYTHONPATH` / `working_dir` stays.
 
 ## Executed 2026-09-03 (Opus)
 

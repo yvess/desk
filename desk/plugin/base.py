@@ -100,14 +100,14 @@ class Updater(object):
             'append': {},
             'remove': {}
         }
-        for item in self.service.structure: # TODO cleanup lot of duplication
+        for item in self.service.structure:
             name, key_id, value_id = (
                 item['name'], item['key_id'], item['value_id']
             )
+            name_diff = diff.get('_update', {}).get(name, {})
             # an existing entry changed
-            if ('_update' in diff and name in diff['_update']
-               and '_update' in diff['_update'][name]):
-                item_diff = diff['_update'][name]['_update']
+            if '_update' in name_diff:
+                item_diff = name_diff['_update']
                 item_diff_merged = []
                 for i in item_diff:
                     for v_id in value_id.split(','):
@@ -135,21 +135,11 @@ class Updater(object):
                             )
                 diff_merged['update'][name] = item_diff_merged
             # a new entry
-            if ('_update' in diff and name in diff['_update']
-               and '_append' in diff['_update'][name]):
-                item_diff = diff['_update'][name]['_append']
-                item_diff_merged = []
-                for i in item_diff:
-                    item_diff_merged.append(item_diff[i])
-                diff_merged['append'][name] = item_diff_merged
+            if '_append' in name_diff:
+                diff_merged['append'][name] = list(name_diff['_append'].values())
             # delete entry
-            if ('_update' in diff and name in diff['_update']
-               and '_remove' in diff['_update'][name]):
-                item_diff = diff['_update'][name]['_remove']
-                item_diff_merged = []
-                for i in item_diff:
-                    item_diff_merged.append(item_diff[i])
-                diff_merged['remove'][name] = item_diff_merged
+            if '_remove' in name_diff:
+                diff_merged['remove'][name] = list(name_diff['_remove'].values())
             # a record type the active document did not carry at all, and the
             # reverse -- json_diff reports those at the top level rather than
             # under _update, so they used to fall through unnoticed: a domain's
