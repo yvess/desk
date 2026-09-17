@@ -4,7 +4,6 @@ import json
 import httpx
 import collections
 from json import JSONEncoder
-from importlib import import_module
 
 
 class ObjectDict(object):
@@ -184,18 +183,14 @@ def calc_esr_checksum(ref_number):
 
 
 def get_crm_module(settings):
-    crm_module = import_module('.extcrm', package='desk.plugin')
+    # imported here, not at the top: todoyu imports pymysql, which only the
+    # foreman image installs, and a dns node never needs the extcrm package
     if getattr(settings, 'worker_extcrm', None):
-        backend_name = settings.worker_extcrm.split(':')[0]
-        # the backend module is imported only once it is named: todoyu imports
-        # pymysql, which only the foreman image installs
-        backend = import_module('.' + backend_name, package='desk.plugin.extcrm')
-        Crm = getattr(backend, backend_name.title())
-        crm = Crm(settings)
-    else:
-        Crm = getattr(crm_module, 'Dummy')
-        crm = Crm()
-    return crm
+        from desk.plugin.extcrm.todoyu import Todoyu
+        return Todoyu(settings)
+    from desk.plugin.extcrm.dummy import Dummy
+    return Dummy()
+
 
 def decode_json(data, child=None):
     data = data if isinstance(data, str) else data.decode('utf8')

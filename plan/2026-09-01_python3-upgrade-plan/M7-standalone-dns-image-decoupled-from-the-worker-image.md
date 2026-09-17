@@ -61,10 +61,13 @@ Each ends green (`cd desk && python -m unittest discover`).
 2. **Make `plugin/extcrm` lazy about pymysql.** `plugin/extcrm/__init__.py`
    imports `Todoyu` eagerly, so even the `Dummy` backend drags `pymysql` in.
    Import `todoyu` only inside `get_crm_module` when `worker_extcrm` names it
-   (`import_module('.todoyu', package='desk.plugin.extcrm')`), and keep `Dummy`
-   importable without pymysql. Existing `test_utils` cases for both branches
-   already exist; extend the Dummy one to assert `pymysql` is not in
-   `sys.modules` afterwards.
+   (a plain `from desk.plugin.extcrm.todoyu import Todoyu` in that branch; it
+   is the only backend), and keep `Dummy` importable without pymysql.
+   `test_utils` covers the Dummy branch; add one for the todoyu branch with
+   the MySQL connection patched out. The "pymysql is not in `sys.modules`"
+   assertion cannot live in `test_utils`: `test_imports.py` imports every
+   module in the package, todoyu included, so in-process `sys.modules` is
+   already polluted. It goes into the subprocess test of step 3 instead.
 
 3. **Pin the split with a test** (`tests/test_dworker_roles.py` or next to the
    existing entry-point smoke test): run `dworker --help` in a subprocess with
@@ -174,12 +177,16 @@ All seven steps as written, both decisions as recommended. What the run showed:
 - **`ENTRYPOINT ["/init"]` had to be added** to the dns Dockerfile: it used to
   inherit it from the worker image, and nothing in the plan mentioned it. Same
   for `wget`, which the s6-overlay install block uses.
-- **`get_crm_module` picks the backend module by name** (`.todoyu` for
-  `todoyu:mycompany`) rather than reading it off the package, so
-  `plugin/extcrm/__init__.py` is down to the `Dummy` import.
+- **`get_crm_module` imports `Todoyu` only in the `worker_extcrm` branch**
+  and `Dummy` only in the other, both inside the function, so
+  `plugin/extcrm/__init__.py` is down to the `Dummy` import and a dns node
+  never loads the extcrm package at all. (A first cut imported the backend
+  module by name; the review reverted that to the spec's fixed import — one
+  backend exists, and the by-name lookup changed how a capitalised config
+  value resolved.)
 - **The guard test lives in `tests/test_dworker_roles.py`** (4 tests). It runs
   the real entry point through `runpy` in a subprocess and dumps `sys.modules`
-  over stderr behind a `MODULES` marker. Verified it bites: restoring the eager
+  over stderr behind a `MODULES` marker from an `atexit` hook. Verified it bites: restoring the eager
   `from .todoyu import Todoyu` fails it. An in-process assertion was not an
   option — `test_imports.py` imports every module in the package, todoyu
   included, so `sys.modules` is already polluted by the time it runs.
