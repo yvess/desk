@@ -17,7 +17,6 @@ from desk.utils import (
     encode_json,
     get_crm_module,
     get_doc,
-    get_key,
     get_rows,
     parse_date,
 )
@@ -35,9 +34,15 @@ class GetCrmModuleTestCase(unittest.TestCase):
         self.assertIsInstance(crm, Dummy)
 
     def test_extcrm_todoyu_gives_the_todoyu_backend(self):
-        settings = argparse.Namespace(worker_extcrm="todoyu:mycompany")
-        with patch.object(Todoyu, "_fill_maps"):  # would open the MySQL connection
+        settings = argparse.Namespace(
+            worker_extcrm="todoyu:mycompany", todoyu_host="db",
+            todoyu_user="todoyu", todoyu_password="pw", todoyu_db="todoyu",
+        )
+        # the MySQL connection is the boundary; an empty todoyu answers
+        with patch("pymysql.connect") as connect:
+            connect.return_value.cursor.return_value.fetchall.return_value = []
             crm = get_crm_module(settings)
+        self.assertEqual(connect.call_args.kwargs["host"], "db")
         self.assertIsInstance(crm, Todoyu)
         self.assertIs(crm.settings, settings)
 
@@ -173,9 +178,6 @@ class ResponseHelpersTestCase(unittest.TestCase):
     def test_get_doc_on_plain_document(self):
         doc = get_doc(_response({"_id": "dns-test"}))
         self.assertEqual(doc._id, "dns-test")
-
-    def test_get_key(self):
-        self.assertEqual(get_key(_response({"_rev": "2-abc"}), "_rev"), "2-abc")
 
 
 def _handler(request):

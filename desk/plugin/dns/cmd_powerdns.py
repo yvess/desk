@@ -36,10 +36,7 @@ class PowerdnsExportCommand(SettingsCommand):
             records = pdns.get_records(domain)
             for rtype in records:
                 for record in records[rtype]:
-                    entry = "{dname} {rtype} {key} {value}\n".format(
-                            dname=domain, rtype=rtype.upper(),
-                            key=record[0], value=record[1]
-                    )
+                    entry = f"{domain} {rtype.upper()} {record[0]} {record[1]}\n"
                     output.append(entry)
         output.sort()
         with open(dest, 'w') as f:

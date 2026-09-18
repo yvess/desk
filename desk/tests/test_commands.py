@@ -22,6 +22,7 @@ from desk.command import InstallWorkerCommand, MigrateCommand
 from desk.plugin.base import MergedDoc
 from desk.plugin.dns.cmd_powerdns import DnsCheckCommand
 from desk.plugin.dns.cmd_powerdns import PowerdnsRebuildCommand
+from desk.plugin.dns.powerdns import Powerdns
 from desk.plugin.invoice.cmd import CreateInvoicesCommand
 from desk.plugin.invoice.invoice import Invoice
 from desk.plugin.service.query import QueryServices
@@ -273,23 +274,34 @@ class MigrateCommandTestCase(unittest.TestCase):
         self.assertEqual(len(self.couch.written()), 1)
 
 
-class StubPowerdns:
-    """Records what dns-rebuild-powerdns asks the backend to do."""
+class PowerdnsApiStub:
+    """A PowerDNS HTTP API over httpx.MockTransport, recording what it is sent."""
 
-    map_doc_id = 'map-ips'
+    def __init__(self, zones=()):
+        self.zones = list(zones)
+        self.requests = []
 
-    def __init__(self):
-        self.doc = None
-        self.calls = []
-        self.lookup_map = None
+    def handler(self, request):
+        body = json.loads(request.content) if request.content else None
+        self.requests.append((request.method, request.url.path, body))
+        if request.method == 'GET' and request.url.path.endswith('/zones'):
+            return httpx.Response(
+                200, json=[{'name': name} for name in self.zones]
+            )
+        if request.method == 'GET':
+            return httpx.Response(200, json={'rrsets': []})
+        if request.method == 'POST':
+            return httpx.Response(201, json={'name': 'test.ch.'})
+        return httpx.Response(204)
 
-    def __getattr__(self, name):
-        def record(*args, **kwargs):
-            self.calls.append(name)
-        return record
+    def backend(self, settings):
+        return Powerdns(settings, transport=httpx.MockTransport(self.handler))
 
-    def set_lookup_map(self, doc):
-        self.lookup_map = doc['map']
+    def methods(self):
+        return [method for method, _, _ in self.requests]
+
+    def sent(self, method):
+        return [body for verb, _, body in self.requests if verb == method]
 
 
 class PowerdnsRebuildCommandTestCase(unittest.TestCase):
@@ -311,24 +323,45 @@ class PowerdnsRebuildCommandTestCase(unittest.TestCase):
                 'template-domain': {
                     '_id': 'template-domain', 'type': 'template',
                     'nameservers': ['ns1.test.ch'],
+                    'soa_primary': 'ns1.test.ch',
+                    'soa_hostmaster': 'hostmaster@test.ch',
+                    'soa_refresh': 3600, 'soa_retry': 3600,
+                    'soa_expire': 3600, 'soa_default_ttl': 3600,
                     'a': [{'host': 'www', 'ip': '$ip_web'}],
                 },
             },
         )
+        self.pdns_api = PowerdnsApiStub()
         self.command = PowerdnsRebuildCommand()
         self.command.set_settings(settings(
             powerdns_api_url='http://ns1:8081', powerdns_api_key='devkey',
-            target=None,
+            target=None, only_delete=False,
         ))
         self.command.db.close()
         self.command.db = self.couch.client()
         self.addCleanup(self.command.db.close)
-        self.command.pdns = StubPowerdns()
+
+    def rebuild(self, domain):
+        """`_rebuild` as `run` calls it: backend built, lookup map set."""
+        self.command.pdns = self.pdns_api.backend(self.command.settings)
+        self.addCleanup(self.command.pdns.api.close)
+        self.command.pdns.set_lookup_map(self.couch.docs['map-ips'])
+        self.command._rebuild(domain)
+
+    def rrsets(self, method):
+        return {
+            (rrset['name'], rrset['type']): [
+                record['content'] for record in rrset['records']
+            ]
+            for rrset in self.pdns_api.sent(method)[0]['rrsets']
+        }
 
     def test_rebuild_merges_the_domain_with_its_template(self):
-        self.command._rebuild('test.ch')
-        self.assertEqual(self.command.pdns.doc['domain'], 'test.ch')
-        self.assertEqual(self.command.pdns.doc['nameservers'], ['ns1.test.ch'])
+        self.rebuild('test.ch')
+
+        rrsets = self.rrsets('POST')
+        self.assertEqual(rrsets[('test.ch.', 'NS')], ['ns1.test.ch.'])
+        self.assertEqual(rrsets[('www.test.ch.', 'A')], ['1.2.3.4'])
 
     def test_rebuild_syncs_the_zone(self):
         """CouchDB is authoritative, so the zone is made to match it.
@@ -337,18 +370,24 @@ class PowerdnsRebuildCommandTestCase(unittest.TestCase):
         across by hand; the API bumps the serial itself, and patching an
         existing zone keeps that serial climbing.
         """
-        self.command._rebuild('test.ch')
+        self.pdns_api.zones = ['test.ch.']
 
-        self.assertEqual(self.command.pdns.calls, ['create'])
+        self.rebuild('test.ch')
+
+        self.assertEqual(self.pdns_api.methods(), ['GET', 'GET', 'PATCH'])
+        self.assertEqual(
+            self.rrsets('PATCH')[('www.test.ch.', 'A')], ['1.2.3.4']
+        )
 
     def run_command(self):
+        # run() builds its own backend; hand it the real one over the stub API
         with patch(
-            'desk.plugin.dns.cmd_powerdns.Powerdns',
-            return_value=self.command.pdns,
+            'desk.plugin.dns.cmd_powerdns.Powerdns', self.pdns_api.backend,
         ):
             with redirect_stdout(io.StringIO()):
                 with patch('builtins.input', return_value='no'):
                     self.command.run()
+        self.addCleanup(self.command.pdns.api.close)
 
     def test_the_lookup_map_is_read_as_a_document(self):
         self.run_command()
@@ -360,7 +399,7 @@ class PowerdnsRebuildCommandTestCase(unittest.TestCase):
         with self.assertRaises(LookupError) as raised:
             self.run_command()
         self.assertIn('map-ips', str(raised.exception))
-        self.assertIsNone(self.command.pdns.lookup_map)
+        self.assertEqual(self.pdns_api.requests, [])
 
     def test_a_failing_couchdb_aborts_the_run(self):
         self.couch.failing['map-ips'] = 500
@@ -371,9 +410,9 @@ class PowerdnsRebuildCommandTestCase(unittest.TestCase):
         """An empty view result used to raise a bare IndexError."""
         self.couch.views['domain_by_name'] = []
         with self.assertRaises(LookupError) as raised:
-            self.command._rebuild('nosuch.ch')
+            self.rebuild('nosuch.ch')
         self.assertIn('nosuch.ch', str(raised.exception))
-        self.assertEqual(self.command.pdns.calls, [])
+        self.assertEqual(self.pdns_api.requests, [])
 
 
 class QueryServicesTestCase(unittest.TestCase):

@@ -7,16 +7,18 @@ Covers the four behaviours that arrived with the merge:
   d01a881 invoice_ref on the invoice doc
 
 Fixtures are plain dicts shaped like the CouchDB docs the `service_by_client`
-view returns, so no database is needed.
+view returns, served over httpx.MockTransport, so no database is needed.
 """
 import io
 import unittest
 from contextlib import redirect_stdout
 from datetime import date
 
+import httpx
+
 from desk.plugin.extcrm.dummy import Dummy
 from desk.plugin.invoice.invoice import Invoice, InvoiceCycle
-from desk.utils import ObjectDict
+from desk.utils import CouchDBClient, ObjectDict
 
 YEAR = 2026
 
@@ -48,16 +50,18 @@ def make_service(**overrides):
     return doc
 
 
-class StubDb:
-    """Stands in for the service_by_client view the invoice reads."""
+def couch_client(service_docs):
+    """A CouchDBClient whose CouchDB answers every view with these services."""
 
-    dbname = 'desk_drawer'
+    def handler(request):
+        return httpx.Response(
+            200, json={'rows': [{'doc': doc} for doc in service_docs]}
+        )
 
-    def __init__(self, service_docs):
-        self.service_docs = service_docs
-
-    def view(self, name, key=None, include_docs=False):
-        return [{'doc': doc} for doc in self.service_docs]
+    return CouchDBClient.db(
+        'http://cdb:5984', db_name='desk_drawer',
+        transport=httpx.MockTransport(handler),
+    )
 
 
 class InvoiceTestCaseBase(unittest.TestCase):
@@ -83,7 +87,8 @@ class InvoiceTestCaseBase(unittest.TestCase):
         invoice.extcrm_id = 'p1'
         invoice.invoice_cycle = cycle
         invoice.invoice_nr = 1
-        invoice.db = StubDb(list(service_docs))
+        invoice.db = couch_client(list(service_docs))
+        self.addCleanup(invoice.db.close)
         return invoice
 
     def services_of(self, invoice):

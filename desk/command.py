@@ -135,7 +135,7 @@ class InstallWorkerCommand(SettingsCommandDb):
             for backend, name in dns_servers:
                 provides['domain'].append({'backend': backend, 'name': name})
 
-        worker_id = "worker-{}".format(self.hostname)
+        worker_id = f"worker-{self.hostname}"
         worker_doc = {
             "_id": worker_id, "type": "worker", "hostname": self.hostname,
             "provides": provides
@@ -158,7 +158,7 @@ class MigrateCommand(SettingsCommandDb):
     def run(self):
         def next_migration(version, doc_id, doc_type):
             new_version = version + 1
-            next_migration_name = "to%04d" % new_version
+            next_migration_name = f"to{new_version:04d}"
             if hasattr(migrations, next_migration_name):
                 do_migration = getattr(migrations, next_migration_name)
                 doc = get_doc(self.db.get(doc_id))

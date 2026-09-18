@@ -113,6 +113,18 @@ class DnsValidatorTestCase(unittest.TestCase):
 
         self.assertFalse(self.validator(answers=answers).do_check())
 
+    def test_a_refused_zone_is_invalid_not_an_error(self):
+        """A nameserver without the zone answers REFUSED, which dnspython
+        raises as NoNameservers.
+        """
+        validator = self.validator()
+
+        def refuse(name, record_type):
+            raise dns.resolver.NoNameservers()
+        self.resolver.resolve = refuse
+
+        self.assertFalse(validator.do_check())
+
     def test_txt_content_is_compared_at_the_records_own_name(self):
         """Each TXT record is asked for at its own name and compared on the
         joined strings of the rdata.

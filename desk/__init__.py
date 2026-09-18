@@ -1,13 +1,10 @@
-import os
 import sys
 import socket
-import time
 import logging
-import json
 import asyncio
 import httpx
 from desk.utils import ObjectDict, CouchDBClient, CouchDBClientAsync, AttributeDict
-from desk.utils import decode_json, encode_json, get_doc, get_key
+from desk.utils import decode_json, encode_json, get_doc
 from desk.plugin.base import Updater, MergedDoc
 from desk.plugin import dns
 
@@ -70,7 +67,7 @@ class Worker(object):
         successfull_tasks = []
         for doc_id in docs:
             doc = get_doc(self.db.get(doc_id))
-            self.logger.info('do task %s' % task_id)
+            self.logger.info(f'do task {task_id}')
             was_successfull = self._do_task(doc)
             successfull_tasks.append(was_successfull)
         task_doc = get_doc(self.db.get(task_id))
@@ -96,7 +93,7 @@ class Worker(object):
                         backend_class
                     )
                 except AttributeError:
-                    self.logger.error("not found: %s" % doc._id)
+                    self.logger.error(f"not found: {doc._id}")
                 if ServiceClass:
                     with ServiceClass(self.settings) as service:
                         updater = Updater(self.db, doc, service)
@@ -213,8 +210,8 @@ class Foreman(Worker):
     def _create_tasks(self, providers=None, order_id=None):
         created = False
         for provider in providers:
-            task_id = f"task-{provider}-{get_key(self.db.get('../_uuids'), 'uuids')[0]}"
-            self.logger.info("create task %s" % task_id)
+            task_id = f"task-{provider}-{self.db.get('../_uuids').json()['uuids'][0]}"
+            self.logger.info(f"create task {task_id}")
             doc = AttributeDict(
                 _id=task_id,
                 type="task",
@@ -280,7 +277,7 @@ class Foreman(Worker):
                             params=dict(active_rev=active_rev)
                         )
                 self.db.put(url=order_doc._id, content=encode_json(order_doc))
-                self.logger.info('order state: %s' % order_doc.state)
+                self.logger.info(f'order state: {order_doc.state}')
 
     def run(self):
         queue_tasks_open = self._create_queue(

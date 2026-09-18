@@ -234,6 +234,10 @@ mounts moved from `cdb` to `capi` in `docker-extra.yml.dist`.
   `help`. Local builds pass `--builder "$(docker context show)"` — buildx's
   docker-driver builder is the one that can see the local image store, which
   `build_dns` needs; a docker-container builder only sees the registry.
+  **Later change (ff4d52e, M4/M5 docs pass):** `compose`, `up`, `down` and
+  `logs` were dropped again — each only wrapped one `docker compose` command, so
+  the stack is run with plain `docker compose up -d` / `down` / `logs -f` from
+  `desk/` and the taskfile keeps what needs more than one command.
 - Deleted: `desk/Makefile`, `desk/docker/Makefile`, `dworker.spec`,
   `docker/worker/requirements-build.txt`, the two py2 `requirements.txt`
   (worker + dns), `docker/couchdb-testdata.yml` and `docker/_test_desk/` (fig,

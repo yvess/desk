@@ -6,7 +6,8 @@ Python 3.14, venv at the repo root (git-ignored):
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r desk/docker/worker/requirements3.txt
+.venv/bin/pip install -r desk/docker/worker/requirements3.txt \
+    -c desk/docker/worker/requirements3.lock
 .venv/bin/pip install -e .
 .venv/bin/pip install coverage       # only for ./coverage.sh
 ```

@@ -55,11 +55,12 @@ The full upgrade is planned in **`plan/2026-09-01_python3-upgrade-plan.md`** —
 milestones M0–M6 (dev env/tests → merge origin/master → dead-code/command ports →
 Docker images+compose → CouchDB 1.6→3.x → PowerDNS HTTP API → optional
 consolidation). Work milestone by milestone; each ends with the test suite green.
-Supporting analyses:
-`tmp/python3-upgrade-analysis.md` (dependencies, verified),
-`tmp/simplification-analysis.md` (dead code, PowerDNS API design),
-`tmp/python-django-best-practices.md` (cross-cutting parts only: KISS tiebreaker,
-regression test with every bug fix, no commented-out code).
+Supporting analyses, in `plan/2026-09-01_python3-upgrade-plan/analysis/`:
+`python3-upgrade-analysis.md` (dependencies, verified),
+`simplification-analysis.md` (dead code, PowerDNS API design),
+and the local-only `tmp/python-django-best-practices.md` (cross-cutting parts
+only: KISS tiebreaker, regression test with every bug fix, no commented-out
+code).
 Frontend (`desk_pad/`, Cappuccino) is explicitly deferred to a later round.
 Update the tracking table at the bottom of the plan as milestones complete.
 
@@ -89,7 +90,7 @@ On a dev host the Cappuccino checkouts are bind-mounted under `/opt/src` by
 to copy is in `docs/upgrade-master-to-python3.md`. Production has no override
 file -- the deploy copies a release build into `desk_pad/Frameworks` instead.
 
-Services are supervised by s6-overlay v3 (`s6-rc.d`, see
+Services are supervised by s6-overlay v3 (`s6-rc.d`, see the local-only
 `tmp/s6-overlay-setup.md`) and each is opt-in via `START_WORKER` / `START_PDNS`.
 
 ## Tests

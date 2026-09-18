@@ -34,10 +34,13 @@ class DnsValidator(object):
 
         A record that is not there is not an error here -- it is an answer of
         nothing, which is what makes the comparison below report it invalid.
+        A nameserver that does not have the zone at all answers REFUSED, which
+        dnspython raises as NoNameservers; that is the same answer of nothing.
         """
         try:
             response = self.resolver.resolve(name, record_type)
-        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN,
+                dns.resolver.NoNameservers):
             return []
         answers = []
         for answer in response:

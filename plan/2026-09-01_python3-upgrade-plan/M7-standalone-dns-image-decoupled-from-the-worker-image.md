@@ -200,3 +200,15 @@ clears it immediately. M4 already noted this. `dns-check` surfaces it as an
 uncaught `dns.resolver.NoNameservers` traceback rather than a reported failure —
 `dnsbase._answers` (`plugin/dns/dnsbase.py:39`) does not catch it. Pre-existing,
 left alone.
+
+**Correction (2026-09-17 review):** the REFUSED window did not reproduce, so
+M5's "served without a pdns restart" stands and `pdns.conf` needs no
+`zone-cache-refresh-interval`. Probed on the running dev stack (pdns 5.0.7): a
+zone created through the API answered SOA and a non-apex A record at once, also
+when that name had been asked (and REFUSED) right before the zone existed. The
+API keeps the zone cache current for its own changes; only a zone written
+behind pdns's back (straight into the sqlite file, as before M5) waits for the
+refresh, which is what M4 saw and most likely what this note saw too.
+`dns-check` no longer tracebacks on REFUSED: `_answers` treats
+`NoNameservers` like a missing record, so the zone is reported as not matching
+(regression test in `tests/test_dns.py`).

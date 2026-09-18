@@ -103,8 +103,8 @@ class SetupWorkerParser(object):
             )
             self.commands[command_name] = command_instance
 
-            setattr(self, '%s_cmd' % name_snake, command_instance)
-            setattr(self, '%s_parser' % name_snake, command_parser)
+            setattr(self, f'{name_snake}_cmd', command_instance)
+            setattr(self, f'{name_snake}_parser', command_parser)
             self.parsers.append(command_parser)
 
     def merge_configfile(self):
@@ -121,14 +121,14 @@ class SetupWorkerParser(object):
             with open(args.config, 'r') as file:
                 config.read_file(file)
             if not config:
-                print("Can't open file '{}'".format(args.config))
+                print(f"Can't open file '{args.config}'")
                 sys.exit(0)
             else:
                 for section in CONF_SECTIONS:
                     conf = {}
                     if config.has_section(section):
                         for k, v in config.items(section):
-                            prop = '{}_{}'.format(section, k)
+                            prop = f'{section}_{k}'
                             if prop in BOOLEAN_TYPES:
                                 conf[prop] = config.getboolean(section, k)
                             else:

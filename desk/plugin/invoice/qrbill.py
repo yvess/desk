@@ -17,8 +17,9 @@ INVOICE_NAME_RE = re.compile(
 )
 
 
-"""Add qrbill to invoice to pdf"""
 class InvoiceQrBill(object):
+    """Add qrbill to invoice to pdf"""
+
     def __init__(self, settings, invoices_path):
         self.settings = settings
         self.invoices_path = invoices_path

@@ -11,13 +11,14 @@ tiebreaker (see `tmp/python-django-best-practices.md` §1.2).
 `plan/2026-09-01_python3-upgrade-plan/` (linked from the headings below). This file keeps the
 shared intro, the deferred items, and the tracking table.
 
-**Source analyses (read before executing a milestone that cites them):**
-- `tmp/python3-upgrade-analysis.md` — dependency/version findings, verified on PyPI + py3.14 venvs
-- `tmp/simplification-analysis.md` — dead code, half-ported commands, PowerDNS API design
-- `tmp/s6-overlay-setup.md` — proven s6-overlay v3 setup from another project: s6-rc.d
+**Source analyses (read before executing a milestone that cites them), in
+`plan/2026-09-01_python3-upgrade-plan/analysis/`:**
+- `python3-upgrade-analysis.md` — dependency/version findings, verified on PyPI + py3.14 venvs
+- `simplification-analysis.md` — dead code, half-ported commands, PowerDNS API design
+- `tmp/s6-overlay-setup.md` (local only, `tmp/` is git-ignored; from another project) — proven s6-overlay v3 setup from another project: s6-rc.d
   layout, env-var-gated optional services via `S6_STAGE2_HOOK`, v1/v2→v3 migration table.
   **The M3 s6 migration follows this document.**
-- `tmp/python-django-best-practices.md` — only the cross-cutting parts apply (this is not Django):
+- `tmp/python-django-best-practices.md` (local only, from another project) — only the cross-cutting parts apply (this is not Django):
   §1.2 KISS tiebreaker, §1.4 comments describe current code (never history), §1.5 every bug
   fix ships with a regression test in the same change, §7.4 test at real boundaries (fixtures
   from real docs, no mock-heavy tests), §8.7 no commented-out code.
@@ -131,6 +132,9 @@ Out of scope for this upgrade. Noted for later:
   `_list`/`_update` calls and the design doc's `rewrites` are all deprecated in
   CouchDB 3.x and **removed in 4.x**. Not a problem for 3.5.2; the frontend round
   should decide their replacement.
+- **Exception to "don't hand-edit" (fe4aca5):** `desk_pad/AppController.j` sets
+  `setAPIPrefix:@"/api"`. Without it the pad cannot reach CouchDB through
+  `capi`'s `/api/...` rewrites, so it could not wait for the frontend round.
 - A dedicated frontend update round follows after the backend milestones ship.
 
 ---
@@ -147,6 +151,11 @@ Out of scope for this upgrade. Noted for later:
 | M5 | PowerDNS HTTP API | ☑ done 2026-09-02 | export diff sqlite vs API identical (16/16 lines), dig A/CNAME/MX/SOA with no pdns restart, TXT quoting case fixed, 0 SQL sites left, suite green (135 tests) |
 | M6 | Consolidations (optional) | ☑ done 2026-09-02 | AttributeDict 107→44 lines (2 latent NameErrors gone), 5 FQDN helpers→1 pair (2 edge-case bugs fixed), `_process_tasks` dispatched once per service type, DnsValidator repaired + `dworker dns-check` verified live, suite green (162 tests) |
 | M7 | Standalone dns image | ☑ done 2026-09-03 | dns image built with no `desk-worker:0.5.0` in the store, 238MB→129MB; `service-query` foreman-only (rejected on `dnsa`, works on `foreman`); `get_crm_module` no longer imports pymysql for the Dummy; live stack: zone rebuild via the pdns API + `dig` SOA/NS/A on both nodes, `dns-check` 2/2 green on `dnsa` and `dnsb`, `invoices-create` still works on the foreman; suite green (176 tests) |
+
+**Bug fixes outside the milestones** (each with its regression test, ground rule 3):
+- 6ccc2e0 — `invoices-create` ignored `--year`; it is honoured now (`test_commands.py`).
+- 2026-09-17 review — `dns-check` no longer tracebacks when a nameserver answers
+  REFUSED (see the correction at the end of M7). Suite: 177 tests.
 
 Update this table (and note decisions taken) as milestones complete, so any later
 session can pick up from here.

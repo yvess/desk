@@ -48,7 +48,7 @@ def txt_content(value):
         value[i:i + TXT_CHUNK] for i in range(0, len(value), TXT_CHUNK)
     ] or ['']
     return ' '.join(
-        '"{}"'.format(chunk.replace('\\', '\\\\').replace('"', '\\"'))
+        '"' + chunk.replace('\\', '\\\\').replace('"', '\\"') + '"'
         for chunk in chunks
     )
 
@@ -98,7 +98,7 @@ class Powerdns(DnsBase):
         key_id, value_id = rtype['key_id'], rtype['value_id']
         value = self._value_trans(value_id, rtype=rtype, item=item)
         if name == 'mx':
-            return "{} {}".format(int(value['priority']), fqdn(value['host']))
+            return f"{int(value['priority'])} {fqdn(value['host'])}"
         if name == 'srv':
             return "{priority} {weight} {port} {targethost}".format(
                 **{**value, 'targethost': fqdn(value['targethost'])}
