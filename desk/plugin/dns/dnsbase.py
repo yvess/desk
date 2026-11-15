@@ -1,6 +1,10 @@
 import abc
+import re
 from socket import gethostbyname
 import dns.resolver
+
+# one or more "quoted strings", the way a TXT record is written in a zone file
+QUOTED_STRINGS = re.compile(r'\s*"(?:[^"\\]|\\.)*"(?:\s+"(?:[^"\\]|\\.)*")*\s*')
 
 
 class DnsValidator(object):
@@ -55,6 +59,8 @@ class DnsValidator(object):
 
     def _expected(self, item, item_key, record_type, is_fqdn):
         value = str(item[item_key])
+        if record_type == 'TXT':
+            value = txt_plain(value)
         if value.startswith('$ip_'):
             value = self.lookup_map[value]
         if is_fqdn and not value.endswith("."):
@@ -100,6 +106,25 @@ class DnsValidator(object):
             # the content of each TXT record, asked for at its own name
             self._validate('TXT', 'content', q_key='name')
         return self._checked()
+
+
+def txt_value(content):
+    """The text of quoted TXT content: join the strings, drop the escapes."""
+    strings = re.findall(r'"((?:[^"\\]|\\.)*)"', content)
+    return ''.join(re.sub(r'\\(.)', r'\1', string) for string in strings)
+
+
+def txt_plain(value):
+    """A document's TXT value as the text it stands for.
+
+    Documents hold both forms: the bare text, and the same text already
+    written as quoted strings (`"v=spf1 -all"`, or a DKIM key pre-split into
+    `"..." "..."`), which is how it had to be entered while the worker wrote
+    the value into the PowerDNS database as it was.
+    """
+    if QUOTED_STRINGS.fullmatch(value):
+        return txt_value(value)
+    return value
 
 
 def to_fqdn(name, domain=None):

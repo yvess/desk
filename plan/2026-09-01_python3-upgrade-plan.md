@@ -156,6 +156,12 @@ Out of scope for this upgrade. Noted for later:
 - 6ccc2e0 — `invoices-create` ignored `--year`; it is honoured now (`test_commands.py`).
 - 2026-09-17 review — `dns-check` no longer tracebacks when a nameserver answers
   REFUSED (see the correction at the end of M7). Suite: 177 tests.
+- 2026-11-15 production upgrade prep — a TXT value the document already holds
+  as quoted strings (`"v=spf1 -all"`, or a DKIM key pre-split) was quoted and
+  escaped a second time, which would have published the quote characters. The
+  old backend wrote values as they were, so production documents carry both
+  forms; `txt_content` and `dns-check` now read either (`test_dns.py`).
+  Suite: 181 tests.
 
 Update this table (and note decisions taken) as milestones complete, so any later
 session can pick up from here.

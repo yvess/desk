@@ -138,6 +138,12 @@ class DnsValidatorTestCase(unittest.TestCase):
 
         self.assertFalse(self.validator(answers=answers).do_check())
 
+    def test_a_txt_value_the_document_holds_quoted_matches_its_text(self):
+        """Documents written for the old backend carry the quotes."""
+        doc = dict(self.DOC, txt=[{'name': '@', 'content': '"v=spf1 -all"'}])
+
+        self.assertTrue(self.validator(doc=doc).do_check())
+
     def test_a_map_variable_is_resolved_before_comparing(self):
         doc = dict(self.DOC, a=[{'host': 'www', 'ip': '$ip_web1'}])
         resolver = StubResolver(self.ANSWERS)
@@ -735,6 +741,23 @@ class TxtContentTest(unittest.TestCase):
 
     def test_an_empty_value_is_one_empty_string(self):
         self.assertEqual(txt_content(''), '""')
+
+    def test_a_value_already_quoted_is_not_quoted_twice(self):
+        """The old backend stored the value as it was, so documents carry
+        the quotes; escaping them again would publish them as part of the
+        record and break the SPF or DKIM entry.
+        """
+        self.assertEqual(txt_content('"v=spf1 -all"'), '"v=spf1 -all"')
+
+    def test_a_value_already_split_into_strings_is_rejoined(self):
+        """A DKIM key entered as `"..." "..."` is one text, split at 255."""
+        content = txt_content('"' + 'k' * 200 + '" "' + 'k' * 100 + '"')
+
+        strings = content.split('" "')
+        self.assertEqual([len(x.strip('"')) for x in strings], [255, 45])
+
+    def test_quotes_inside_a_bare_value_are_still_escaped(self):
+        self.assertEqual(txt_content('a "b" c'), '"a \\"b\\" c"')
 
     def test_the_export_reverses_it(self):
         for value in ('v=spf1 -all', 'say "hi" c:\\temp', 'k' * 300, ''):

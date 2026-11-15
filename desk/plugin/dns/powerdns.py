@@ -6,12 +6,11 @@ also owns the SOA serial (`soa_edit_api` is `DEFAULT` on every zone the API
 creates, giving the same YYYYMMDDnn serial the old code built by hand), and it
 invalidates PowerDNS's own caches, so changes are served immediately.
 """
-import re
 from collections import OrderedDict
 
 import httpx
 
-from desk.plugin.dns import DnsBase, from_fqdn
+from desk.plugin.dns import DnsBase, from_fqdn, txt_plain, txt_value
 
 SOA_FORMAT = (
     "{primary} {hostmaster} {serial} {soa_refresh} {soa_retry} "
@@ -42,8 +41,10 @@ def soa_mailbox(address):
 def txt_content(value):
     """The document's TXT value as master-file content: quoted, escaped, and
     split into 255-byte strings, which is as much as one string may hold --
-    a DKIM key is longer than that.
+    a DKIM key is longer than that. A value the document already holds as
+    quoted strings is read as its text first, not quoted a second time.
     """
+    value = txt_plain(value)
     chunks = [
         value[i:i + TXT_CHUNK] for i in range(0, len(value), TXT_CHUNK)
     ] or ['']
@@ -51,12 +52,6 @@ def txt_content(value):
         '"' + chunk.replace('\\', '\\\\').replace('"', '\\"') + '"'
         for chunk in chunks
     )
-
-
-def txt_value(content):
-    """The reverse of txt_content: join the strings, drop the escapes."""
-    strings = re.findall(r'"((?:[^"\\]|\\.)*)"', content)
-    return ''.join(re.sub(r'\\(.)', r'\1', string) for string in strings)
 
 
 class Powerdns(DnsBase):
