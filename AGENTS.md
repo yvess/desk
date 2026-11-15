@@ -88,7 +88,7 @@ Running the stack is plain `docker compose up -d` / `down` / `logs -f` from
 `desk/docker-compose.yml` is also what production deploys with `docker stack
 deploy`, so it holds only what the stack format accepts. Dev-only settings go in
 `desk/docker-compose.override.yml` (auto-loaded by compose, never read by a
-stack deploy): the `condition:` form of `depends_on`, the DNS ports, and the
+stack deploy): the `condition:` form of `depends_on`, every published port, and the
 Cappuccino checkouts bind-mounted under `/opt/src`. Production copies a release
 build into `desk_pad/Frameworks` instead; details in
 `docs/upgrade-master-to-python3.md`.

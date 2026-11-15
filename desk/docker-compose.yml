@@ -2,8 +2,10 @@
 # so it holds only what both accept. What is dev-only lives in
 # docker-compose.override.yml, which compose loads automatically and a stack
 # deploy never reads: the health-ordered depends_on (the stack format rejects
-# the `condition:` form) and the DNS ports (a second file cannot publish 53 on
-# udp and tcp once this one publishes a port for the service).
+# the `condition:` form) and every published port. In a swarm the services
+# reach each other over the stack's network, and what production does publish
+# is its own decision -- a second file cannot publish 53 on udp and tcp once
+# this one publishes a port for the service.
 services:
   cdb:
     image: couchdb:3.5.2
@@ -17,8 +19,6 @@ services:
       # not :ro -- the image's entrypoint chowns everything under
       # /opt/couchdb under `set -e`, and a read-only mount makes it exit 1
       - ./docker/cdb/local.d/desk.ini:/opt/couchdb/etc/local.d/desk.ini
-    ports:
-      - "5984:5984"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS -u \"$$COUCHDB_USER:$$COUCHDB_PASSWORD\" http://localhost:5984/_up"]
       interval: 3s
@@ -37,8 +37,6 @@ services:
       # Dev host only: docker-compose.override.yml bind-mounts the Cappuccino
       # checkouts under /opt/src -- desk_pad/Frameworks are symlinks into
       # there. Production copies a release build into desk_pad/Frameworks.
-    ports:
-      - "81:80"
 
   dnsa:
     image: yvess/desk-dns:0.5.0
