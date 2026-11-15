@@ -135,6 +135,12 @@ used is no longer read at all.
         condition: service_healthy
 ```
 
+That block is in `desk/docker-compose.override.yml`, not in
+`docker-compose.yml`: `docker stack deploy` rejects the `condition:` form
+(`depends_on: must be a list`), and the main file is deployed to a swarm as it
+is. Swarm does not order services anyway; the workers wait for CouchDB
+themselves.
+
 **`cdb` — the largest change.**
 
 | | master | python3 |
@@ -203,25 +209,37 @@ See step 4.
       - "1053:53/tcp"
 ```
 
-**The Cappuccino checkout mounts** are gone from the committed compose file.
+  These dev ports are in `docker-compose.override.yml` too. When a stack is
+  deployed from two files, the merge keeps one entry per published port
+  number -- a production file that adds `53` on udp and tcp to a service that
+  already publishes a port ends up with one of the two. With no DNS ports in
+  the main file, both survive. Check the result before deploying:
+
+```bash
+docker stack config -c docker-compose.yml -c <your production file>
+```
+
+**The Cappuccino checkout mounts** are gone from the main compose file.
 They attached to `cdb` before; on a dev host they now attach to `capi` (which is
-what serves the pad) through `desk/docker-compose.override.yml` — git-ignored,
-and picked up automatically without any `-f` flag. Create it with your own
-checkout paths:
+what serves the pad) through `desk/docker-compose.override.yml`, picked up
+automatically without any `-f` flag. Put your own checkout paths in it:
 
 ```yaml
-# Dev-only host paths. desk_pad/Frameworks holds symlinks into /opt/src/..., so
-# the Cappuccino checkouts have to be mounted at exactly those paths for capi to
-# serve them.
 services:
   capi:
     volumes:
+      # desk_pad/Frameworks holds symlinks into /opt/src/..., so the Cappuccino
+      # checkouts have to be mounted at exactly those paths for capi to serve
+      # them
       - /{your path}/cappuccino:/opt/src/cappuccino
       - /{your path}/GrowlCappuccino:/opt/src/GrowlCappuccino
       - /{your path}/CouchResource:/opt/src/CouchResource
 ```
 
-**A production host does not get that file at all**; see the deploy step below.
+**Production does not use that file**: `docker stack deploy` never reads it.
+On a production host that runs plain `docker compose` instead, remove it or
+name the files with `-f`, because compose would load it. See the deploy step
+below.
 
 **Before starting**, check the rendered result:
 
@@ -248,8 +266,8 @@ bind-mounted there. A deploy does not mount checkouts: it copies a Cappuccino
 **release build** over `desk_pad/Frameworks`, so the directory holds real files
 before `capi` starts.
 
-That means a production host needs **no `docker-compose.override.yml`** and
-nothing under `/opt/src`. Check it after deploying — a leftover symlink is the
+That means a production host uses nothing from
+`docker-compose.override.yml` and needs nothing under `/opt/src`. Check it after deploying — a leftover symlink is the
 failure mode here, because nginx serves a 404 for every framework and the pad
 loads to a blank page:
 

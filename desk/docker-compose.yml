@@ -1,3 +1,9 @@
+# Read by both `docker compose` (dev) and `docker stack deploy` (production),
+# so it holds only what both accept. What is dev-only lives in
+# docker-compose.override.yml, which compose loads automatically and a stack
+# deploy never reads: the health-ordered depends_on (the stack format rejects
+# the `condition:` form) and the DNS ports (a second file cannot publish 53 on
+# udp and tcp once this one publishes a port for the service).
 services:
   cdb:
     image: couchdb:3.5.2
@@ -28,17 +34,11 @@ services:
     volumes:
       - ./docker/capi/conf.d:/etc/nginx/conf.d:ro
       - ../desk_pad:/opt/app/desk_pad:ro
-      # Dev host only: add a docker-compose.override.yml next to this file
-      # (git-ignored, compose loads it automatically) that bind-mounts the
-      # Cappuccino checkouts under /opt/src -- desk_pad/Frameworks are symlinks
-      # into there. The file to copy is in docs/upgrade-master-to-python3.md.
-      # Production copies a release build into desk_pad/Frameworks and needs
-      # no override file.
+      # Dev host only: docker-compose.override.yml bind-mounts the Cappuccino
+      # checkouts under /opt/src -- desk_pad/Frameworks are symlinks into
+      # there. Production copies a release build into desk_pad/Frameworks.
     ports:
       - "81:80"
-    depends_on:
-      cdb:
-        condition: service_healthy
 
   dnsa:
     image: yvess/desk-dns:0.5.0
@@ -57,12 +57,6 @@ services:
       - ..:/opt/app
       - ./var:/var/services
     working_dir: /opt/app/desk
-    ports:
-      - "1053:53/udp"
-      - "1053:53/tcp"
-    depends_on:
-      cdb:
-        condition: service_healthy
     networks:
       default:
         # what the EXTRA_HOSTS/docker-link dance used to provide
@@ -86,12 +80,6 @@ services:
       - ..:/opt/app
       - ./var:/var/services
     working_dir: /opt/app/desk
-    ports:
-      - "2053:53/udp"
-      - "2053:53/tcp"
-    depends_on:
-      cdb:
-        condition: service_healthy
     networks:
       default:
         aliases:
@@ -112,10 +100,3 @@ services:
       - ..:/opt/app
       - ./var:/var/services
     working_dir: /opt/app/desk
-    depends_on:
-      cdb:
-        condition: service_healthy
-      dnsa:
-        condition: service_started
-      dnsb:
-        condition: service_started

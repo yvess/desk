@@ -85,10 +85,13 @@ cd desk
 Running the stack is plain `docker compose up -d` / `down` / `logs -f` from
 `desk/` -- the taskfile only carries what needs more than one command.
 
-On a dev host the Cappuccino checkouts are bind-mounted under `/opt/src` by
-`desk/docker-compose.override.yml` (git-ignored, auto-loaded, no `-f`); the file
-to copy is in `docs/upgrade-master-to-python3.md`. Production has no override
-file -- the deploy copies a release build into `desk_pad/Frameworks` instead.
+`desk/docker-compose.yml` is also what production deploys with `docker stack
+deploy`, so it holds only what the stack format accepts. Dev-only settings go in
+`desk/docker-compose.override.yml` (auto-loaded by compose, never read by a
+stack deploy): the `condition:` form of `depends_on`, the DNS ports, and the
+Cappuccino checkouts bind-mounted under `/opt/src`. Production copies a release
+build into `desk_pad/Frameworks` instead; details in
+`docs/upgrade-master-to-python3.md`.
 
 Services are supervised by s6-overlay v3 (`s6-rc.d`, see the local-only
 `tmp/s6-overlay-setup.md`) and each is opt-in via `START_WORKER` / `START_PDNS`.

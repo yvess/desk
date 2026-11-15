@@ -2,7 +2,7 @@
 
 Setting up a checkout for running the tests and the worker outside Docker.
 
-Python 3.14, venv at the repo root (git-ignored):
+Python 3.14 or newer,  venv at the repo root (git-ignored):
 
 ```bash
 python3 -m venv .venv
