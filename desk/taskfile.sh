@@ -47,9 +47,17 @@ build() {
     build_dns
 }
 
-push() {
+push_worker() {
     _buildx_worker --push --platform "${PUSH_PLATFORMS}"
+}
+
+push_dns() {
     _buildx_dns --push --platform "${PUSH_PLATFORMS}"
+}
+
+push() {
+    push_worker
+    push_dns
 }
 
 pull() {
